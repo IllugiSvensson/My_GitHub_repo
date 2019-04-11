@@ -1,0 +1,50 @@
+#Скрипт выполняет резервное копирование файлов.
+#!/bin/bash
+saveit () {
+	savelist="14 21 28 35 42 49 56"
+	today=$(date + "%s")
+	ago=$[ ($today - $1) / 86400 ]
+		for days in $(echo $savelist)
+		do
+			if [ $ago = $days ]
+			then
+				return 0
+			fi
+		done
+	return 1
+}
+[ "$1" = "--help" ] && {
+	echo Usage
+	echo For once a week rotate
+	echo $0 --rotate
+	echo For other days - only backup
+	echo $0
+	exit 
+}
+backlist=~/backup/backlist
+backdir=~/usefullscripts/backup/backdir
+cd $backdir
+[ "$1" = "--rotate" ] && {
+	for i in *
+	do
+		[ $i = "*" ] && break
+		fday=$(date -d `echo $i | cut -c 1-8` + "%s")
+		saveit $fday || rm $i
+	done
+}
+cat "$backlist" | xargs find | xargs tar -oc | gzip -9c > $(date +%Y_%m_%d)_backup.tar.gz
+cd ~-
+#Каждый день запускаем ./backup.sh
+#По воскресеньям запускаем ./backup.sh --rotate
+
+#Другая версия резервирующего скрипта. Добавим планировщик задач.
+#!/bin/bash
+tar -zcvpf backdir/$1/backup-`date '+%d-%B-%Y'`.tgz /home/sad
+find backdir/$1/ -mtime 180 -exec rm -f  {} \;
+find backdir/$1/ -mtime 30 -exec rm -f  {} \;
+find backdir/$1/ -mtime 7 -exec rm -f  {} \;
+#Задаем crontab 					
+#0 0 1 * * /home/user/script monthly		
+#0 0 * * 5 /home/user/script weekly		
+#0 0 * * * /home/user/script daily		
+						
