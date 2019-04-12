@@ -13,7 +13,7 @@ mkdir tmp
 echo " "
 echo "  Wait a moment"
 
-	for i in *.JPG
+	for i in *.JPG *.PNG
 	do
 		convert $i -resize $a$b 0$i
 		mv 0$i tmp/
@@ -22,7 +22,7 @@ echo "  Wait a moment"
 echo "  Resize done"
 cd tmp
 
-	for j in *.JPG
+	for j in *.JPG *.PNG
 	do
 		convert -compress jpeg -quality 1 $j $j.jpg 
 	done
