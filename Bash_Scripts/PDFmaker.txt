@@ -1,0 +1,38 @@
+#!/bin/bash
+#Скрипт, который делает фотольальбом из нескольких фотографий. Требуется утилита imagemagick
+#В данном случае используется для создания книги из сканов страниц
+#Сначала определяется наименьшее разрешение среди всех сканов
+#Затем все сканы подгоняются по ширине к наименьшему скану
+#Далее производим сжатие с потерями в 99% и преобразуем все в PDF
+#рабочие папки удаляются после выполнения скрипта
+
+a=`identify *.JPG |egrep -o '[0-9]{1,4}x[0-9]{1,4}' | sort -n | egrep -o '[0-9]{1,4}'| sed '1!D'`
+b=`identify *.JPG |egrep -o '[0-9]{1,4}x[0-9]{1,4}' | sort -n | egrep -o 'x[0-9]{1,4}'| sort -nr | sed '1!D'`
+
+mkdir tmp
+echo " "
+echo "  Wait a moment"
+
+	for i in *.JPG
+	do
+		convert $i -resize $a$b 0$i
+		mv 0$i tmp/
+	done
+
+echo "  Resize done"
+cd tmp
+
+	for j in *.JPG
+	do
+		convert -compress jpeg -quality 1 $j $j.jpg 
+	done
+echo "  Compress done"
+
+convert $( ls | egrep '(png|gif|pnm|pbm|pgm|jpg)$' | sort -n) book.pdf
+
+mv book.pdf /home/sad/Рабочий\ стол/Сканы/Linux\ и\ Git/book.pdf
+cd ..
+rm -rf tmp
+echo "  Convert done, workspace clean"
+echo " "
+
