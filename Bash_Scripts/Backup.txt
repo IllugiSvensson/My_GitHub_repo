@@ -1,19 +1,19 @@
 #Скрипт выполняет резервное копирование файлов.
 #!/bin/bash
-saveit () {
-	savelist="14 21 28 35 42 49 56"
-	today=$(date + "%s")
-	ago=$[ ($today - $1) / 86400 ]
+saveit () {									#Определим функцию для удаления и сохранения архива
+	savelist="14 21 28 35 42 49 56"						#Список дней для сохранения
+	today=$(date + "%s")							#Узнаем текущую дату
+	ago=$[ ($today - $1) / 86400 ]						#Фиксируем, сколько прошло времени
 		for days in $(echo $savelist)
 		do
-			if [ $ago = $days ]
+			if [ $ago = $days ]					#Если дни совпадают, то сохраняем
 			then
 				return 0
 			fi
-		done
+		done								#Иначе удаляем 
 	return 1
 }
-[ "$1" = "--help" ] && {
+[ "$1" = "--help" ] && {				#Вызов правил использования скрипта
 	echo Usage
 	echo For once a week rotate
 	echo $0 --rotate
@@ -21,27 +21,27 @@ saveit () {
 	echo $0
 	exit 
 }
-backlist=~/backup/backlist
-backdir=~/usefullscripts/backup/backdir
+backlist=~/backup/backlist			#Файл со списком директорий для архивирования
+backdir=~/usefullscripts/backup/backdir		#Директория для архивов
 cd $backdir
-[ "$1" = "--rotate" ] && {
-	for i in *
+[ "$1" = "--rotate" ] && {					#Проверяем существующие архивы
+	for i in *						#Если архив старше 7 дней, то его удаляем
 	do
 		[ $i = "*" ] && break
 		fday=$(date -d `echo $i | cut -c 1-8` + "%s")
 		saveit $fday || rm $i
 	done
 }
-cat "$backlist" | xargs find | xargs tar -oc | gzip -9c > $(date +%Y_%m_%d)_backup.tar.gz
+cat "$backlist" | xargs find | xargs tar -oc | gzip -9c > $(date +%Y_%m_%d)_backup.tar.gz	#Создаем архивы
 cd ~-
 #Каждый день запускаем ./backup.sh
 #По воскресеньям запускаем ./backup.sh --rotate
 
 #Другая версия резервирующего скрипта. Добавим планировщик задач.
 #!/bin/bash
-tar -zcvpf backdir/$1/backup-`date '+%d-%B-%Y'`.tgz /home/sad
-find backdir/$1/ -mtime 180 -exec rm -f  {} \;
-find backdir/$1/ -mtime 30 -exec rm -f  {} \;
+tar -zcvpf backdir/$1/backup-`date '+%d-%B-%Y'`.tgz /home/user		#Создаем архив каждый месяц, неделю, день по шаблону
+find backdir/$1/ -mtime 180 -exec rm -f  {} \;				#И удаляем архив, если он старше 180, 30, 7 дней в
+find backdir/$1/ -mtime 30 -exec rm -f  {} \;				#Соответствующей директории
 find backdir/$1/ -mtime 7 -exec rm -f  {} \;
 #Задаем crontab 					
 #0 0 1 * * /home/user/script monthly		

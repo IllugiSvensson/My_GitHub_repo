@@ -6,32 +6,33 @@
 #Далее производим сжатие с потерями в 99% и преобразуем все в PDF
 #рабочие папки удаляются после выполнения скрипта
 
+#Измеряем ширину и высоту фотографий, выбирая наименьшее разрешение
 a=`identify *.JPG |egrep -o '[0-9]{1,4}x[0-9]{1,4}' | sort -n | egrep -o '[0-9]{1,4}'| sed '1!D'`
 b=`identify *.JPG |egrep -o '[0-9]{1,4}x[0-9]{1,4}' | sort -n | egrep -o 'x[0-9]{1,4}'| sort -nr | sed '1!D'`
 
-mkdir tmp
+mkdir tmp			#Создадим рабочую папку
 echo " "
 echo "  Wait a moment"
 
-	for i in *.JPG *.PNG
+	for i in *.JPG *.PNG			#Циклом перебираем фотографии 
 	do
-		convert $i -resize $a$b 0$i
-		mv 0$i tmp/
+		convert $i -resize $a$b 0$i	#Подгоняем их под наименьшее разрешение
+		mv 0$i tmp/			#Заготовки переносим в рабочую папку
 	done
 
 echo "  Resize done"
 cd tmp
 
-	for j in *.JPG *.PNG
+	for j in *.JPG *.PNG					#Сжимаем фотографии алгоритмом jpeg
 	do
 		convert -compress jpeg -quality 1 $j $j.jpg 
 	done
 echo "  Compress done"
 
-convert $( ls | egrep '(png|gif|pnm|pbm|pgm|jpg)$' | sort -n) book.pdf
+convert $( ls | egrep '(png|gif|pnm|pbm|pgm|jpg)$' | sort -n) book.pdf		#Преобразуем набор фоток в PDF
 
-mv book.pdf /home/sad/Рабочий\ стол/Сканы/Linux\ и\ Git/book.pdf
-cd ..
+mv book.pdf /home/user/book.pdf				#Переносим готовый PDF в свободную папку и очищаем рабочую папку
+cd ..							#от заготовок
 rm -rf tmp
 echo "  Convert done, workspace clean"
 echo " "
