@@ -10,7 +10,11 @@
 a=`identify *.JPG |egrep -o '[0-9]{1,4}x[0-9]{1,4}' | sort -n | egrep -o '[0-9]{1,4}'| sed '1!D'`
 b=`identify *.JPG |egrep -o '[0-9]{1,4}x[0-9]{1,4}' | sort -n | egrep -o 'x[0-9]{1,4}'| sort -nr | sed '1!D'`
 
-mkdir tmp			#Создадим рабочую папку
+#Ключевые моменты - изменение разрешения и степень сжатия. Разрешение можно задать вручную
+#после -resize (важно: разрешение не может быть больше, чем разрешение исходной фотографии, а меньше может). 
+#Степень сжатия для черно-белых сканов можно сделать 1% в строчке -quality
+
+mkdir tmp					#Создадим рабочую папку
 echo " "
 echo "  Wait a moment"
 
@@ -23,7 +27,7 @@ echo "  Wait a moment"
 echo "  Resize done"
 cd tmp
 
-	for j in *.JPG *.PNG					#Сжимаем фотографии алгоритмом jpeg
+	for j in *.JPG *.PNG			#Сжимаем фотографии алгоритмом jpeg
 	do
 		convert -compress jpeg -quality 1 $j $j.jpg 
 	done
