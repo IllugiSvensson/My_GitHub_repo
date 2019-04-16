@@ -41,6 +41,7 @@ cat "$backlist" | xargs find | xargs tar -oc | gzip -9c > $(date +%Y_%m_%d)_back
 cd ~-
 #Каждый день запускаем ./backup.sh
 #По воскресеньям запускаем ./backup.sh --rotate
+#Можно добавить в crontab
 
 #Другая версия резервирующего скрипта. Добавим планировщик задач.
 #!/bin/bash
