@@ -5,7 +5,7 @@
 if [ $# -lt 2 ]					#Если меньше двух аргументов, то запускаем правила
 then								
 	echo Usage:								
-	echo $0 newprefix file1 file2 …		#Формат использования скрипта					 
+	echo $0 newprefix file1 file2 …	#Формат использования скрипта					 
 	exit 1
 fi       
 							
