@@ -13,7 +13,8 @@ int main(int argc, char const *argv[]) {
 	const int max = 100;
 	int input;
 
-	printf("\nВведите число: ");
+	printf("Проверим число на соответствие диапазону.\n");
+	printf("Введите число для проверки: ");
 	scanf("%d", &input);
 		printf("Введенное число '%d' %sпопадает в диапазон от %d до %d.\n", 
 			input,
@@ -27,13 +28,14 @@ int main(int argc, char const *argv[]) {
 	int i = 0;
 	float mean = 0;
 	
+	printf("\nПосчитаем среднее арифметическое.");
 	printf("\nСколько чисел нужно ввести? ");
 	scanf("%d",&num);
 	
 		do {			
 			printf("Введите число %d: ",i+1);
 			scanf("%d", &input);				//Циклом вводим числа
-				mean += input;					//и подсчитываем их сумму
+				mean += input;				//и подсчитываем их сумму
 				i++;
 		} while (i < num);
 		
@@ -48,13 +50,15 @@ int main(int argc, char const *argv[]) {
 	int lines;
 	int n;
 	
+	printf("\nНарисуем ёлочку.");
 	printf("\nВведите число строк: ");
 	scanf("%d", &lines);
-	
+	printf("\n");
+
 		for (i = 0; i < lines; i++) {					//Общий цикл по строкам
 			for (n = 1; n < lines - i; n++){			//Два цикла по столбцам
-				printf(" ");							//Один заполняет пробелами
-				}										//Другой "крышками"
+				printf(" ");					//Один заполняет пробелами
+				}						//Другой "крышками"
 			for (n = (lines - i * 2); n <= lines; n++){
 				printf("^");
 				}
