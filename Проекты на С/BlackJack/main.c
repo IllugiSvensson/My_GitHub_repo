@@ -5,17 +5,17 @@
 #include <unistd.h>
 #include <string.h>
 
-typedef struct Menu {		//Структура используется для проверки
-							//пользовательского ввода в разных частях
-	char menu_choice[0];	//игрового меню
+typedef struct Menu {		//Структура хранит переменные, которые
+							//используются для проверки ввода и переключения
+	char menu_choice[0];	//пунктов игрового меню
 	int menu_switch;
-
+	
 } mnc;
 
-void mainmenu();			//Список прототипов функций
-void clearscreen();
-void wrongchoice();
-void quit();
+void mainmenu();				//Список прототипов функций
+void clearscreen();				//Данная программа не модульная
+void wrongchoice();				//и состоит из набора функций
+void quit();					//описанных в одном main файле
 void rules(mnc *rls);
 void back2menu(mnc *bck2mn);
 void newgame(mnc *nwgm);
@@ -28,16 +28,16 @@ void getstatus(char *player, int quantity);
 void drawning(mnc *drwng, char *player, char *dealer, int *rndm, int *money, int *bet);
 void dealerturn(int p_sum, char *dealer, int *rndm, int *money, int *bet);
 void conflictBJ(mnc *cnflct, int *money, int *bet, char *dealer);
-void showresults(mnc *shwrcrds);
-void writeresult(mnc *wrtrcrd, int *money);
+void showresults(mnc *shwrslts);
+void writeresult(mnc *wrtrslt, int *money);
 void writefile(mnc *wrtfl, int *money);
 void getresultline(char *line, int *money, int position);
 
-int main(int argc, char *argv[]) {		//Главная функция, запускающая игру
+int main(int argc, char *argv[]) {	//Главная функция
 
-	setlocale(LC_ALL, "Rus");	//Функция для отображения кириллицы в Dev-Cpp
-
-	mainmenu();					//Запускаем главное меню
+	setlocale(LC_ALL, "Rus");		//Устанавливаем отображение кириллицы
+	
+	mainmenu();						//Запускаем функцию главного меню
 
 return 0;
 }
@@ -54,42 +54,44 @@ void mainmenu() {		//Функция главного меню
 		printf("		3. Результаты\n");
 		printf("		4. Выйти из игры\n");
 
-	mnc MnMn;			//Объявляем структуру для проверки пользовательского ввода
+	mnc MnMn;							//Объявляем структуру для проверки пользовательского ввода
 
-		do {			//Запрашиваем ввод, если он отличается от десятичного числа
-						//предупреждаем об этом и просим вновь
+		do {							//Запрашиваем ввод, если он отличается от десятичного числа
+										//предупреждаем об этом и запрашиваем ввод повторно
 			MnMn.menu_switch = 0;
 
 				printf("\n	Введите число для продолжения: ");
-				scanf("%s", MnMn.menu_choice);
+				scanf("%s", MnMn.menu_choice);					//Вводим число в формате строки
 
-					switch (atoi(MnMn.menu_choice)) {
+					switch (atoi(MnMn.menu_choice)) {			//Преобразуем строку в число
+						
 						case 1:
-							newgame(&MnMn);				//Начинаем новую игру
+							newgame(&MnMn);						//Начинаем новую игру
 							break;
 						case 2:
-							rules(&MnMn);				//Показываем правила игры
+							rules(&MnMn);						//Показываем правила игры
 							break;
 						case 3:
-							showresults(&MnMn);			//Показать записи с рекордами
+							showresults(&MnMn);					//Показать записи с результатами
 							back2menu(&MnMn);
 							break;
 						case 4:
-							quit();						//Полный выход из игры в консоль
+							quit();								//Полный выход из игры в консоль
 							break;
 						default:
 							MnMn.menu_switch = 1;
-							wrongchoice();				//Предупреждение о неверном вводе
-							break;
+							wrongchoice();						//Предупреждение о неверном вводе
+							break;								//(символе, а не числе)
+							
 					}
 
-		} while(MnMn.menu_switch);
+		} while (MnMn.menu_switch);
 
 }
 
 void clearscreen() {	//Функция очистки консоли от записей
 
-	system("cls");	//Для других ОС нужно заменить на "cls"
+	system("cls");		//Для Linux нужно заменить на "clear"
 
 }
 
@@ -102,8 +104,10 @@ void wrongchoice() {	//Функция предупреждения о неправильном вводе
 void quit(){			//Функция выхода из игры
 
 	clearscreen();			//Перед выходом очищает за собой консоль
-	printf("\n Выход..\n\n");
-	sleep(1);
+	
+		printf("\n Выход..\n\n");
+		
+	sleep(1);				//Задержка вывода
 
 exit(0);					//Полностью выходит из приложения
 }
@@ -142,7 +146,7 @@ void rules(mnc *rls) {	//Функция, описывающая правила игры
 
 void back2menu(mnc *bck2mn) {	//Функция возврата в главное меню
 
-	do {		//Проверяем п ользовательский ввод
+	do {		//Проверяем пользовательский ввод
 
 		bck2mn->menu_switch = 0;
 			
@@ -150,14 +154,14 @@ void back2menu(mnc *bck2mn) {	//Функция возврата в главное меню
 			printf("\n	Введите число для продолжения: ");
 			scanf("%s", bck2mn->menu_choice);
 				
-				if (atoi(bck2mn->menu_choice) == 1) {
+				if (atoi(bck2mn->menu_choice) == 1) {	//Преобразуем строку в число
 
-					mainmenu(&bck2mn);		//Если ввели 1, то возвращаемся в меню
+					mainmenu(&bck2mn);					//Возвращаемся в главное меню
 
 				} else {
 
-					bck2mn->menu_switch = 1;	//Иначе запрашивае ввод повторно
-					wrongchoice();
+					bck2mn->menu_switch = 1;
+					wrongchoice();						//Запрашиваем ввод повтроно
 					
 				}
 
@@ -167,54 +171,55 @@ void back2menu(mnc *bck2mn) {	//Функция возврата в главное меню
 
 void newgame(mnc *nwgm){	//Функция новой игры. Принимает ставки и раздает карты
 
-	clearscreen();
+	clearscreen();			//Очищаем консоль
 
 	int money = 100;		//Начальный капитал игрока
 	int bet = 0;			//Ставка игрока
 	int getrandom = 1;		//Число для генерации случайных карт
 	int p_sum = 0;			//Сумма очков игрокаж
-	int quantity;
-	char *player = NULL;			//Рука игрока
-	char *dealer = NULL;			//Рука Дилера
+	int quantity;			//Количество выдаваемых карт
+	char *player = NULL;	//Рука Игрока
+	char *dealer = NULL;	//Рука Дилера
 
 		printf("\n 			Ваш стартовый капитал - 100$\n");
 		printf("	Сделайте ставку и постарайтесь выиграть как можно больше!\n\n");
 
-	while (money > 0 || money >= 1000000) {
-
-		choosebets(&money, &bet, nwgm);		//Запрашиваем ставку игрока
-		clearscreen();						//Начинаем игру после принятия ставки
+	while (money > 0 || money >= 1000000) {		//Играем, пока Игрок не проиграет все деньги или 
+												//выиграет миллион
+		choosebets(&money, &bet, nwgm);			//Запрашиваем ставку игрока
+		
+		clearscreen();							//Начинаем игру после принятия ставки
 
 			player = (char*)calloc(8, sizeof(char));		 //Инициализируем каждый круг
 			dealer = (char*)calloc(8, sizeof(char));		 //Руку игроков
 
-		printf("\n	Раздача карт началась! Ваша ставка %d$\n", bet);
-		sleep(1);
+				printf("\n	Раздача карт началась! Ваша ставка %d$\n", bet);
+				sleep(1);
 
-			for (quantity = 0; quantity < 2; quantity++) {					//Начальная раздача двух карт
+			for (quantity = 0; quantity < 2; quantity++) {	//Начальная раздача двух карт
 
 				dealing(dealer, quantity, &getrandom);		//Раздаем карты Дилеру
-				dealing(player, quantity, &getrandom);		//Раздаем карты игроку
+				dealing(player, quantity, &getrandom);		//Раздаем карты Игроку
 
 			}
 
-		printf("\n	Карта в руке Дилера: %c\n", *dealer);
-		printf("	Карты в вашей руке: ");
+				printf("\n	Карта в руке Дилера: %c\n", *dealer);
+				printf("	Карты в вашей руке: ");
 
 			getstatus(player, quantity);				//Показать состояние руки игроков
-			p_sum = sumcards(player, quantity);		//Посчитать сумму очков в руке игрока
+			p_sum = sumcards(player, quantity);			//Посчитать сумму очков в руке Игрока
 
-		printf("\n	Набрано очков: %d\n", p_sum);	//Очки игрока после раздачи
+				printf("\n	Набрано очков: %d\n", p_sum);	//Очки игрока после раздачи
 
 			if (p_sum == 21 && (*dealer == 'T'			//Ситуация с двумя блекджеками
-			|| *dealer == 'V' || *dealer == 'Q'			//Либо забираем ставку, либо боримся
+			|| *dealer == 'V' || *dealer == 'Q'			//Либо забираем ставку, либо играем
 			|| *dealer == 'K' || *dealer == 'A')) {		//за 1.5 ставки
 
 				conflictBJ(nwgm, &money, &bet, dealer);
 
 			} else if (p_sum == 21) {						//Ситуация с БДЖ на раздаче
 
-				money = money + (int)(1.5 * bet);					//Увеличиваем и считаем деньги
+				money = money + (int)(1.5 * bet);					//Получаем 1.5 ставки
 				printf("\n	Вы победили! BlackJack на раздаче!\n");
 				printf("	Ваш текущий капитал составляет %d$\n", money);
 
@@ -224,9 +229,9 @@ void newgame(mnc *nwgm){	//Функция новой игры. Принимает ставки и раздает карты
 
 			}
 			
-				sleep(1);			//Небольшие паузы, чтобы игрок мог прочесть текст
+			sleep(1);			//Небольшие паузы, чтобы игрок мог прочесть текст
 
-			while (money > 0) {		//Пока у игрока есть деньги, предлогаем сыграть снова
+			while (money > 0) {		//Пока у игрока есть деньги, предлагаем сыграть снова
 
 				printf("\n	1. Сыграть снова\n ");
 				printf("	2. Закончить игру\n");
@@ -235,14 +240,14 @@ void newgame(mnc *nwgm){	//Функция новой игры. Принимает ставки и раздает карты
 
 					if (atoi(nwgm->menu_choice) == 1) {		//Проверка ввода
 															//Если игрок согласен, раздаем карты
-						clearscreen();
+						clearscreen();						//заходим на новый круг
 						printf("\n\n	Ваш текущий капитал составляет %d$\n", money);
 						break;
 					
 					} else if (atoi(nwgm->menu_choice) == 2) {
 
-						writeresult(nwgm, &money);			//Если нет, предлагаем сделать запись рекорда
-						break;				//от туда можно выйти из игры или начать сначала
+						writeresult(nwgm, &money);			//Если нет, предлагаем сделать запись результата
+						break;					
 
 					} else {
 
@@ -257,16 +262,16 @@ void newgame(mnc *nwgm){	//Функция новой игры. Принимает ставки и раздает карты
 				printf("\n	Игра окончена. Вы проиграли все свои деньги");
 				back2menu(nwgm);
 
-			} else if (money >= 1000000) {
-				
+			} else if (money >= 1000000) {	//Выводим на запись результата
+											//Если выиграли миллион
 				printf("\n	Поздравляем! Вы выиграли миллион!\n");
 				printf("	Дилер больше не будет играть с вами");
 				sleep(5);
 				writeresult(nwgm, &money);
 			}
 			
-		free(player);
-		free(dealer);
+			free(player);		//Очищаем руку Игрока и Дилера
+			free(dealer);
 			
 	}
 
@@ -274,9 +279,10 @@ void newgame(mnc *nwgm){	//Функция новой игры. Принимает ставки и раздает карты
 
 void choosebets(int *money, int *bet, mnc *chsbts) { //Функция принятия ставок
 
-	do {					//Запрашиваем у игрока ставку
+	do {					//Запрашиваем у Игрока ставку
 		
 		chsbts->menu_switch = 0;
+		
 		printf("	Введите вашу ставку: ");
 		scanf("%s", chsbts->menu_choice);
 
@@ -288,7 +294,7 @@ void choosebets(int *money, int *bet, mnc *chsbts) { //Функция принятия ставок
 
 				printf("	Недостаточно денег для ставки! \n\n");
 
-			} else {				//Просим подтверждение введенной ставки
+			} else {								//Просим подтверждение введенной ставки
 
 				printf("\n	Вы уверены? \n");
 				confirm();
@@ -297,7 +303,7 @@ void choosebets(int *money, int *bet, mnc *chsbts) { //Функция принятия ставок
 
 					if (atoi(chsbts->menu_choice) == 1) {
 
-						*money = *money - *bet;		//На время игры отдаем ставку из капитала
+						*money = *money - *bet;		//На время игры вычитаем ставку из капитала
 						chsbts->menu_switch = 0;
 						
 					} else if (atoi(chsbts->menu_choice) == 2) {
@@ -362,7 +368,7 @@ int sumcards(char *hand, int quantity) {	//Функция, считающая очки в руке
 					|| *(hand + i) == ('6') || *(hand + i) == ('7')
 					|| *(hand + i) == ('8') || *(hand + i) == ('9')) {
 
-				score = score + *(hand + i) - '0';
+				score = score + *(hand + i) - '0';	//преобразуем строки в числа
 
 			}
 
@@ -376,9 +382,11 @@ int sumcards(char *hand, int quantity) {	//Функция, считающая очки в руке
 
 					score = score + 1;
 
-				} else						//1 или 11, смотря какой исход выгоднее
+				} else	{					//1 или 11, смотря какой исход выгоднее
 
 					score = score + 11;
+				
+				}
 
 			}
 
@@ -389,13 +397,13 @@ return score;
 
 void dealing(char *gamer, int quantity, int *getrandom) {	//Функция раздачи карт
 
-	//gamer = (char*)realloc(gamer, (quantity + 1));//Добавляем блок памяти под новую карту
-	*(gamer +quantity) = getcard(getrandom);	//Раздаем карту
-	*getrandom = *getrandom + 1;			//Перебираем случайные числа
+	//gamer = (char*)realloc(gamer, (quantity + 1));	//Добавляем блок памяти под новую карту
+	*(gamer + quantity) = getcard(getrandom);			//Раздаем карту
+	*getrandom = *getrandom + 1;						//Перебираем случайные числа
 
 }
 
-void getstatus(char *gamer, int quantity) {	//Функция показывает состояние карт
+void getstatus(char *gamer, int quantity) {		//Функция показывает состояние карт в руке
 
 	int i;
 
@@ -408,7 +416,7 @@ void getstatus(char *gamer, int quantity) {	//Функция показывает состояние карт
 }
 
 void drawning(mnc *drwng, char *player, char *dealer, int *rndm, int *money, int *bet) {
-									//Функция набора карт 
+											//Функция набора карт и сравнения результатов
 	int np = 0;
 	int p_sum = sumcards(player, np + 2); 	//Подсчитаем очки игрока
 	
@@ -439,13 +447,16 @@ void drawning(mnc *drwng, char *player, char *dealer, int *rndm, int *money, int
 					printf("	Текущий капитал: %d$\n\n", *money);
 					sleep(1);
 					printf("	Теперь Дилер набирает карты.. \n\n");
-						
 					sleep(2);
 					dealerturn(p_sum, dealer, rndm, money, bet);		//Передаем ход Дилеру
 					drwng->menu_switch = 0;
 					
-				} else wrongchoice();
+				} else {
+					
+					wrongchoice();
 
+				}
+				
 				if (p_sum > 21) {					//Проверяем ситуации, когда у игрока перебор
 													//Либо он собрал BJ
 					printf("	У вас перебор, вы проиграли свою ставку\n");
@@ -453,15 +464,16 @@ void drawning(mnc *drwng, char *player, char *dealer, int *rndm, int *money, int
 					
 				} else if (p_sum == 21) {
 					
-					printf("	У вас достаточно очков!\n\n");	//Когда собрал BJ, передаем ход
+					printf("	У вас достаточно очков!\n\n");		//Когда собрал BJ, передаем ход
 					printf("	Теперь Дилер набирает карты.. \n\n");
 					sleep(1);
 					dealerturn(p_sum, dealer, rndm, money, bet);
 					drwng->menu_switch = 0;
+
 				}
-				
+
 		} while (drwng->menu_switch);
-	
+
 }
 
 void dealerturn(int p_sum, char *dealer, int *rndm, int *money, int *bet) { //Функция хода Дилера
@@ -478,44 +490,48 @@ void dealerturn(int p_sum, char *dealer, int *rndm, int *money, int *bet) { //Фу
 					dealing(dealer, n + 2, rndm);	
 					n++;
 									
-				} else break;
-						
+				} else {
+					
+					break;
+					
+				}
+					
 		} while (d_sum <= 17);			//Когда Дилер набрал карты смотрим ситуации
 
-		if (d_sum > 21) {							//Если перебор у Дилера
+		if (d_sum > 21) {									//Если перебор у Дилера
 							
-			printf("	Карты в руке Дилера: ");	//Показываем карты Дилера и очки
-			getstatus(dealer, n + 2);				//Поздравляем с победой 
-			printf("\n	Набрано очков: %d\n", d_sum);	//и увеличиваем капитал
+			printf("	Карты в руке Дилера: ");			//Показываем карты Дилера и очки
+			getstatus(dealer, n + 2);						//Поздравляем с победой 
+			printf("\n	Набрано очков: %d\n", d_sum);		//и увеличиваем капитал
 			printf("\n	У Дилера перебор!\n");
 			printf("	Вы выиграли и заработали: %d$\n", 2 * (*bet));
 			*money = *money + 2 * (*bet);
 							
 		} else if (d_sum == p_sum) {
 							
-			printf("	Карты в руке Дилера: ");	//Если ничья, то возвращаем
-			getstatus(dealer, n + 2);				//ставку игроку
+			printf("	Карты в руке Дилера: ");			//Если ничья, то возвращаем
+			getstatus(dealer, n + 2);						//ставку Игроку
 			printf("\n	Набрано очков: %d\n", d_sum);
 			printf("	Ничья! Вы вернули свою ставку\n");			
 			*money = *money + *bet;
 						
 		} else if (d_sum > p_sum) {
 							
-			printf("	Карты в руке Дилера: ");		//Если у Дилера очков больше
-			getstatus(dealer, n + 2);					//то не возвращаем ставку
-			printf("\n	Набрано очков: %d\n", d_sum);	//игроку
+			printf("	Карты в руке Дилера: ");			//Если у Дилера очков больше
+			getstatus(dealer, n + 2);						//то не возвращаем ставку
+			printf("\n	Набрано очков: %d\n", d_sum);		//Игроку
 			printf("	Победил Дилер! Вы потеряли свою ставку\n");				
 						
 		} else {
 							
-			printf("	Карты в руке Дилера: ");	//Если у игрока очков больше
-			getstatus(dealer, n + 2);				//возвращаем удвоенную ставку
+			printf("	Карты в руке Дилера: ");			//Если у Игрока очков больше
+			getstatus(dealer, n + 2);						//возвращаем удвоенную ставку
 			printf("\n	Набрано очков: %d\n", d_sum);
 			printf("	Вы выиграли и заработали: %d$\n", 2 * (*bet));
 			*money = *money + 2 * (*bet);
-						
-		}	
-	
+
+		}
+
 }
 
 void conflictBJ(mnc *cnflct, int *money, int *bet, char *dealer) {	//Функция конфликтной ситуации 
@@ -527,7 +543,7 @@ void conflictBJ(mnc *cnflct, int *money, int *bet, char *dealer) {	//Функция кон
 		do {
 
 			cnflct->menu_switch = 0;						//Предлагаем забрать ставку или 
-			printf("	1. Забрать свою ставку \n");		//Постараться выйграть больше
+			printf("	1. Забрать свою ставку \n");		//Постараться выиграть больше
 			printf(" 	2. Отдать ход Дилеру\n");
 			printf("	Введите число для продолжения: ");
 			scanf("%s", cnflct->menu_choice);
@@ -558,7 +574,7 @@ void conflictBJ(mnc *cnflct, int *money, int *bet, char *dealer) {	//Функция кон
 
 						}
 						
-							break;
+					break;
 						
 				} else {
 
@@ -571,15 +587,15 @@ void conflictBJ(mnc *cnflct, int *money, int *bet, char *dealer) {	//Функция кон
 
 }
 
-void showresults(mnc *shwrcrds) {	//Функция показа рекордсменов
+void showresults(mnc *shwrslts) {	//Функция показа результатов
 
 	clearscreen();		//Очищаем экран
 
 		FILE *file;
-		char table[7][23];
+		char table[7][23];	//Создаем таблицу и указатель на файл
 		int n = 0;
 
-			file = fopen("results.txt", "a+");	//Если файла нет, создаем. Если есть, то открываем для дозаписи
+			file = fopen("results.txt", "a+");	//Создаем файл или открываем существующий
 
 				while(!feof(file)) {			//Читаем файл и записываем в таблицу данные
 
@@ -588,11 +604,11 @@ void showresults(mnc *shwrcrds) {	//Функция показа рекордсменов
 
 				}
 
-				printf("\n	Результаты игроков:\n");
+			printf("\n	Результаты игроков:\n");
 
-		if (table[0][0] != '1') {		//Если записей нет, то имитируем таблицу
+		if (table[0][0] != '1') {		//Если записей нет, то создаем таблицу
 
-			strcpy(table[0], "1. 1000000 - Developer");	//Таблица-пример
+			strcpy(table[0], "1. 1000000 - Developer");		//Таблица-пример
 			strcpy(table[1], "2.         -          ");
 			strcpy(table[2], "3.         -          ");
 			strcpy(table[3], "4.         -          ");
@@ -602,7 +618,7 @@ void showresults(mnc *shwrcrds) {	//Функция показа рекордсменов
 
 				freopen("results.txt", "w", file);		//Открываем файл для записи
 
-			for (n = 0; n < 7; n++) {				//Записываем таблицу в новый файл
+			for (n = 0; n < 7; n++) {				//Записываем таблицу в чистый файл
 
 				fprintf(file, "%s\n", *(table + n));	//Выводим на экран
 				printf("	%s\n", *(table + n));
@@ -611,13 +627,13 @@ void showresults(mnc *shwrcrds) {	//Функция показа рекордсменов
 
 		} else {		//Если в файле есть записи, то выводим их на экран
 
-			freopen("results.txt", "r", file);
+			freopen("results.txt", "r", file);	//открываем файл для чтения
 			n = 0;
 
 				while(!feof(file)) {
 
 					fgets(*(table + n), 24, file);
-					printf("	%s", *(table + n));
+					printf("	%s", *(table + n));	//Выводим данные из файла на экран
 					n++;
 
 				}
@@ -628,46 +644,46 @@ void showresults(mnc *shwrcrds) {	//Функция показа рекордсменов
 
 }
 
-void writeresult(mnc *wrtrcrd, int *money) {	//Функция записи рекордов
+void writeresult(mnc *wrtrslt, int *money) {	//Функция записи результатов
 
 	clearscreen();
 
-	do {
+		do {
 
-		wrtrcrd->menu_switch = 0;
-		printf("\n	Желаете записать свой результат?\n");
-		confirm();
-		scanf("%s", wrtrcrd->menu_choice);
+			wrtrslt->menu_switch = 0;					//Запрашиваем ввод
+			printf("\n	Желаете записать свой результат?\n");
+			confirm();
+			scanf("%s", wrtrslt->menu_choice);
 
-			if (atoi(wrtrcrd->menu_choice) == 1) {
+				if (atoi(wrtrslt->menu_choice) == 1) {
 
-				writefile(wrtrcrd, money);
-				break;
+					writefile(wrtrslt, money);			//Записываем результат
+					break;
 
-			} else if (atoi(wrtrcrd->menu_choice) == 2) {
+				} else if (atoi(wrtrslt->menu_choice) == 2) {
 
-				mainmenu();
+					mainmenu();							//Иначе выходим в главное меню
 
-			} else {
+				} else {
 
-				wrongchoice();
-				wrtrcrd->menu_switch = 1;
+					wrongchoice();
+					wrtrslt->menu_switch = 1;
 
-			}
+				}
 
-	} while (wrtrcrd->menu_switch);
-
-	mainmenu();
+		} while (wrtrslt->menu_switch);
+		
+	mainmenu(); 	//После записи выходим в меню
 
 }
 
-void writefile(mnc *wrtfl, int *money) {
+void writefile(mnc *wrtfl, int *money) {		//Функция редактирования таблицы
 
-	clearscreen();
+	clearscreen();		//Очищаем консоль
 
-	showresults(wrtfl);	//Покажем существующую таблицу или создадим новую
+	showresults(wrtfl);		//Покажем существующую таблицу или создадим новую
 	
-	char *line = calloc(23, sizeof(char));
+	char *line = calloc(23, sizeof(char));	//Рабочая строка
 	int position = 1;
 
 		printf("\n\n	Вы можете записать свой результат в любую из строк\n");
@@ -680,8 +696,8 @@ void writefile(mnc *wrtfl, int *money) {
 				printf("\n	Укажите номер строки: ");
 				scanf("%s", wrtfl->menu_choice);
 
-					switch(atoi(wrtfl->menu_choice)) {
-
+					switch (atoi(wrtfl->menu_choice)) {			//Выбираем нужную строку
+																//и записываем туда имя
 						case 1:
 							position = 1;
 							getresultline(line, money, position);
@@ -712,74 +728,79 @@ void writefile(mnc *wrtfl, int *money) {
 							break;
 						default:
 							wrongchoice();
-							wrtfl->menu_switch = 1;	//Иначе запрашивае ввод повторно
+							wrtfl->menu_switch = 1;			//Иначе запрашивае ввод повторно
 							break;
 							
 					}	
 						
 			} while (wrtfl->menu_switch == 1);
 			
-		FILE *file;
-		char table[7][23] = {0};
-		int n = 0;
+	FILE *file;
+	char table[7][23] = {0};
+	int n = 0;
 
-			file = fopen("results.txt", "r");	//Если файла нет, создаем. Если есть, то открываем для дозаписи
-				while(n < 7) {
+		file = fopen("results.txt", "r");	//Открываем файл для чтения
+			
+			while(n < 7) {					//Показываем существующую таблицу
 
-					fgets(*(table + n), 24, file);
-					n++;
+				fgets(*(table + n), 24, file);
+				n++;
 
-				}		
+			}		
 
-
-			for (n = 0; n < strlen(line); n++) {
+			for (n = 0; n < strlen(line); n++) {	//Записываем строку в таблицу
 				
 				table[position - 1][n] = line[n];
 
 			}
 
-		freopen("results.txt", "w", file);
+		freopen("results.txt", "w", file);		//Открываем файл для записи
 
-	   	fprintf(file,"%s",table);
+		fprintf(file,"%s",table);				//Записываем новую таблицу
 
-		fclose(file);
+	fclose(file);			//Закрываем файл
 
-		clearscreen();
+	clearscreen();
+		
 		printf("\n Запись..\n");
-		sleep(1);
+			
+	sleep(1);
 		
 }
 
-void getresultline(char *line, int *money, int position) {
+void getresultline(char *line, int *money, int position) {		//Функция склеивания строки 
 
-	char *name = calloc(9, sizeof(char));
+	char *name = calloc(9, sizeof(char));			//Обозначаем будущую строку
 	char *name_lim = calloc(9, sizeof(char));
 	char mn[8];
 	char ps[0];
 	int n = 0;
+	
 		printf("\n	Введите свое имя (не более 9 знаков): ");
-		scanf("%s", name);
+		scanf("%s", name);										//Запрашиваем любое имя
 		
-			strncpy(name_lim, name, 9);
-			sprintf(ps,"%d", position);
-			strcat(line, ps);
+			strncpy(name_lim, name, 9);			//Ограничиваем количество знаков до 9
+			sprintf(ps, "%d", position);			
+			strcat(line, ps);					//последовательно склеиваем части таблицы
 			strcat(line, ". ");
-			sprintf(mn,"%d", *money);
+			sprintf(mn, "%d", *money);
 
-				for(n=strlen(mn);n<7;n++){
-					
+				for (n = strlen(mn); n < 7; n++) {		//Дописываем пробелы, если число
+														//мешьне заявленного блока
 					strcat(mn, " ");
 					
 				}
 				
 			strcat(line, mn);
 			strcat(line, " - ");
-							for(n=strlen(name_lim);n<9;n++){
+			
+				for (n = strlen(name_lim); n < 9; n++) {
 					
 					strcat(name_lim, " ");
 					
 				}
-			strcat(line, name_lim);
+				
+			strcat(line, name_lim);			//Выдаем строку в требуемом формате
 
 
 }
