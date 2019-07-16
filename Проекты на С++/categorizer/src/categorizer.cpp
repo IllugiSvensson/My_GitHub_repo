@@ -61,7 +61,8 @@ int main(int argc, char** args) {
         
 			cout << "Желаете нормировать гистограммы? [y/n]: ";
 			cin >> norm;
-
+			cout << endl;
+			
     ifstream in;
 
         for(int i = 1; i < argc; i++) {     //Обрабатываем каждый файл отдельно
