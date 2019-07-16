@@ -1,0 +1,1 @@
+/home/sad/Рабочий стол/Проекты на С++/categorizer/build/CMakeFiles/categorizer.dir
