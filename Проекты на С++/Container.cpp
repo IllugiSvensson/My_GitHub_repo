@@ -41,9 +41,8 @@ public:
 
     void erase() {  //Метод - аналог clear
         //Проверка на нулевой указатель
-        assert(data != nullptr);
         memset(data, 0, length * sizeof(int));
-        delete[] data;
+        if(data == nullptr) delete[] data;
         data = nullptr;
         length = 0;
 
@@ -88,7 +87,6 @@ public:
 
         }
 
-        //assert(data != nullptr);      Вызовет исключение, если указатель = нулю
         delete[] data;  //Удаляем старый массив
         data = d;
         length = newLength;
@@ -116,7 +114,7 @@ public:
             }
 
         //assert(data != nullptr);      Вызовет исключение, если указатель = нулю
-        delete[] data;  //Удаляем старый массив
+        if(data != nullptr) delete[] data;  //Удаляем старый массив
         data = d;
         ++length;
 
@@ -130,25 +128,37 @@ public:
 
     void removeBefore(int index) {  //Аналогично реализуем удаление элемента
 
-        assert(index >= 0 && index <= length);
-        int *d = new int[length - 1];
-        memset(d, 0, (length - 1) * sizeof(int));
+        assert(index >= 0 && index < length);
+        if(length <= 0) return;
 
-            for(int i = 0; i < index; i++) {
+        if(length == 1) {
 
-                d[i] = data[i];
+            erase();
+            return;
 
-            }
+        } else {
 
-            for(int i = index; i < length - 1; ++i) {
 
-                d[i] = data[i + 1];
+            int *d = new int[length - 1];
+            memset(d, 0, (length - 1) * sizeof(int));
 
-            }
+                for(int i = 0; i < index; i++) {
 
-        delete[] data;
-        data = d;
-        --length;
+                    d[i] = data[i];
+
+                }
+
+                for(int i = index; i < length - 1; ++i) {
+
+                    d[i] = data[i + 1];
+
+                }
+
+            delete[] data;
+            data = d;
+            --length;
+
+        }
 
     }
 
@@ -161,7 +171,7 @@ public:
     void insertArray(int array[], int index, int quantity) {
         //Добавляем массив аналогично элементу
         assert(index >= 0 && index <= length);
-        assert(quantity >= 0 && quantity <= length);
+        assert(quantity >= 0);
         int *d = new int[length + quantity];
         memset(d, 0, (length + quantity) * sizeof(int));
             //Заполняем элементами до позиции
@@ -183,7 +193,7 @@ public:
 
             }
 
-        delete[] data;
+        if(data != nullptr) delete[] data;
         data = d;
         length += quantity;
 
@@ -191,26 +201,38 @@ public:
 
     void removeArray(int index, int quantity) {
         //Убираем элементы из массива
-        assert(index >= 0 && index <= length);
-        assert(quantity >= 0 && quantity <= length);
-        int *d = new int[length - quantity];
-        memset(d, 0, (length - quantity) * sizeof(int));
-            //Заполняем элементами до позиции
-            for(int i = 0; i < index; ++i) {
+        assert(index >= 0 && index < length);
+        assert(quantity > 0 && quantity <= length - index);
 
-                d[i] = data[i];
+        if(length <= 0) return;
 
-            }
-            //Заполняем оставшимися элементами
-            for(int i = index; i < length - quantity; ++i) {
+        if(length <= quantity) {
 
-                d[i] = data[i + quantity];
+            erase();
+            return;
 
-            }
+        } else {
 
-        delete[] data;
-        data = d;
-        length -= quantity;
+            int *d = new int[length - quantity];
+            memset(d, 0, (length - quantity) * sizeof(int));
+                //Заполняем элементами до позиции
+                for(int i = 0; i < index; ++i) {
+
+                    d[i] = data[i];
+
+                }
+                //Заполняем оставшимися элементами
+                for(int i = index; i < length - quantity; ++i) {
+
+                    d[i] = data[i + quantity];
+
+                }
+
+            delete[] data;
+            data = d;
+            length -= quantity;
+
+        }
 
     }
 
@@ -253,6 +275,8 @@ public:
     }
 
     void sort(int begin, int end) {
+
+        if(data == nullptr) return;
 
         if (begin >= end) {
 
@@ -301,7 +325,6 @@ public:
 int main() {
 
     ArrayInt arr;
-//erase, sortup, sortdown
     for(int i = 1; i <= 10; i++) {
 
         arr.push_back(i * 3 / 2);   //Заполняем массив
@@ -382,7 +405,9 @@ int main() {
         cout << arr[i] << " ";
 
     }
-    cout << endl;
+
+    arr.erase();
+    cout << endl << "Erase. Size:   " << arr.size() << endl;
 
 return 0;
 }
