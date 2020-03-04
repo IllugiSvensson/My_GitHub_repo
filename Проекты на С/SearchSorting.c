@@ -13,12 +13,34 @@ int InterpolationSearch(int *a, int length, int value, int *c) {
         while (min <= max) { //Находим разделяющий элемент
 
             *c = *c + 1;
-            if ((a[max]) - a[min] == 0) mid = min + (max - min) * (value - a[min]);
-            else mid = min + (max - min) * (value - a[min]) / (a[max] - a[min]);
+            if ((a[max]) - a[min] == 0) {
 
-            if (a[mid] == value) return mid;
-            else if (a[mid] < value) min = mid + 1;
-            else if (a[mid] > value) max = mid - 1;
+                *c = *c + 1;
+                mid = min + (max - min) * (value - a[min]);
+
+            } else {
+
+                *c = *c + 1;
+                mid = min + (max - min) * (value - a[min]) / (a[max] - a[min]);
+
+            }
+
+            if (a[mid] == value) {
+
+                *c = *c + 1;
+                return mid;
+
+            } else if (a[mid] < value) {
+
+                *c = *c + 1;
+                min = mid + 1;
+
+            } else if (a[mid] > value) {
+
+                *c = *c + 1;
+                max = mid - 1;
+
+            }
 
         }
 
@@ -44,6 +66,7 @@ void print(int N, int *a) {
 
 int main() {
 
+    srand(time(NULL));
     int A[MaxN];            //Основной массив со случайными числами
     int i, value, count = 0;
     for (i = 0; i < MaxN; i++) {
@@ -75,7 +98,7 @@ int main() {
 
         }
 
-        printf("Производительность линейного поиска: %4d / %d\n", count, MaxN); count = 0;
+        printf("Производительность линейного поиска: %4d команд\n", count); count = 0;
 
     //Поиск с барьером
     int C[MaxN + 1];
@@ -106,7 +129,7 @@ int main() {
 
         }
 
-        printf("Производительность поиска с барьером: %4d / %d\n", count, MaxN); count = 0;
+        printf("Производительность поиска с барьером: %4d команд\n", count); count = 0;
 
     //Интерполяционный поиск
     int B[MaxN], m;
@@ -124,7 +147,7 @@ int main() {
             if (m == -1) printf("\nЗначение не найдено\n");
             else printf("\nИндекс: %d\n", m);
 
-        printf("Производительность интерполяционного поиска: %4d / %d\n", c, MaxN);
+        printf("Производительность интерполяционного поиска: %4d команд\n", c);
         printf("Производительность ухудшается, когда массив случайный\n");
         printf("Причем все сильно зависит от распределения значений\n");
 
@@ -135,19 +158,20 @@ int main() {
 
         while(L <= R && B[m] != value) {
 
+            count++;
             if (B[m] < value) {     //Смещаем центральное и боковые значения
 
+                count++;
                 L = m + 1;
                 m = L + (R - L) / 2;
 
             } else {
 
+                count++;
                 R = m - 1;
                 m = L + (R - L) / 2;
 
             }
-
-            count++;
 
         }
 
@@ -161,7 +185,7 @@ int main() {
 
         }
 
-        printf("Производительность бинарного поиска: %4d / %d\n", count, MaxN); count = 0;
+        printf("Производительность бинарного поиска: %4d команд\n", count); count = 0;
 
     //Пузырьковая сортировка
     int j = 0;
@@ -173,8 +197,10 @@ int main() {
 
         for(i = 0; i < MaxN; i++) {
 
+            count++;
             for(j = 0; j < MaxN - 1; j++) {
 
+                count++;
                 if (B[j] > B[j + 1]) {
 
                     count++;
@@ -188,7 +214,7 @@ int main() {
 
     printf("\nМассив после сортировки: \n");
     print(MaxN, B);
-    printf("Производительность пузырька: %4d / %d\n\n", count, MaxN); count = 0;
+    printf("Производительность пузырька: %4d команд\n\n", count); count = 0;
 
     //Шейкерная сортировка
     for (i = 0; i < MaxN; i++) {
@@ -201,8 +227,10 @@ int main() {
 
         while(L <= R) {
 
+            count++;
             for(i = R; i >= L; i--) {
 
+                count++;
                 if(B[i - 1] > B[i]) {
 
                         count++;
@@ -213,9 +241,10 @@ int main() {
             }
 
             L++;
-
+            count++;
             for(i = L; i <= R; i++) {
 
+                count++;
                 if(B[i - 1] > B[i]) {
 
                     count++;
@@ -231,7 +260,7 @@ int main() {
 
     printf("Массив после сортировки: \n");
     print(MaxN, B);
-    printf("Производительность шейкера: %4d / %d\n\n", count, MaxN); count = 0;
+    printf("Производительность шейкера: %4d команд\n\n", count); count = 0;
 
     //Сортировка методом выбора
     for (i = 0; i < MaxN; i++) {
@@ -248,10 +277,12 @@ int main() {
 
             for(j = i + 1; j < MaxN; j++) {
 
+                count++;
                 if (B[j] < B[jmin]) {
 
                     jmin = j;
                     count++;
+
                 }
 
             }
@@ -263,7 +294,7 @@ int main() {
 
     printf("Массив после сортировки: \n");
     print(MaxN, B);
-    printf("Производительность выборов: %4d / %d\n\n", count, MaxN); count = 0;
+    printf("Производительность выборов: %4d команд\n\n", count); count = 0;
 
     //Сортировка вставками
     for (i = 0; i < MaxN; i++) {
@@ -290,7 +321,7 @@ int main() {
 
     printf("Массив после сортировки: \n");
     print(MaxN, B);
-    printf("Производительность вставок: %4d / %d\n\n", count, MaxN); count = 0;
+    printf("Производительность вставок: %4d команд\n\n", count); count = 0;
 
 return 0;
 }
