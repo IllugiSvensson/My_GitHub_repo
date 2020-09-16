@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Инициализация портов на Астра 1.6
+#РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїРѕСЂС‚РѕРІ РЅР° РђСЃС‚СЂР° 1.6
 for i in {0..7}; do mknod /dev/ttyD$i c 19 $i; done
 modprobe men_bb_d203_a24
 modprobe men_mdis_kernel
