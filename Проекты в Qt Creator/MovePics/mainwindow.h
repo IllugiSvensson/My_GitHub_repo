@@ -6,6 +6,7 @@
 #include <QFileSystemModel>
 #include <QMessageBox>
 #include <QRandomGenerator>
+#include <algorithm>
 #include <QFileInfo>
 #include <QDir>
 #include <QFile>
@@ -27,6 +28,8 @@ private slots:
     void on_Input_Folder_clicked();
     void on_Output_Folder_clicked();
     void on_Move_Pics_clicked();
+
+    void on_Random_clicked();
 
 private:
 

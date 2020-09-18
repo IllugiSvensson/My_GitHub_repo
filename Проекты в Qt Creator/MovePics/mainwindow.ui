@@ -56,7 +56,7 @@
    <widget class="QPushButton" name="Move_Pics">
     <property name="geometry">
      <rect>
-      <x>180</x>
+      <x>90</x>
       <y>470</y>
       <width>171</width>
       <height>61</height>
@@ -69,7 +69,8 @@
      <number>-1</number>
     </property>
     <property name="text">
-     <string>Распределить</string>
+     <string>Распределить
+по порядку</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="InputPath">
@@ -135,6 +136,20 @@
     </property>
     <property name="text">
      <string>TextLabel</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Random">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>470</y>
+      <width>171</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Распределить
+случайным образом</string>
     </property>
    </widget>
   </widget>
