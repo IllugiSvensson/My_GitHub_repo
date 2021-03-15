@@ -105,28 +105,25 @@ public:
         }
 
         int MAX = data[0];  //Будет использована урезанная сортировка подсчетом
-        int MIN = data[0];
 
             for(int i = 1; i < length; i++) {   //Определяем диапазон значений
 
                 if(MAX < data[i]) MAX = data[i];
-                if(MIN > data[i]) MIN = data[i];
 
             }
 
-        if((MAX - MIN) == 0) MAX++;
-        bool *d = new bool[MAX - MIN];           //Создаем вспомогательный массив
-        memset(d, 0, length * sizeof(bool));
+        bool *d = new bool[MAX + 1];           //Создаем вспомогательный массив
+        memset(d, 0, (MAX + 1) * sizeof(bool));
 
             for(int i = 0; i < length; i++) {   //Заполняем единицами индексы
                                                 //которые являются значениями
-                d[data[i] - MIN] = 1;           //исходного массива
+                d[data[i]] = 1;           		//исходного массива
 
             }
 
         int count = 0;
 
-            for(int i = 0; i < MAX - 1; i++) {
+            for(int i = 0; i <= MAX; i++) {
 
                 if(d[i] == 1) count++;
 
@@ -158,10 +155,10 @@ int main() {
     //Дан вектор чисел (числа вводятся с клавиатуры), требуется выяснить,
     //сколько среди них различных. Постараться использовать максимально быстрый алгоритм.
     int digits = 0;
-    cout << "\nВведите числа: ";
 
         while (true) {
 
+			cout << "\nВведите числа: ";
             cin >> digits;
             if(digits == -1) break;
             myQueue.push(digits);
