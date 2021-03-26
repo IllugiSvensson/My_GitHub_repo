@@ -1,65 +1,93 @@
 #!/bin/bash
 
-if [ "$HOSTNAME" == "SRV1" ]
-then
-	#�� ������ ��������� ����� ��� �������������
-	#��������� ���� � ������� ������
-	socat TCP-LISTEN:14141,fork,reuseaddr pty,raw,echo=0,link=/dev/tty1 &
-	socat TCP-LISTEN:14142,fork,reuseaddr pty,raw,echo=0,link=/dev/tty2 &
-	socat TCP-LISTEN:14143,fork,reuseaddr pty,raw,echo=0,link=/dev/tty3 &
-	wait
+function CLIENTPORT {	#Функция открытия порта клиента для приема сообщений
 
-elif [ "$HOSTNAME" == "AZN1" ]
-then
+	ssh $1 socat TCP-LISTEN:141$2,fork,reuseaddr pty,raw,waitslave,unlink-close=0,echo=0,link=/dev/tty$3 &
 
-	socat TCP-LISTEN:14144,fork,reuseaddr pty,raw,echo=0,link=/dev/tty4 &
-	wait
+}
 
-elif  [ "$HOSTNAME" == "Emul" ]
-then
+function SERVERPORT {	#Функция открытия порта для передачи сообщений
 
-	if [ "$1" == "srv" ]		#���������� ��� �������
-	then
-		#���������, �������� �� ������
-		ping -c 1 -w 10 192.168.10.72 >/dev/null 2>&1 && Host1="SRV1"
-		ping -c 1 -w 10 192.168.11.72 >/dev/null 2>&1 && Host2="SRV1"
+	socat -u -u pty,raw,echo=0,link=/dev/tty$3 TCP:$1:141$2 &
 
-		if [ "$Host1" == "$Host2" ]
+}
+
+function CHANGEXML {	#Функция настройки дексрипторов у приемников
+
+	ssh $4 sed -i "s/tty./tty$1/g" /soft/etc/K23800/Ship/Connections/cnct_nmea_kama.xml
+	ssh $4 sed -i "s/tty./tty$2/g" /soft/etc/K23800/Ship/Connections/cnct_nmea_sev.xml
+	ssh $4 sed -i "s/tty./tty$3/g" /soft/etc/K23800/Ship/Connections/cnct_nmea_harakter.xml
+
+}
+
+function PINGHOST {	#Функция проверки наличия клиента в сети
+
+	ping -c 1 -w 10 $1 >/dev/null 2>&1
+
+	case $? in
+		0)	#Если хост есть, то сигнализируем об этом
+			echo "Host online"
+		;;
+		*)	#Если хоста нет, перезапускаем скрипт (автозапуск через лаунч)
+			exit
+		;;
+	esac
+
+}
+
+function TRACKING { #Функция установки соединения и слежение за хостом
+
+	flag=0
+	while :		#Следим за клиентом посредством цикла
+	do		#На первой итерации создаем подключение
+
+		if [ "$flag" == "0" ]	#Устанавливаем соединение
 		then
-			#���� ��������, �� ������� ����������
-			socat -u -u pty,raw,echo=0,link=/dev/tty1 TCP:192.168.111.52:14141 &	#Kama
-			socat -u -u pty,raw,echo=0,link=/dev/tty2 TCP:192.168.111.52:14142 &	#Sev
-			socat -u -u pty,raw,echo=0,link=/dev/tty3 TCP:192.168.111.52:14143 &	#Harakter
 
-			#������������� ���������������� ������
-			ssh $Host1 killall -9 cnct_nmea.bin
-			killall -9 stand_control_panel.bin
-			wait
+			CLIENTPORT $4 $1 $5
+			CLIENTPORT $4 $2 $6
+			CLIENTPORT $4 $3 $7
+			sleep 3s
+			SERVERPORT $4 $1 $5
+			SERVERPORT $4 $2 $6
+			SERVERPORT $4 $3 $7
+			flag=1		#Фиксируем соединения
+			ssh $4 killall cnct_nmea.bin	#Сбрасываем приложения приемники
+			ssh $4 killall StartServer.bin
 
 		fi
 
-	elif [ "$1" == "azn" ]		#���������� ��� ���
+		PINGHOST $4	#Держим подключение бесконечным циклом, пока хост в сети
+
+	done
+
+}
+
+function STARTSOCAT {	#Запускаем сокат на хостах
+
+	PINGHOST $1		#Пингуем хост
+	APP=`ssh $1 ps aux | egrep -m 1 -o $2`	#Если хост в сети, проверяем приложение
+	if [ "$APP" == "$2" ]			#Если запущено приложение, меняем конфигурацию
 	then
 
-		ping -c 1 -w 10 192.168.10.71 >/dev/null 2>&1 && Host1="AZN1"
-		ping -c 1 -w 10 192.168.11.71 >/dev/null 2>&1 && Host2="AZN1"
-
-		if [ "$Host1" == "$Host2" ]
-		then
-
-			socat -u -u pty,raw,echo=0,link=/dev/tty4 TCP:192.168.11.71:14144 &	#AZN
-
-			ssh $Host1 killall -9 StartServer.bin
-			killall -9 stand_control_panel.bin
-			wait
-
-		fi
+		CHANGEXML $3 $4 $5 $1
+		TRACKING $6 $7 $8 $1 $3 $4 $5	#Создаем соединение под наблюдением
 
 	fi
 
-fi
+}
 
-
-
-
-
+case $1 in
+	srv1)
+		STARTSOCAT 192.168.111.52 cnct_nmea.bin 1 2 3 01 02 03
+	;;
+	srv2)
+		STARTSOCAT 192.168.121.52 cnct_nmea.bin 4 5 6 04 05 06
+	;;
+	azn1)
+		STARTSOCAT 192.168.11.71 StartServer.bin 7 8 9 07 08 09
+	;;
+	azn2)
+		STARTSOCAT 192.168.11.73 StartServer.bin 10 11 12 10 11 12
+	;;
+esac
