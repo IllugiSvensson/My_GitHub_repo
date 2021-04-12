@@ -105,7 +105,15 @@ validIp $2 $3 $4				#Проверяем введенные адреса на п�
 				iptables -t nat -A POSTROUTING --dst $4 -j SNAT --to-source $3
 				iptables -t nat -A OUTPUT --dst $2 -j DNAT --to-destination $4
 				iptables -I FORWARD 1 -i $EXT_ETH -o $INT_ETH -d $4 -j ACCEPT
-
+				
+				#Если команды выше не обеспечивают связь, применить следующее
+				#iptables -F FORWARD
+				#iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+				#iptables -A FORWARD -m conntrack --ctstate NEW -i $INT_ETH -j ACCEPT
+				#iptables -P FORWARD DROP
+				#iptables -t nat -F POSTROUTING
+				#iptables -t nat -A POSTROUTING -o $EXT_ETH -j MASQUERADE
+				
 					echo " "
 					echo "Маршрут задан:"
 					iptables -S | egrep "\-A FORWARD"
@@ -126,6 +134,7 @@ validIp $2 $3 $4				#Проверяем введенные адреса на п�
 		echo " "
 		N=`iptables -S | grep "\-A FORWARD" | grep -n "$2 -o $3" | cut -d : -f 1`
 		iptables -D FORWARD $N
+		#Либо просто iptables -F
 		exit 0
 
 	fi
