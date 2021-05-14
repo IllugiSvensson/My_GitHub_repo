@@ -208,7 +208,7 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 		FileWrite($hFile, $sNew)													;Вписываем оставшиеся PID, если есть
 		FileClose($hFile)															;Закрываем файл
 		Logger(StringTrimLeft($autorizedMac, 18), $ipAddr[0] & "(" & $MAC & ")", "Завершение работы", $hostName[0] & ":" & $EXE, 1)
-		if FileRead($filePath) = "" Then
+		if (FileRead($filePath) = "") Or (FileExists($filePath) = 0) Then
 
 			FileDelete($filePath) 	;Удаляем пустой файл
 			RouteAddDel("route delete " & $maskAddr, $flg)	;Удаляем построенный маршрут после окончания работы

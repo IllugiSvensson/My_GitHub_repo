@@ -85,7 +85,7 @@ Switch TrayGetMsg()		;Обрабатываем пункты меню
 			FileDelete("\\main\GetStand\App\httpN\system\log\*.txt")
 			FileDelete("\\main\GetStand\App\kitty\Log\*.log")
 			FileDelete("\\main\GetStand\App\winscp\Log\*.XML")
-			FileDelete("\\main\GetStand\App\vnc\Log\*.log")				;Удаляет не всё
+			FileDelete("\\main\GetStand\App\vnc\Log\*")					;Удаляет не всё
 			FileWrite("\\main\GetStand\App\httpN\system\log\log.txt", "")
 			FileWrite("\\main\GetStand\App\httpN\system\log\errors.txt", "")
 
@@ -134,11 +134,12 @@ Switch TrayGetMsg()		;Обрабатываем пункты меню
 	Case $iPIDClear					;Предлагаем очистить устаревшие ПИД файлы
 		if MsgBox(65, "GetStand Manager", "Очистить буфер пользователей?" & @CRLF & "(Действие необратимо)") = 1 Then
 
-			$lTime = StringTrimRight(StringTrimLeft(_NowCalc(), 5), 9)	;Месяц и день текущего времени
-			For $t = 2 To $FileList1[0]
+			$lTime = _NowCalc()				;Фиксируем локальное время
+			For $t = 2 To $FileList1[0]		;Перебираем каждый файл
 
-				$fTime = FileGetTime("\\main\GetStand\App\httpN\system\temp\PIDS\" & $FileList1[$t], 1)
-				if (StringLeft($lTime, 2) > $fTime[1]) Or (StringRight($lTime, 2) > $fTime[2]) Then
+				$fTime = FileGetTime("\\main\GetStand\App\httpN\system\temp\PIDS\" & $FileList1[$t], 0)	;Фиксируем время создания файла
+				$TX = $fTime[0] & "/" & $fTime[1] & "/" & $fTime[2] & " " & $fTime[3] & ":" & $fTime[4] & ":" & $fTime[5]
+				if _DateDiff("n", $TX, $lTime) > 1440 Then		;Если время существования файла больше 1440 мин(24 часа), удаляем
 
 					FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $FileList1[$t])	;Удаляем файлы старше 1го дня
 
@@ -220,29 +221,29 @@ Func ShowList($Array, $t)								;Функция отображения спис
 		$a = "_"
 		For $i = 0 To 61 Step 1
 
-			$a &= "_"				;Создаем строку заполнитель
+			$a &= "_"				;Создаем строку разделитель
 
 		Next
 
-		Dim $Ar[$Array[0] - 1]
+		Dim $Ar[$Array[0] - 1]		;Список пользователей для расчета
 		For $i = 2 To $Array[0]		;Расчитываем время в онлайне
 
-			$Arr = StringRegExpReplace($Array[$i], "\:\s((\w{1,20}))|\,\s\w{1,20}", "")
-			$z = FileGetTime("\\main\GetStand\App\httpN\system\temp\PIDS\" & $Arr, 1, 0)
-			$x = $z[0] & "/" & $z[1] & "/" & $z[2] & " " & $z[3] & ":" & $z[4] & ":" & $z[5]
-			$Array[$i] &= "  -> в сети " & _DateDiff('n', $x, _NowCalc()) & " мин."
+			$Arr = StringRegExpReplace($Array[$i], "\:\s((\w{1,20}))|\,\s\w{1,20}", "") 		;Выделяем имя пользователя
+			$z = FileGetTime("\\main\GetStand\App\httpN\system\temp\PIDS\" & $Arr, 1, 0)		;Берем время файла
+			$x = $z[0] & "/" & $z[1] & "/" & $z[2] & " " & $z[3] & ":" & $z[4] & ":" & $z[5]	;Собираем строку времени в нужном формате
+			$Array[$i] &= "  -> в сети " & _DateDiff('n', $x, _NowCalc()) & " мин."				;Генерируем строку времени в онлайне
 			if $t = 1 Then
 
-				$TG = "👤" & $Arr   ;Лицо пользователь
+				$TG = "👤" & $Arr		;Строка имени пользователя
 				$sText = FileRead("\\main\GetStand\App\httpN\system\temp\PIDS\" & $Arr)		;Читаем содержимое файла в строку
 				$sT = StringRegExp($sText, "\(\w{1,20}\)", 3)								;Выделяем только хосты в массив
 				$sText = _ArrayUnique($sT)													;Оставляем только уникальные значения
 				_ArrayDelete($sText, 0)														;Убираем лишний элемент из массива
 				$sT = _ArrayToString($sText, ", ")											;Собираем элементы в строку
 				$sText = StringRegExpReplace(StringRegExpReplace($sT, "\(", ""), "\)", "")	;Убираем лишние символы
-				$TGH = "🖥️" & $sText
-				$TGT = _DateDiff('n', $x, _NowCalc()) & " мин."
-				$Ar[$i - 2] = $TG & ":  " & $TGH & " ⏱ в сети " & $TGT
+				$TGH = "🖥️" & $sText		;Строка запущенного хоста
+				$TGT = _DateDiff('n', $x, _NowCalc()) & " мин."		;Расчет времени
+				$Ar[$i - 2] = $TG & ":  " & $TGH & " ⏱ в сети " & $TGT	;Собираем строку имени, хоста и времени в онлайне
 
 			EndIf
 
@@ -253,13 +254,12 @@ Func ShowList($Array, $t)								;Функция отображения спис
 		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & $a & @CRLF & $MsgList)
 		if $t = 1 Then
 
-			$AMsg = _ArrayToString($Ar, @CRLF & $a & @CRLF)
+			$AMsg = _ArrayToString($Ar, @CRLF & $a & @CRLF)		;Повторяем сообщение в телеграме
 			ConsoleWrite(BotMsg("Пользователи в сети: " & $a & @CRLF & $AMsg))
 
 		EndIf
 
 	EndIf
-
 
 EndFunc
 
@@ -292,7 +292,7 @@ Func Searcher($MajorList, $MinorList, $Message, $p)	;Функция поиска
 
 					Else
 						;Сообщаем что пользователь подключился/отключился от хоста
-						if ($a <> -1) And ($p = 1) Then
+						if ($a <> -1) And ($p = 1) Then	;В личных уведомлениях
 
 							TrayTip("GetStand Manager", $MajorList[$i] & " подключился к" & $a, 1, 1)
 
@@ -301,7 +301,7 @@ Func Searcher($MajorList, $MinorList, $Message, $p)	;Функция поиска
 							TrayTip("GetStand Manager", $MajorList[$i] & " вышел из сети!", 1, 1)
 
 						EndIf
-						if $a <> -1 Then
+						if $a <> -1 Then				;В телеграме
 
 							$sTG = "👤" & $MajorList[$i] & @CRLF & "✅Подключился к хосту" & @CRLF & "🖥️" & $a
 
