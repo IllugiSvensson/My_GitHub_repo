@@ -66,7 +66,7 @@ Func Work ($left, $top, $width, $height, $dur, $d, $pic)		;Функция отс
 
 	$t = $st[$d]	;Счетчик времени
 	$PB = GUICtrlCreateProgress($left, $top, $width, $height, $PBS_SMOOTH)								  ;Создаем прогресс бар
-	GUICtrlSetData($PB, 0)
+	GUICtrlSetData($PB, (100 / $dur) * $t)
 	GUICtrlCreateLabel(" из " & $dur & " минут", $left + 120, $top - 15, $width - 100, $height, $SS_LEFT) ;Создаем отсчет времени
 	GUICtrlSetFont(-1, 10, 1000)
 	GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
