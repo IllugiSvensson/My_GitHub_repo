@@ -55,12 +55,9 @@ int main(int argc, char const *argv[]) {
 	scanf("%d", &lines);
 	printf("\n");
 
-		for (i = 0; i < lines; i++) {					//Общий цикл по строкам
-			for (n = 1; n < lines - i; n++){			//Два цикла по столбцам
-				printf(" ");					//Один заполняет пробелами
-				}						//Другой "крышками"
-			for (n = (lines - i * 2); n <= lines; n++){
-				printf("^");
+		for (i = lines; i > 0; i--) {					//Общий цикл по строкам
+			for (n = 1; n <= 2 * lines - i; n++){		//Цикл по столбцам
+				printf("%s", (i > n)? " ": "^");	    //Заполняем знаками
 				}
 			printf("\n");
 		}
