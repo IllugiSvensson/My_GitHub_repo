@@ -99,7 +99,7 @@ function CancelButtonClicked {	#Выход из окна при нажании �
 
 function PingHosts {			#Проверка хостов в сети
 
-	if [ "$1" == "$confXML/ZIP.xml" ]				#XML зипа отличается, пингуем по другому
+	if [ "$1" == "$confXML/ZIP.xml" ]	#XML зипа отличается, пингуем по другому
 	then
 
 		for i in `$REGTOOL -l $confXML/ZIP.xml /Hosts/ZIP/NetConf/$2`
@@ -235,7 +235,7 @@ done
 			do
 
 				TMPaddr=$($REGTOOL -r $confXML/ZIP.xml /Hosts/ZIP/NetConf/$1 $i)
-				ifconfig $eth $TMPaddr			#Назначаем временный адрес
+				ifconfig $eth $TMPaddr				#Назначаем временный адрес
 				ping -c 8 -W 1 $i >/dev/null 2>&1	#Если пинганули, адрес оставляем
 				[ "$?" == "0" ] && {
 
@@ -379,10 +379,10 @@ do
 				}
 
 				(
-				echo $ROLE> /$NITAROOT/scripts/HOSTNAME		#Генерируем выбранную роль, задаем хостнейм
-				echo $PRODUCT> /$NITAROOT/scripts/PRODUCT	#Генерируем продукт
-				scp /$NITAROOT/scripts/HOSTNAME root@$HOST:/soft
-				scp /$NITAROOT/scripts/PRODUCT root@$HOST:/soft
+				echo $ROLE> /$DATA/HOSTNAME		#Генерируем выбранную роль, задаем хостнейм
+				echo $PRODUCT> /$DATA/PRODUCT	#Генерируем продукт
+				scp /$DATA/HOSTNAME root@$HOST:/soft
+				scp /$DATA/PRODUCT root@$HOST:/soft
 				ssh $HOST $REGTOOL -w /$NITAROOT/etc/system.xml / Product $PRODUCT
 
 				ssh $HOST remount rw
