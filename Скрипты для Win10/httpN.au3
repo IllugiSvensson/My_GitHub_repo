@@ -2,12 +2,38 @@
 #include <File.au3>
 #include <Date.au3>
 #include <Constants.au3>
+#include <WindowsConstants.au3>
+
+
 
 ;ПРОВЕРКА ЗАПУСКА EXE ФАЙЛА
 if $cmdLine[0] = 0 Then 	;Вызывается, если нет аргументов
 
-   MsgBox(16, "Ошибка", "Недостаточно аргументов для запуска.")
-   Exit
+	$GUI = GUICreate("httpN отладка", 256, 144, -1, -1, $WS_DLGFRAME)
+	$Input = GUICtrlCreateInput("Введите Хостнейм", 5, 15, 246, 40)
+	GUICtrlSetFont($Input, 20)
+	$BtnOk = GUICtrlCreateButton("Пуск", 53, 60, 70, 50)
+	GUICtrlSetFont($BtnOk, 16)
+	$BtnNO = GUICtrlCreateButton("Выход", 133, 60, 70, 50)
+	GUICtrlSetFont($BtnNO, 16)
+	GUISetState()
+
+	While True
+
+		Switch GUIGetMsg()
+			Case $BtnNO
+				Exit
+
+			Case $BtnOk
+				Dim $cmdLine[2]
+				$cmdLine[0] = "1"
+				$cmdLine[1] = "httpn://KIT%20" & GUICtrlRead($Input)
+				GUIDelete($GUI)
+				ExitLoop
+
+			EndSwitch
+
+	WEnd
 
 EndIf
 ;НАСТРОЙКА ОТОБРАЖЕНИЯ ПРИЛОЖЕНИЯ В ТРЕЕ
@@ -35,23 +61,24 @@ $autorizedMac = FileReader("\\main\GetStand\App\httpN\system\MAC", $MAC) ;Ище
 		Exit
 
 	Endif
-;Захватим название выбранного пользователем компьютера в виде адреса или кода стойки-стенда.
-$hostName = StringRegExp(StringTrimLeft($cmdLine[1], 14), "((\d{1,3}\.){3}\d{1,3})|(\w{1,10})", 2) ;Выбираем имя компьютера
+;Захватим название выбранного пользователем компьютера в виде кода стойки-стенда.
+$hostName = StringRegExp(StringTrimLeft($cmdLine[1], 14), "\w+", 3) ;Выбираем имя компьютера
+ReDim $hostName[2]
 	if StringLeft($autorizedMac, 17) <> $MAC Then	;Если MAC пользователя отсутствует в списке, заканчиваем работу
 
 		;Алгоритм: Для сигнализации создается соответствующий файл, который регистрируется менеджером
-		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Неизвестный Пользователь(unknown)." & $hostName[0], "")
+		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Неизвестный Пользователь(unknown)." & $hostName[0] & ".XXX", "")
 		MsgBox(16, "Ошибка", "Авторизация не пройдена." & @CRLF & "Обратитесь в Отдел Тестирования.")
 		Logger("Неизвестный Пользователь(unknown)", $ipAddr[0] & "(" & $MAC & ")", "Неавторизованный вход", $hostName[0], 1)
-		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Неизвестный Пользователь(unknown)." & $hostName[0]) 	;Удаляем пустой файл
+		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Неизвестный Пользователь(unknown)." & $hostName[0] & ".XXX")
 		Exit
 
 	EndIf
 ;Проверим права на подключение. Если в строке не найдем имя компьютера или ADMIN, то выдаем ошибку.
 	if (StringInStr($autorizedMac, $hostName[0]) = 0) And (StringInStr($autorizedMac, "ADMIN") = 0) Then
 
-			MsgBox(16, "Ошибка", "Недостаточно пользовательских прав" & @CRLF & "на подключение к " & $hostName[0])
-			Exit
+		MsgBox(16, "Ошибка", "Недостаточно пользовательских прав" & @CRLF & "на подключение к " & $hostName[0])
+		Exit
 
 	Endif
 
@@ -62,8 +89,10 @@ $hostName[1] = FileReader("\\main\GetStand\App\httpN\system\HOSTS", $hostName[0]
 ;Ищем информацию о хосте из списка хостов
 	if $hostName[0] <> StringLeft($hostName[1], StringLen($hostName[0])) Then	  ;Проверим, есть ли адрес в списке
 
+		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
 		MsgBox(16, "Ошибка", "Адрес компьютера не найден." & @CRLF & "Обратитесь в Отдел Тестирования.")
 		Logger("Адрес компьютера " & $hostName[0] & " не найден. Проверьте схему, список и строку запуска.", "", "", "", 2)
+		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX")
 		Exit
 
 	EndIf
@@ -87,8 +116,10 @@ $gwString = StringTrimLeft($hostName[1], StringLen($hostName[0]))	;Получи�
 		;Проверим правильность ip-адрессов на соответствие частным сетям ipv4
 		if (ValidIp($gateWay) = 1) Or (ValidIp($maskAddr) = 1) Then
 
+			FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
 			MsgBox(16, "Ошибка", "Ошибка в списке хостов." & @CRLF & "Обратитесь в Отдел Тестирования.")
 			Logger("В записи адреса " & $hostName[0] & " ошибка. Проверьте запись в списке хостов.", "", "", "", 2)
+			FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX")
 			Exit
 
 		Endif
@@ -117,8 +148,10 @@ Switch $exeFile			;Запускаем приложение с нужными п�
 		TrackExeFile("WinSCP", $exeFile, $Config, "", $flag)
 
 	Case Else
+		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
 		MsgBox(16, "Ошибка", "Приложение для запуска не найдено." & @CRLF & "Обратитесь в Отдел Тестирования.")
 		Logger("При запуске " & $exeFile & " произошла ошибка. Проверьте схему, записи и диск GetStand.", "", "", "", 2)
+		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX")
 		Exit
 
 EndSwitch
@@ -145,7 +178,7 @@ Func FileReader($pathToFile, $sSearchText)		;Функция поиска стр�
 
 EndFunc
 
-Func ValidIp ($testip)							;Функция проверки адреса на соответствие частным ipv4
+Func ValidIp ($testip)							;Функция проверки адреса на соответствие частным сетям ipv4
 
 	$validip = StringRegExp($testip, "^((10|192|127|169)\.){1}((25[0..5]|(2[0..4]\d|1{0,1}\d){0,1}\d)(\.?)){3}$", 2)
 	if IsArray($validip) <> 1 Then
@@ -159,7 +192,6 @@ EndFunc
 Func ConsolePing($ADD)							;Функция пинга
 
 	Sleep(1000)		;Без паузы почему то нормально не пингуется
-	;Если $ADD задан адресом, нужно убрать концовку .ot.net
 	return Ping($ADD & ".ot.net")
 
 EndFunc
@@ -195,9 +227,9 @@ Func Logger($USER, $ADDRES, $ACT, $HOST, $TYPE)	;Функция логирова
 		$ACT = StringFormat("%-21s", $ACT)
 		FileWriteLine($tmpPath, $TIME & " | " & $USER & " | " & $ADDRES & " | " & $ACT & " | " & $HOST )
 
-	ElseIf $TYPE = 2 Then		;Запись лога ошибок
+	ElseIf $TYPE = 2 Then		;Запись системного лога
 
-		FileWriteLine("\\main\GetStand\App\httpN\system\log\errors.txt", StringFormat("%-19s", _Now()) & " | " & $USER)
+		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & $USER)
 
 	EndIf
 
@@ -227,18 +259,18 @@ Func GetMac($_MACsIP)							;Функция получения MAC по айпи
     $_MACiIP = $_MACr[0]
     $_MACr = DllCall ("iphlpapi.dll", "int", "SendARP", "int", $_MACiIP, "int", 0, "ptr", DllStructGetPtr($_MAC), "ptr", DllStructGetPtr($_MACSize))
     $_MACs  = ""
-	
+
 		For $_MACi = 0 To 5
-    
+
 			If $_MACi Then $_MACs = $_MACs & ":"
 			$_MACs = $_MACs & Hex(DllStructGetData($_MAC, 1, $_MACi + 1), 2)
-			
+
 		Next
-		
+
     DllClose($_MAC)
     DllClose($_MACSize)
     Return $_MACs
-	
+
 EndFunc
 
 Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запуска и слежения за приложением
@@ -267,7 +299,7 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & "." & $EXE)
 
 	Endif
-	
+
 	;Когда закончили работу или не смогли подключиться, нужно удалить маршрут за собой
 	$Pfiles =_FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS\")	;Получим список файлов
 	if _ArraySearch($Pfiles, $name[0], "", "", "", 1) = -1 Then					;Если подобных файлов нет
