@@ -3,6 +3,7 @@
 #include <Date.au3>
 #include <Constants.au3>
 #include <WindowsConstants.au3>
+#include <MsgSender_lib.au3>
 
 
 
@@ -114,7 +115,7 @@ $gwString = StringTrimLeft($hostName[1], StringLen($hostName[0]))	;Получи�
 		$MASK = AddrToMask($maskAddr)									;Получаем маску сети
 
 		;Проверим правильность ip-адрессов на соответствие частным сетям ipv4
-		if (ValidIp($gateWay) = 1) Or (ValidIp($maskAddr) = 1) Then
+		if (Validator($gateWay, "^((10|192|127|169)\.){1}((25[0..5]|(2[0..4]\d|1{0,1}\d){0,1}\d)(\.?)){3}$") = 1) Or (Validator($maskAddr, "^((10|192|127|169)\.){1}((25[0..5]|(2[0..4]\d|1{0,1}\d){0,1}\d)(\.?)){3}$") = 1) Then
 
 			FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
 			MsgBox(16, "Ошибка", "Ошибка в списке хостов." & @CRLF & "Обратитесь в Отдел Тестирования.")
@@ -175,17 +176,6 @@ Func FileReader($pathToFile, $sSearchText)		;Функция поиска стр�
 			EndIf
 
 		Next
-
-EndFunc
-
-Func ValidIp ($testip)							;Функция проверки адреса на соответствие частным сетям ipv4
-
-	$validip = StringRegExp($testip, "^((10|192|127|169)\.){1}((25[0..5]|(2[0..4]\d|1{0,1}\d){0,1}\d)(\.?)){3}$", 2)
-	if IsArray($validip) <> 1 Then
-
-		Return 1
-
-	Endif
 
 EndFunc
 
@@ -282,10 +272,10 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 	RouteAddDel("route add " & $maskAddr & " mask " & $MASK & " " & $gateWay, $flg)		;Строим маршрут если он есть
 	if (ConsolePing($hostName[0])) = 0 Then		;Проверяем сеть. Если не пингуется
 
-		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\!" & $name[0] & "." & $hostName[0], "")		;Создаем файл-метку
+		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & ".XXX", "")		;Создаем файл-метку
 		MsgBox(16, "Ошибка", "Невозможно подключиться к хосту." & @CRLF & "Обратитесь в Отдел Тестирования.")
 		Logger($name[0], $ipAddr[0] & "(" & $MAC & ")", "Хост не отвечает", $hostName[0] & ":" & $EXE, 1)	;Оповещаем об ошибке
-		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\!" & $name[0] & "." & $hostName[0]) 			;Удаляем файл-метку
+		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & ".XXX") 			;Удаляем файл-метку
 
 	else		;Если пингуется, запускаем приложение
 
