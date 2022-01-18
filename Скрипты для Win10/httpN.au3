@@ -40,6 +40,9 @@ EndIf
 ;НАСТРОЙКА ОТОБРАЖЕНИЯ ПРИЛОЖЕНИЯ В ТРЕЕ
 Opt("TrayMenuMode", 1 + 2)	;Не отображать стандартные панели
 TraySetState(2)				;Удалить отображение в трее
+;Данные для бота телеграм
+$sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;Ваш api ключ
+$nChatId = -1001460258261                                      	;Id получателя
 
 
 
@@ -68,10 +71,11 @@ ReDim $hostName[2]
 	if StringLeft($autorizedMac, 17) <> $MAC Then	;Если MAC пользователя отсутствует в списке, заканчиваем работу
 
 		;Алгоритм: Для сигнализации создается соответствующий файл, который регистрируется менеджером
-		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Неизвестный Пользователь(unknown)." & $hostName[0] & ".XXX", "")
+		;FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Неизвестный Пользователь(unknown)." & $hostName[0] & ".XXX", "")
+		BotMsg("👤Неизвестный Пользователь" & @CRLF & "⚠️Пытался подключиться к хосту" & @CRLF & "🖥️" & $hostname[0] & " ⏱" & _Now(), $sBotKey, $nChatId)
 		MsgBox(16, "Ошибка", "Авторизация не пройдена." & @CRLF & "Обратитесь в Отдел Тестирования.")
 		Logger("Неизвестный Пользователь(unknown)", $ipAddr[0] & "(" & $MAC & ")", "Неавторизованный вход", $hostName[0], 1)
-		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Неизвестный Пользователь(unknown)." & $hostName[0] & ".XXX")
+		;FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Неизвестный Пользователь(unknown)." & $hostName[0] & ".XXX")
 		Exit
 
 	EndIf
@@ -90,10 +94,11 @@ $hostName[1] = FileReader("\\main\GetStand\App\httpN\system\HOSTS", $hostName[0]
 ;Ищем информацию о хосте из списка хостов
 	if $hostName[0] <> StringLeft($hostName[1], StringLen($hostName[0])) Then	  ;Проверим, есть ли адрес в списке
 
-		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
+		;FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
+		BotMsg("🛑Ошибка конфигурации" & @CRLF & "❌Адрес хоста не найден" & @CRLF & "🖥️" & $hostName[0] & " ⏱" & _Now(), $sBotKey, $nChatId)
 		MsgBox(16, "Ошибка", "Адрес компьютера не найден." & @CRLF & "Обратитесь в Отдел Тестирования.")
 		Logger("Адрес компьютера " & $hostName[0] & " не найден. Проверьте схему, список и строку запуска.", "", "", "", 2)
-		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX")
+		;FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX")
 		Exit
 
 	EndIf
@@ -117,10 +122,11 @@ $gwString = StringTrimLeft($hostName[1], StringLen($hostName[0]))	;Получи�
 		;Проверим правильность ip-адрессов на соответствие частным сетям ipv4
 		if (Validator($gateWay, "^((10|192|127|169)\.){1}((25[0..5]|(2[0..4]\d|1{0,1}\d){0,1}\d)(\.?)){3}$") = 1) Or (Validator($maskAddr, "^((10|192|127|169)\.){1}((25[0..5]|(2[0..4]\d|1{0,1}\d){0,1}\d)(\.?)){3}$") = 1) Then
 
-			FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
+			;FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
+			BotMsg("🛑Ошибка конфигурации" & @CRLF & "❌Ошибка в списке хостов" & @CRLF & "🖥️" & $hostName[0] & " ⏱" & _Now(), $sBotKey, $nChatId)
 			MsgBox(16, "Ошибка", "Ошибка в списке хостов." & @CRLF & "Обратитесь в Отдел Тестирования.")
 			Logger("В записи адреса " & $hostName[0] & " ошибка. Проверьте запись в списке хостов.", "", "", "", 2)
-			FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX")
+			;FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX")
 			Exit
 
 		Endif
@@ -149,10 +155,11 @@ Switch $exeFile			;Запускаем приложение с нужными п�
 		TrackExeFile("WinSCP", $exeFile, $Config, "", $flag)
 
 	Case Else
-		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
+		;FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX", "")
+		BotMsg("🛑Ошибка конфигурации" & @CRLF & "❌Ошибка ссылки в схеме" & @CRLF & "🖥️" & $hostName[0] & " ⏱" & _Now(), $sBotKey, $nChatId)
 		MsgBox(16, "Ошибка", "Приложение для запуска не найдено." & @CRLF & "Обратитесь в Отдел Тестирования.")
 		Logger("При запуске " & $exeFile & " произошла ошибка. Проверьте схему, записи и диск GetStand.", "", "", "", 2)
-		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX")
+		;FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Ошибка Конфигурации(error)." & $hostName[0] & ".XXX")
 		Exit
 
 EndSwitch
@@ -268,25 +275,49 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 	;Выделяем имя пользователя из строки, которое будет использоваться в названии файлов
 	$name = StringRegExp($autorizedMac, "\s{0,}\t{1,}\s{0,}(\w+(\W|\s){0,}){0,}", 2)
 	$name[0] = StringTrimRight(StringTrimLeft($autorizedMac, 18), StringLen($name[0]))
-
 	RouteAddDel("route add " & $maskAddr & " mask " & $MASK & " " & $gateWay, $flg)		;Строим маршрут если он есть
 	if (ConsolePing($hostName[0])) = 0 Then		;Проверяем сеть. Если не пингуется
 
-		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & ".XXX", "")		;Создаем файл-метку
+		;FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & ".XXX", "")		;Создаем файл-метку
+		BotMsg("👤" & $name[0] & @CRLF & "⚠️Неудачное подключение" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), $sBotKey, $nChatId)
 		MsgBox(16, "Ошибка", "Невозможно подключиться к хосту." & @CRLF & "Обратитесь в Отдел Тестирования.")
 		Logger($name[0], $ipAddr[0] & "(" & $MAC & ")", "Хост не отвечает", $hostName[0] & ":" & $EXE, 1)	;Оповещаем об ошибке
-		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & ".XXX") 			;Удаляем файл-метку
+		;FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & ".XXX") 			;Удаляем файл-метку
 
 	else		;Если пингуется, запускаем приложение
 
 		FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & "." & $EXE, "")
+		BotMsg("👤" & $name[0] & @CRLF & "✅Подключился к хосту" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), $sBotKey, $nChatId)
 		Logger($name[0], $ipAddr[0] & "(" & $MAC & ")", "Успешное подключение", $hostName[0] & ":" & $EXE, 1)
 		$PID = Run($exeFile & $CONFIG & $hostName[0] & $RES)					;Запускаем приложение и фиксируем его PID
 		;Фиксируем PID приложения, чтобы не обрывать маршрут при закрытии одного из окон
 		;Так же будем отслеживать пользователей в онлайне
-		ProcessWaitClose($PID)													;Ждем окончания конкретного процесса
-		Logger($name[0], $ipAddr[0] & "(" & $MAC & ")", "Завершение работы", $hostName[0] & ":" & $EXE, 1)
-		FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & "." & $EXE)
+		;ProcessWaitClose($PID)													;Ждем окончания конкретного процесса
+
+		$t = 0
+		While True		;Запускаем сессию
+
+			If ProcessExists($PID) = 0	Then	;Если завершили процесс вручную
+
+				BotMsg("👤" & $name[0] & @CRLF & "⬅️Отключился от хоста" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), $sBotKey, $nChatId)
+				Logger($name[0], $ipAddr[0] & "(" & $MAC & ")", "Завершение работы", $hostName[0] & ":" & $EXE, 1)
+				FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & "." & $EXE)
+				ExitLoop
+
+			ElseIf $t = 28800 Then				;Если дождались таймаута
+
+				ProcessClose($PID)
+				BotMsg("👤" & $name[0] & @CRLF & "⬅️Сессия завершена" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), $sBotKey, $nChatId)
+				MsgBox(48, "Предупреждение", "Сессия " & $hostName[0] & ":" & $EXE & @CRLF & "завершена", 3)
+				Logger($name[0], $ipAddr[0] & "(" & $MAC & ")", "Сессия завершена", $hostName[0] & ":" & $EXE, 1)
+				FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & "." & $EXE)
+				ExitLoop
+
+			Endif
+			Sleep(1000)
+			$t += 1
+
+		WEnd
 
 	Endif
 
@@ -294,6 +325,7 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 	$Pfiles =_FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS\")	;Получим список файлов
 	if _ArraySearch($Pfiles, $name[0], "", "", "", 1) = -1 Then					;Если подобных файлов нет
 
+		;BotMsg("👤" & $name[0] & @CRLF & "⬅️Вышел из сети" & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
 		RouteAddDel("route delete " & $maskAddr, $flg)	;Удаляем построенный маршрут после окончания работы
 
 	EndIf
