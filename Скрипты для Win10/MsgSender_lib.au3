@@ -47,9 +47,79 @@ Func BotMsg($_TXT, $sBotKey, $nChatId)				;Отправитель сообщен
 
 EndFunc
 
+Func GetMac($_MACsIP)							;Функция получения MAC по айпи(взял из гугла)
+
+    Local $_MAC, $_MACSize
+    Local $_MACi, $_MACs, $_MACr, $_MACiIP
+    $_MAC = DllStructCreate("byte[6]")
+    $_MACSize = DllStructCreate("int")
+    DllStructSetData($_MACSize, 1, 6)
+    $_MACr = DllCall ("Ws2_32.dll", "int", "inet_addr", "str", $_MACsIP)
+    $_MACiIP = $_MACr[0]
+    $_MACr = DllCall ("iphlpapi.dll", "int", "SendARP", "int", $_MACiIP, "int", 0, "ptr", DllStructGetPtr($_MAC), "ptr", DllStructGetPtr($_MACSize))
+    $_MACs  = ""
+
+		For $_MACi = 0 To 5
+
+			If $_MACi Then $_MACs = $_MACs & ":"
+			$_MACs = $_MACs & Hex(DllStructGetData($_MAC, 1, $_MACi + 1), 2)
+
+		Next
+
+    DllClose($_MAC)
+    DllClose($_MACSize)
+    Return $_MACs
+
+EndFunc
+
+Func ListDivider()
+
+	$a = "_"
+	For $i = 0 To 61 Step 1
+
+		$a &= "_"				;Создаем строку разделитель
+
+	Next
+
+Return $a
+EndFunc
 
 
 
+;$PID = Run(@comSpec&' /c getmac', '', @SW_HIDE, $STDOUT_CHILD)	;Получаем список своих мак адресов
+;$sStdOutRead = ""		;В консоли получим текст с адресами
+;	While 1				;Конструкция нужна, чтобы прочитать вывод из консоли
+;
+;		$sStdOutRead &= StdoutRead($PID)
+;		If @error Then ExitLoop
+;
+;	WEnd
+;$ipAddr = _ArrayUnique(StringRegExp($sStdOutRead, "(([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2}))", 3))	;Массив своих маков
+;$sText = FileRead("\\main\GetStand\App\httpN\system\MAC") 		;Читаем список
+;$aLines = StringSplit($sText, @CRLF, 1)							;Делаем массив строк авторизованных маков
+;$autorizedMac = ""
+;$MAC = ""
+;Перебираем свои адреса и ищем их в списке авторизованных адресов
+;For $i = 1 To $ipAddr[0] Step +1
+;
+;	If StringLen($ipAddr[$i]) = 17 Then		;Приходится делать условие, потому что в массив попадает мусор
+;
+;		For $j = 1 To $aLines[0] Step +1					;Перебираем строки
+;
+;			$ipAddr[$i] = StringRegExpReplace($ipAddr[$i], "-", ":")
+;			If StringInStr($aLines[$j], $ipAddr[$i]) Then	;Если есть совпадение, выдаем строку
+;
+;				$autorizedMac = $aLines[$j]					;Строка с информацией о пользователей
+;				$MAC = $ipAddr[$i]							;Мак пользователя
+;				ExitLoop
+;
+;			EndIf
+;
+;		Next
+;
+;	EndIf
+;
+;Next
 
 ;$NAME = FileRead("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID")
 ;$WR = 0

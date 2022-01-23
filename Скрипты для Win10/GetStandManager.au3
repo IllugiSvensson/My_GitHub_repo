@@ -34,6 +34,7 @@ $iScheme = TrayCreateMenu("Схема")					;GetStand схема в двух в�
 $iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
 	$iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
 	$iHN = TrayCreateItem("Каталог httpN", $iCatalog)
+$iUpdate = TrayCreateItem("Обновление")				;Предупреждение об обновлении
 TrayCreateItem("")
 $iExit = TrayCreateItem("Выход")					;Выход из приложения
 
@@ -107,6 +108,14 @@ While True		;Бесконечный цикл, обеспечивающий мо�
 
 		Case $iHN 						;Открыть каталог httpN
 			ShellExecute("\\main\GetStand\App\httpN\system")
+
+		Case $iUpdate
+			if MsgBox(36, "GetStand Manager", "Предупредить об обновлении?") = 6 Then
+			
+				FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID")
+				FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID", 1)
+
+			EndIf
 
 		Case $iExit						;Закрываем программу
 			ExitLoop
@@ -308,12 +317,7 @@ Func ShowList($Array, $sBotKey, $nChatId)			;Функция отображени
 
 	else
 
-		$a = "_"
-		For $i = 0 To 61 Step 1
-
-			$a &= "_"				;Создаем строку разделитель
-
-		Next
+		$a = ListDivider()
 
 		For $i = 0 To (UBound($Array) - 1)
 
@@ -331,7 +335,7 @@ Func ShowList($Array, $sBotKey, $nChatId)			;Функция отображени
 
 		;FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Список Пользователей(list).XXXXXXX.XXX", "")
 		$MsgList = _ArrayToString($Array, @CRLF & $a & @CRLF) ;Вписываем в окно список пользователей
-		BotMsg("✅Пользователи в сети:" & @CRLF & $a & @CRLF & $MsgList, $sBotKey, $nChatId)
+		;BotMsg("✅Пользователи в сети:" & @CRLF & $a & @CRLF & $MsgList, $sBotKey, $nChatId)
 		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & $a & @CRLF & $MsgList)
 		;FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Список Пользователей(list).XXXXXXX.XXX")
 
