@@ -34,29 +34,23 @@ $iScheme = TrayCreateMenu("Схема")					;GetStand схема в двух в�
 $iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
 	$iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
 	$iHN = TrayCreateItem("Каталог httpN", $iCatalog)
-$iUpdate = TrayCreateItem("Обновление")				;Предупреждение об обновлении
+$iUpdate = TrayCreateItem("Обновление системы")		;Предупреждение об обновлении
 TrayCreateItem("")
 $iExit = TrayCreateItem("Выход")					;Выход из приложения
 
 
 
-;СТАРТ ПРОГРАММЫ, ПОКАЗЫВАЕМ ПОЛЬЗОВАТЕЛЕЙ ОНЛАЙН
-$FileList = _FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS")	;Создаем список текущих пользователей
+;СТАРТ ПРОГРАММЫ
 $sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;Ваш api ключ
 $nChatId = -1001460258261                                      	;Id получателя
-ShowList(GetArray($FileList), $sBotKey, $nChatId)				;Отображаем список пользователей
+;Циклично наблюдаем за кнопками, выполняем действия при нажатии кнопок из трея
+While True
 
-
-
-;ТЕЛО ПРОГРАММЫ, РАБОТАЮЩЕЕ В ФОНОВОМ РЕЖИМЕ. ПРОЦЕСС ОТОБРАЖАЕТСЯ В ТРЕЕ
-While True		;Бесконечный цикл, обеспечивающий мониторинг в фоновом режиме и меню трея
-
-	$FileList = _FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS")
 	;БЛОК УПРАВЛЕНИЯ ПУНКТАМИ МЕНЮ ТРЕЯ
 	Switch TrayGetMsg()		;Обрабатываем пункты меню
 
 		Case $iList						;Открываем список пользователей онлайн
-			ShowList(GetArray($FileList), $sBotKey, $nChatId)
+			ShowList()
 
 		Case $iMac						;Открываем список маков
 			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\MAC")
@@ -101,7 +95,7 @@ While True		;Бесконечный цикл, обеспечивающий мо�
 			ShellExecute("\\main\GetStand\Diagrams\DiagramsOT.html")
 
 		Case $iEdit						;Открываем редактор схемы
-			ShellExecute("https://app.diagrams.net/?lang=ru&lightbox=0&highlight=1E90FF&layers=0&nav=1#G1RvU1U9lO0kD3spev2b_3A7aVjSFA5WGM")
+			ShellExecute("https://app.diagrams.net/?lang=ru&lightbox=0&highlight=1E90FF&layers=0&nav=1#G1oRpwSBE6dq6JEUCgGE6crQ1N3naf_PQp")
 
 		Case $iGS						;Открываем основной каталог
 			ShellExecute("\\main\GetStand")
@@ -109,13 +103,8 @@ While True		;Бесконечный цикл, обеспечивающий мо�
 		Case $iHN 						;Открыть каталог httpN
 			ShellExecute("\\main\GetStand\App\httpN\system")
 
-		Case $iUpdate
-			if MsgBox(36, "GetStand Manager", "Предупредить об обновлении?") = 6 Then
-			
-				FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID")
-				FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID", 1)
-
-			EndIf
+		Case $iUpdate					;Закрываем приложения и обновляем бинарник
+			Update()
 
 		Case $iExit						;Закрываем программу
 			ExitLoop
@@ -129,6 +118,42 @@ WEnd
 
 
 ;ПОЛЬЗОВАТЕЛЬСКИЕ ФУНКЦИИ
+Func ShowList()										;Функция отображения списка пользователей
+
+	FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE", "")		;Опрашиваем пользователей 2 секунды
+	Sleep(2000)
+	$FileList = _FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS")	;Формируем список пользователей
+	If IsArray($FileList) = 0 Then
+
+		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE")
+		MsgBox(64, "GetStand Manager", "Пользователи не в сети")
+
+	Else
+
+		For $i = 1 To $FileList[0] Step +1	;Перебираем пользователей
+
+			$time = StringRegExp($FileList[$i], "\.\d+$", 2)	;Выделяем время
+			$time[0] = StringTrimLeft($time[0], 1)
+			$host = StringRegExp($FileList[$i], "\.\w+\.", 2)	;Выделяем хост
+			$host[0] = StringTrimLeft(StringTrimRight($host[0], 1), 1)
+			$name = StringTrimRight($FileList[$i], StringLen($time[0]) + StringLen($host[0]) + 2)	;Выделяяем имя
+			$FileList[$i] = "👤" & $name & " 🖥" & $host[0] & @CRLF & "        ➡️ В сети ⏱" & $time[0] & " минут."
+
+		Next
+
+		$div = ListDivider()				;Строка разделитель
+		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE")		;Удаляем файлы метки
+		DirRemove("\\main\GetStand\App\httpN\system\temp\PIDS", 1)
+		DirCreate("\\main\GetStand\App\httpN\system\temp\PIDS")
+		_ArrayDelete($FileList, 0)
+		$MsgList = _ArrayToString($FileList, @CRLF) 							;Вписываем в окно список пользователей
+		BotMsg("✅Пользователи в сети:" & @CRLF & $div & @CRLF & $MsgList, $sBotKey, $nChatId)
+		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & $div & @CRLF & $MsgList)
+
+	EndIf
+
+EndFunc
+
 Func ConfigEditor()									;Функция создания окна для редактирования конфигурации
 
 	;Создаем окно с кнопками
@@ -188,11 +213,9 @@ Func ConfigEditor()									;Функция создания окна для р�
 					;Ожидаем завершения конфигурирования и выдаем сообщение
 					ProcessWaitClose($KittyPid)
 					ProcessWaitClose($WinPid)
-					;FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Создан Конфиг(create)." & $text & ".XXX", "")
 					BotMsg("💾Создана конфигурация для хоста" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), $sBotKey, $nChatId)
 					MsgBox(64, "GetStand Manager", "Конфигурация сохранена", 2)
 					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Создана конфигурация для " & $text)
-					;FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Создан Конфиг(create)." & $text & ".XXX")
 
 				Else
 
@@ -230,11 +253,9 @@ Func ConfigEditor()									;Функция создания окна для р�
 
 					EndIf
 
-					;FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Конфиг удален(delete)." & $text & ".XXX", "")
 					BotMsg("⚠️Конфигурация для хоста удалена" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), $sBotKey, $nChatId)
 					MsgBox(64, "GetStand Manager", "Конфигурация удалена", 2)
 					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Конфигурация для " & $text & " удалена")
-					;FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Конфиг удален(delete)." & $text & ".XXX")
 
 				Else
 
@@ -270,75 +291,17 @@ Func LogDeleter()									;Функция для удаления логов
 		MsgBox(64, "GetStand Manager", "Логи удалены", 2)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Логи подключений удалены")
 
-
 	EndIf
 
 EndFunc
 
-Func GetArray($FileList)							;Получаем массив пользователей с подключенными стендами
+Func Update()
 
-	$lTime = _NowCalc()				;Фиксируем локальное время
-	For $t = 2 To $FileList[0]		;Перебираем каждый файл
+			if MsgBox(36, "GetStand Manager", "Предупредить об обновлении?") = 6 Then
+			
+				FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID")
+				FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID", 1)
 
-		$fTime = FileGetTime("\\main\GetStand\App\httpN\system\temp\PIDS\" & $FileList[$t], 0)	;Фиксируем время создания файла
-		$TX = $fTime[0] & "/" & $fTime[1] & "/" & $fTime[2] & " " & $fTime[3] & ":" & $fTime[4] & ":" & $fTime[5]
-		if _DateDiff("h", $TX, $lTime) > 12 Then		;Если время существования файла больше 12 часов, удаляем
-
-			FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $FileList[$t])	;Удаляем файлы старше 12 часов
-
-		EndIf
-
-	Next
-
-	$List = _FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS")
-	Dim $outList[1]									;Вспомогательный массив
-	$j = 0
-	For $i = 2 To (UBound($List) - 1)				;Перебираем массив
-
-		$t = Validator($List[$i], "\.[X]{3}")		;Пропускаем диагностические элементы
-		If $t = 1 Then
-
-			ReDim $outList[$j + 1]					;Заполняем новый массив
-			$outList[$j] = $List[$i]
-			$j += 1
-
-		EndIf
-
-	Next
-
-Return $outList
-EndFunc
-
-Func ShowList($Array, $sBotKey, $nChatId)			;Функция отображения списка пользователей
-
-	if $Array[0] = "" Then 			;Проверяем, есть ли кто в сети
-
-		MsgBox(64, "GetStand Manager", "Пользователи не в сети")
-
-	else
-
-		$a = ListDivider()
-
-		For $i = 0 To (UBound($Array) - 1)
-
-			$exe = StringRegExp($Array[$i], "\.\w+$", 2)	;Выделяем экзешник
-			$exe[0] = StringTrimLeft($exe[0], 1)
-			$host = StringRegExp($Array[$i], "\.\w+\.", 2)	;Выделяем хост
-			$host[0] = StringTrimLeft(StringTrimRight($host[0], 1), 1)
-			$name = StringTrimRight($Array[$i], StringLen($exe[0]) + StringLen($host[0]) + 2)	;Выделяяем имя
-			$z = FileGetTime("\\main\GetStand\App\httpN\system\temp\PIDS\" & $Array[$i], 1, 0)	;Берем время файла
-			$x = $z[0] & "/" & $z[1] & "/" & $z[2] & " " & $z[3] & ":" & $z[4] & ":" & $z[5]	;Собираем строку времени в нужном формате
-			$time = "-> В сети ⏱" & _DateDiff('n', $x, _NowCalc()) & " минут."					;Генерируем строку времени в онлайне
-			$Array[$i] = "👤" & $name & " 🖥" & $host[0] & " 🕹" & $exe[0] & @CRLF & $time
-
-		Next
-
-		;FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\Список Пользователей(list).XXXXXXX.XXX", "")
-		$MsgList = _ArrayToString($Array, @CRLF & $a & @CRLF) ;Вписываем в окно список пользователей
-		;BotMsg("✅Пользователи в сети:" & @CRLF & $a & @CRLF & $MsgList, $sBotKey, $nChatId)
-		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & $a & @CRLF & $MsgList)
-		;FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\Список Пользователей(list).XXXXXXX.XXX")
-
-	EndIf
-
+			EndIf
+			
 EndFunc

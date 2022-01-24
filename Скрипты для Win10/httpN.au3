@@ -298,6 +298,7 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 
 				WEnd
 				ProcessClose($PID)
+				ExitLoop
 
 			ElseIf $t = 30000 Then				;Если дождались таймаута
 

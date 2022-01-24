@@ -74,10 +74,10 @@ EndFunc
 
 Func ListDivider()
 
-	$a = "_"
+	$a = "-"
 	For $i = 0 To 61 Step 1
 
-		$a &= "_"				;Создаем строку разделитель
+		$a &= "-"				;Создаем строку разделитель
 
 	Next
 
@@ -120,6 +120,38 @@ EndFunc
 ;	EndIf
 ;
 ;Next
+
+;	For $t = 2 To $FileList[0]		;Перебираем каждый файл
+;
+;		$fTime = FileGetTime("\\main\GetStand\App\httpN\system\temp\PIDS\" & $FileList[$t], 0)	;Фиксируем время создания файла
+;		$TX = $fTime[0] & "/" & $fTime[1] & "/" & $fTime[2] & " " & $fTime[3] & ":" & $fTime[4] & ":" & $fTime[5]
+;		if _DateDiff("h", $TX, $lTime) > 12 Then		;Если время существования файла больше 12 часов, удаляем
+;
+;			FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\" & $FileList[$t])	;Удаляем файлы старше 12 часов
+;
+;		EndIf
+;
+;	Next
+;
+;	$List = _FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS")
+;	Dim $outList[1]									;Вспомогательный массив
+;	$j = 0
+;	For $i = 2 To (UBound($List) - 1)				;Перебираем массив
+;
+;		$t = Validator($List[$i], "\.[X]{3}")		;Пропускаем диагностические элементы
+;		If $t = 1 Then
+;
+;			ReDim $outList[$j + 1]					;Заполняем новый массив
+;			$outList[$j] = $List[$i]
+;			$j += 1
+;
+;		EndIf
+;
+;	Next
+			;$z = FileGetTime("\\main\GetStand\App\httpN\system\temp\PIDS\" & $Array[$i], 1, 0)	;Берем время файла
+			;$x = $z[0] & "/" & $z[1] & "/" & $z[2] & " " & $z[3] & ":" & $z[4] & ":" & $z[5]	;Собираем строку времени в нужном формате
+			;$time = "-> В сети ⏱" & _DateDiff('n', $x, _NowCalc()) & " минут."					;Генерируем строку времени в онлайне
+			;$Array[$i] = "👤" & $name & " 🖥" & $host[0] & " 🕹" & $exe[0] & @CRLF & $time
 
 ;$NAME = FileRead("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID")
 ;$WR = 0
