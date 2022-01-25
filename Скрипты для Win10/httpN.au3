@@ -45,7 +45,7 @@ $sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;Ваш api кл�
 $nChatId = -1001460258261                                      	;Id получателя
 if FileExists("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE") = 1 Then ;Проверка на обновления
 
-	MsgBox(48, "Предупреждение", "Ведутся технические работы" & @CRLF & "Попробуйте через минуту")
+	MsgBox(48, "Предупреждение", "Ведутся технические работы" & @CRLF & "Попробуйте через минуту", 2)
 	Exit
 
 Endif
@@ -279,6 +279,8 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 		$t = 0
 		While True
 
+			Sleep(1000)		;Отсчитываем условную секунду
+			$t += 1
 			;Условия окончания сессии
 			If ProcessExists($PID) = 0	Then	;Если завершили процесс вручную
 
@@ -292,9 +294,10 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 				$j = 0
 				While $j <> 55
 
-					if ProcessExists($PID) = 0 Then ExitLoop
 					sleep(1000)
 					$j += 1
+					if ProcessExists($PID) = 0 Then ExitLoop
+					if FileExists("\\main\GetStand\App\httpN\system\temp\Sessions\KILL") = 1 Then ExitLoop
 
 				WEnd
 				ProcessClose($PID)
@@ -309,8 +312,6 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 				ExitLoop
 
 			Endif
-			Sleep(1000)		;Отсчитываем условную секунду
-			$t += 1
 
 			;Функции, действующие во время сессии
 			if FileExists("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE") = 1 Then		;Говорим что онлайн

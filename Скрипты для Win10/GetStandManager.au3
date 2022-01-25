@@ -27,14 +27,14 @@ $iLog = TrayCreateMenu("Логи")						;Логи работы httpN
 	$iScpLog = TrayCreateItem("Логи WinSCP", $iLog)
 	$iVncLog = TrayCreateItem("Логи VNC", $iLog)
 	TrayCreateItem("", $iLog)
-	$iLogClear = TrayCreateItem("*Очистить логи", $iLog)
+	$iLogClear = TrayCreateItem("Очистить логи", $iLog)
 $iScheme = TrayCreateMenu("Схема")					;GetStand схема в двух вариантах
 	$iCom = TrayCreateItem("Оффлайн схема", $iScheme)
 	$iEdit = TrayCreateItem("Редактор", $iScheme)
 $iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
 	$iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
 	$iHN = TrayCreateItem("Каталог httpN", $iCatalog)
-$iUpdate = TrayCreateItem("Обновление системы")		;Предупреждение об обновлении
+$iUpdate = TrayCreateItem("Обновить httpN")			;Предупреждение об обновлении
 TrayCreateItem("")
 $iExit = TrayCreateItem("Выход")					;Выход из приложения
 
@@ -214,8 +214,8 @@ Func ConfigEditor()									;Функция создания окна для р�
 					ProcessWaitClose($KittyPid)
 					ProcessWaitClose($WinPid)
 					BotMsg("💾Создана конфигурация для хоста" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), $sBotKey, $nChatId)
-					MsgBox(64, "GetStand Manager", "Конфигурация сохранена", 2)
 					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Создана конфигурация для " & $text)
+					MsgBox(64, "GetStand Manager", "Конфигурация сохранена", 2)
 
 				Else
 
@@ -254,8 +254,8 @@ Func ConfigEditor()									;Функция создания окна для р�
 					EndIf
 
 					BotMsg("⚠️Конфигурация для хоста удалена" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), $sBotKey, $nChatId)
-					MsgBox(64, "GetStand Manager", "Конфигурация удалена", 2)
 					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Конфигурация для " & $text & " удалена")
+					MsgBox(64, "GetStand Manager", "Конфигурация удалена", 2)
 
 				Else
 
@@ -288,20 +288,58 @@ Func LogDeleter()									;Функция для удаления логов
 		FileDelete("\\main\GetStand\App\winscp\Log\*")
 		FileDelete("\\main\GetStand\App\vnc\Log\*")
 		BotMsg("⚠️Логи подключений удалены" & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
-		MsgBox(64, "GetStand Manager", "Логи удалены", 2)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Логи подключений удалены")
+		MsgBox(64, "GetStand Manager", "Логи удалены", 2)
 
 	EndIf
 
 EndFunc
 
-Func Update()
+Func Update()										;Функция выключения приложений и обновления httpN
 
-			if MsgBox(36, "GetStand Manager", "Предупредить об обновлении?") = 6 Then
-			
-				FileDelete("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID")
-				FileWrite("\\main\GetStand\App\httpN\system\temp\PIDS\_MasterPID", 1)
+	If MsgBox(36, "GetStand Manager", "Провести обновление httpN?") = 6 Then	;Если нажали да
 
-			EndIf
-			
+		$GUI = GUICreate("GetStand Manager", 256, 144, -1, -1, $WS_DLGFRAME)
+		$Input = GUICtrlCreateInput("Изменения", 5, 15, 246, 40)
+		GUICtrlSetFont($Input, 20)
+		$BtnOk = GUICtrlCreateButton("Отчет", 53, 60, 150, 50)
+		GUICtrlSetFont($BtnOk, 16)
+		GUISetState()
+			While True
+
+				Switch GUIGetMsg()
+
+					Case $BtnOk
+					$text = GUICtrlRead($Input)
+					ExitLoop
+
+				EndSwitch
+
+			WEnd
+		GUIDelete($GUI)
+		FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE", "")	;Предупреждаем об обновлении
+		BotMsg("⚠️Запущено обновление httpN" & @CRLF & "️🔄Автоотключение через минуту" & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
+		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Запущено обновление httpN")
+		TraySetState(2)															;Скрываем иконку
+		ProgressOn("GetStand Manager", "Обновление httpN", "", -1, -1, 3) 		;Ведем отсчет обновления
+			For $i = 1 To 100 Step 1.67											;Ожидаем минуту
+
+				ProgressSet($i)
+				Sleep(1000)
+
+			Next
+		ProgressOff()
+		FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\KILL", "")	;Создаем файл, который точно убьет все процессы
+		Sleep(1200)																;Убиваем процессы
+		$AutoIt = "D:\Programms\AutoIt3\Aut2Exe\Aut2exe.exe /in D:\NitaGit\httpN\httpN.au3 /out \\main\GetStand\App\httpN\httpN.exe /icon \\main\GetStand\App\ChromePortable\GetStand.ICO /x64"
+		Run(@ComSpec&' /c ' & $AutoIt, '', @SW_HIDE, $STDOUT_CHILD)				;Компилируем бинарь
+		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE")		;Разрешаем дальнейшую работу
+		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\KILL")
+		TraySetState(1)
+		BotMsg("🔥Обновление завершено!" & @CRLF & "🔄" & $text & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
+		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление завершено. Изменения: " & $text)
+		MsgBox(64, "GetStand Manager", "Обновление прошло успешно!")
+
+	EndIf
+
 EndFunc
