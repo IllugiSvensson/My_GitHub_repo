@@ -1,5 +1,15 @@
 ;Библиотека некоторых функций
 ;В частности генератор сообщений для телеграмма
+#include <Array.au3>
+#include <File.au3>
+#include <Date.au3>
+#include <Constants.au3>
+#include <WindowsConstants.au3>
+
+
+;Данные для телеграмм бота
+$sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;Ваш api ключ
+$nChatId = -1001460258261                                      	;Id получателя
 
 
 
@@ -47,7 +57,7 @@ Func BotMsg($_TXT, $sBotKey, $nChatId)				;Отправитель сообщен
 
 EndFunc
 
-Func GetMac($_MACsIP)							;Функция получения MAC по айпи(взял из гугла)
+Func GetMac($_MACsIP)								;Функция получения MAC по айпи(взял из гугла)
 
     Local $_MAC, $_MACSize
     Local $_MACi, $_MACs, $_MACr, $_MACiIP
@@ -72,7 +82,7 @@ Func GetMac($_MACsIP)							;Функция получения MAC по айпи
 
 EndFunc
 
-Func ListDivider()
+Func ListDivider()									;Функция создания строки разделителя
 
 	$a = "-"
 	For $i = 0 To 61 Step 1
@@ -83,6 +93,25 @@ Func ListDivider()
 
 Return $a
 EndFunc
+
+Func FileReader($pathToFile, $sSearchText)		;Функция поиска строки в файле
+
+	$sText = FileRead($pathToFile) 							;Читаем список
+	$aLines = StringSplit($sText, @CRLF, 1)					;Делаем массив строк
+		For $i = 1 To $aLines[0] Step +1					;Перебираем строки
+
+			If StringInStr($aLines[$i], $sSearchText) Then	;Если есть совпадение, выдаем строку
+
+				return $aLines[$i]
+				ExitLoop
+
+			EndIf
+
+		Next
+
+EndFunc
+
+
 
 
 
@@ -310,3 +339,40 @@ EndFunc
 ;	Next
 ;
 ;EndFunc
+
+;[HKEY_CLASSES_ROOT\httpn]
+;@="URL:httpn Protocol"
+;"URL Protocol"=""
+;[HKEY_CLASSES_ROOT\httpn\shell]
+;[HKEY_CLASSES_ROOT\httpn\shell\open]
+;[HKEY_CLASSES_ROOT\httpn\shell\open\command]
+;@="\"\\\\main\\GetStand\\App\\httpN\\httpN.exe\" \"%1\""
+;[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome]
+; "ExternalProtocolDialogShowAlwaysOpenCheckbox"=dword:00000001
+;[HKEY_CURRENT_USER\Software\Microsoft\Command Processor]
+;"DisableUNCCheck"=dword:00000001
+;[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Attachments]
+;"SaveZoneInformation"=dword:00000001
+;[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Associations]
+;"LowRiskFileTypes"=".zip;.rar;.nfo;.txt;.exe;.bat;.com;.cmd;.reg;.msi;.htm;.html;.gif;.bmp;.jpg;
+;.avi;.mpg;.mpeg;.mov;.mp3;.m3u;.wav;"
+;[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings\ZoneMap\Domains\main]
+;"file"=dword:00000001
+;[HKEY_CURRENT_USER\Software\RealVNC\vncviewer]
+;"EnableAnalytics"="0"
+;"_SplashVer"="1"
+;"_Sidebar"="0"
+;"_SortBy"="rd"
+;"_SidebarWidth"="480"
+;"AllowSignIn"="0"
+;"Log"="*:file:10"
+;"LogDir"="\\\\main\\GetStand\\App\\vnc\\Log"
+;"UserName"=""
+;"WarnUnencrypted"="0"
+;"VerifyId"="0"
+;"_ColumnWidths"="name:188,lastConn:185"
+;"LogFile"="$USERDOMAIN.log"
+;[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings]
+;"ProxyEnable"=dword:00000001
+;"ProxyServer"="http://proxy.nita.ru:3128"
+;"ProxyOverride"="*.nita.ru;*.ot.net;10.7.*;192.168.*;pi.hole;<local>"

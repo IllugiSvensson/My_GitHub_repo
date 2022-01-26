@@ -1,11 +1,4 @@
-#include <File.au3>
-#include <Array.au3>
-#include <Date.au3>
-#include <Constants.au3>
-#include <WindowsConstants.au3>
 #include <MsgSender_lib.au3>
-
-
 
 ;СОЗДАЕМ МЕНЮ МЕНЕДЖЕРА В ТРЕЕ
 Opt("TrayMenuMode", 1 + 2)							;Отключаем стандартные пункты меню
@@ -40,9 +33,6 @@ $iExit = TrayCreateItem("Выход")					;Выход из приложения
 
 
 
-;СТАРТ ПРОГРАММЫ
-$sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;Ваш api ключ
-$nChatId = -1001460258261                                      	;Id получателя
 ;Циклично наблюдаем за кнопками, выполняем действия при нажатии кнопок из трея
 While True
 
@@ -126,7 +116,7 @@ Func ShowList()										;Функция отображения списка п�
 	If IsArray($FileList) = 0 Then
 
 		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE")
-		MsgBox(64, "GetStand Manager", "Пользователи не в сети")
+		MsgBox(64, "GetStand Manager", "Пользователи не в сети", 5)
 
 	Else
 
@@ -148,7 +138,7 @@ Func ShowList()										;Функция отображения списка п�
 		_ArrayDelete($FileList, 0)
 		$MsgList = _ArrayToString($FileList, @CRLF) 							;Вписываем в окно список пользователей
 		BotMsg("✅Пользователи в сети:" & @CRLF & $div & @CRLF & $MsgList, $sBotKey, $nChatId)
-		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & $div & @CRLF & $MsgList)
+		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & $div & @CRLF & $MsgList, 5)
 
 	EndIf
 
@@ -157,7 +147,7 @@ EndFunc
 Func ConfigEditor()									;Функция создания окна для редактирования конфигурации
 
 	;Создаем окно с кнопками
-	GUICreate("Редактор конфигурации", 384, 216, -1, -1, $WS_DLGFRAME)
+	$GUI = GUICreate("Редактор конфигурации", 384, 216, -1, -1, $WS_DLGFRAME)
 		$Label = GUICtrlCreateLabel("Введите хостнейм компьютера чтобы создать или удалить конфигурацию для приложений.", 22, 10, 340, 40)
 		GUICtrlSetFont($Label, 12)
 		$Input = GUICtrlCreateInput('Введите Хостнейм', 66, 60, 252, 54)
@@ -215,11 +205,11 @@ Func ConfigEditor()									;Функция создания окна для р�
 					ProcessWaitClose($WinPid)
 					BotMsg("💾Создана конфигурация для хоста" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), $sBotKey, $nChatId)
 					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Создана конфигурация для " & $text)
-					MsgBox(64, "GetStand Manager", "Конфигурация сохранена", 2)
+					MsgBox(64, "GetStand Manager", "Конфигурация сохранена", 3, $GUI)
 
 				Else
 
-					MsgBox(16, "GetStand Manager", "Недопустимый хостнейм", 2)
+					MsgBox(16, "GetStand Manager", "Недопустимый хостнейм", 3, $GUI)
 
 				Endif
 
@@ -255,11 +245,11 @@ Func ConfigEditor()									;Функция создания окна для р�
 
 					BotMsg("⚠️Конфигурация для хоста удалена" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), $sBotKey, $nChatId)
 					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Конфигурация для " & $text & " удалена")
-					MsgBox(64, "GetStand Manager", "Конфигурация удалена", 2)
+					MsgBox(64, "GetStand Manager", "Конфигурация удалена", 3, $GUI)
 
 				Else
 
-					MsgBox(16, "GetStand Manager", "Недопустимый хостнейм", 2)
+					MsgBox(16, "GetStand Manager", "Недопустимый хостнейм", 3, $GUI)
 
 				Endif
 
@@ -289,7 +279,7 @@ Func LogDeleter()									;Функция для удаления логов
 		FileDelete("\\main\GetStand\App\vnc\Log\*")
 		BotMsg("⚠️Логи подключений удалены" & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Логи подключений удалены")
-		MsgBox(64, "GetStand Manager", "Логи удалены", 2)
+		MsgBox(64, "GetStand Manager", "Логи удалены", 3)
 
 	EndIf
 
@@ -331,14 +321,14 @@ Func Update()										;Функция выключения приложений
 		ProgressOff()
 		FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\KILL", "")	;Создаем файл, который точно убьет все процессы
 		Sleep(1200)																;Убиваем процессы
-		$AutoIt = "D:\Programms\AutoIt3\Aut2Exe\Aut2exe.exe /in D:\NitaGit\httpN\httpN.au3 /out \\main\GetStand\App\httpN\httpN.exe /icon \\main\GetStand\App\ChromePortable\GetStand.ICO /x64"
+		$AutoIt = "D:\Programms\AutoIt3\Aut2Exe\Aut2exe.exe /in D:\NitaGit\httpN\httpN_Windows.au3 /out \\main\GetStand\App\httpN\httpN_Windows.exe /icon \\main\GetStand\App\ChromePortable\GetStand.ICO /x86"
 		Run(@ComSpec&' /c ' & $AutoIt, '', @SW_HIDE, $STDOUT_CHILD)				;Компилируем бинарь
 		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE")		;Разрешаем дальнейшую работу
 		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\KILL")
 		TraySetState(1)
-		BotMsg("🔥Обновление завершено!" & @CRLF & "🔄" & $text & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
+		BotMsg("🔥Обновление завершено!" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление завершено. Изменения: " & $text)
-		MsgBox(64, "GetStand Manager", "Обновление прошло успешно!")
+		MsgBox(64, "GetStand Manager", "Обновление прошло успешно!", 5)
 
 	EndIf
 
