@@ -24,6 +24,7 @@ $iLog = TrayCreateMenu("Логи")						;Логи работы httpN
 $iScheme = TrayCreateMenu("Схема")					;GetStand схема в двух вариантах
 	$iCom = TrayCreateItem("Оффлайн схема", $iScheme)
 	$iEdit = TrayCreateItem("Редактор", $iScheme)
+	$iExport = TrayCreateItem("Экспорт схемы", $iScheme)
 $iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
 	$iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
 	$iHN = TrayCreateItem("Каталог httpN", $iCatalog)
@@ -86,6 +87,9 @@ While True
 
 		Case $iEdit						;Открываем редактор схемы
 			ShellExecute("https://app.diagrams.net/?lang=ru&lightbox=0&highlight=1E90FF&layers=0&nav=1#G1oRpwSBE6dq6JEUCgGE6crQ1N3naf_PQp")
+
+		Case $iExport					;Экспортируем на диск схему после редактирования
+			SchemeExport()
 
 		Case $iGS						;Открываем основной каталог
 			ShellExecute("\\main\GetStand")
@@ -285,28 +289,28 @@ Func LogDeleter()									;Функция для удаления логов
 
 EndFunc
 
+Func SchemeExport()									;Функция экспортирования схемы на диск после редактирования
+
+	If FileExists("D:\Download\DiagramsOt.html") Then
+
+		$text = ChangeLog()
+		BotMsg("🔥Схема GetStand обновлена!" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
+		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление схемы завершено. Изменения: " & $text)
+		FileMove("D:\Download\DiagramsOt.html", "\\main\GetStand\Diagrams\DiagramsOT.html", 1)	;Перемещаем схему с перезаписью
+
+	Else
+
+		MsgBox(16, "GetStand Manager", "Нет схемы для экспорта", 3)
+
+	EndIf
+
+EndFunc
+
 Func Update()										;Функция выключения приложений и обновления httpN
 
 	If MsgBox(36, "GetStand Manager", "Провести обновление httpN?") = 6 Then	;Если нажали да
 
-		$GUI = GUICreate("GetStand Manager", 256, 144, -1, -1, $WS_DLGFRAME)
-		$Input = GUICtrlCreateInput("Изменения", 5, 15, 246, 40)
-		GUICtrlSetFont($Input, 20)
-		$BtnOk = GUICtrlCreateButton("Отчет", 53, 60, 150, 50)
-		GUICtrlSetFont($BtnOk, 16)
-		GUISetState()
-			While True
-
-				Switch GUIGetMsg()
-
-					Case $BtnOk
-					$text = GUICtrlRead($Input)
-					ExitLoop
-
-				EndSwitch
-
-			WEnd
-		GUIDelete($GUI)
+		$text = ChangeLog()
 		FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE", "")	;Предупреждаем об обновлении
 		BotMsg("⚠️Запущено обновление httpN" & @CRLF & "️🔄Автоотключение через минуту" & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Запущено обновление httpN")

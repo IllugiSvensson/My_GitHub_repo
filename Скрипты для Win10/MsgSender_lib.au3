@@ -10,7 +10,7 @@
 ;Данные для телеграмм бота
 $sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;Ваш api ключ
 $nChatId = -1001460258261                                      	;Id получателя
-
+Dim $ip[4] = ["192.168.31.", "192.168.30.", "192.168.18.", "192.168.122."]	;Список может будет пополняться
 
 
 Func Validator($textstring, $pat)					;Функция проверки строки по шаблону
@@ -111,9 +111,43 @@ Func FileReader($pathToFile, $sSearchText)		;Функция поиска стр�
 
 EndFunc
 
+Func ChangeLog()
+
+	$GUI = GUICreate("GetStand Manager", 256, 144, -1, -1, $WS_DLGFRAME)
+	$Input = GUICtrlCreateInput("Изменения", 5, 15, 246, 40)
+	GUICtrlSetFont($Input, 20)
+	$BtnOk = GUICtrlCreateButton("Отчет", 53, 60, 150, 50)
+	GUICtrlSetFont($BtnOk, 16)
+	GUISetState()
+		While True
+
+			Switch GUIGetMsg()
+
+				Case $BtnOk
+				$text = GUICtrlRead($Input)
+				ExitLoop
+
+			EndSwitch
+
+		WEnd
+	GUIDelete($GUI)
+
+Return $text
+EndFunc
 
 
 
+
+
+		;Спрашиваем, нужны ли настройки прокси
+		;If MsgBox(36, "GetStand", "Включить прокси сервер proxy.nita.ru:3128?" & @CRLF & "Будут добавлены параметры прокси:" & @CRLF & "*.nita.ru;*.ot.net;10.7.*;192.168.*;pi.hole;<local>", 0, $GUI) = 6 Then
+		;
+		;	$proxy = RegRead("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings", "ProxyOverride")
+		;	RegWrite("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings", "ProxyOverride", "REG_SZ", "*.nita.ru;*.ot.net;10.7.*;192.168.*;pi.hole;" & $proxy)
+		;	RegWrite("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings", "ProxyEnable", "REG_DWORD", "00000001")
+		;	RegWrite("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings", "ProxyServer", "REG_SZ", "http://proxy.nita.ru:3128")
+		;
+		;EndIf
 
 ;$PID = Run(@comSpec&' /c getmac', '', @SW_HIDE, $STDOUT_CHILD)	;Получаем список своих мак адресов
 ;$sStdOutRead = ""		;В консоли получим текст с адресами

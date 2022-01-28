@@ -43,7 +43,6 @@ Endif
 
 
 ;ПРОВЕРКА MAC АДРЕСА И ПРАВ ПОЛЬЗОВАТЕЛЯ ПО СПИСКУ АВТОРИЗАЦИИ
-Dim $ip[4] = ["192.168.31.", "192.168.30.", "192.168.18.", "192.168.122."]	;Список может будет пополняться
 $ipAddr = ""
 	For $i = 0 To (UBound($ip) - 1) Step +1
 
@@ -234,8 +233,7 @@ EndFunc
 Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запуска и слежения за приложением
 
 	;Выделяем имя пользователя из строки, которое будет использоваться в названии файлов
-	$name = StringRegExp($autorizedMac, "\s{0,}\t{1,}\s{0,}(\w+(\W|\s){0,}){0,}", 2)	;Убираем подстроку допусков
-	$name[0] = StringTrimRight(StringTrimLeft($autorizedMac, 18), StringLen($name[0]))	;Убираем мак адрес
+	$name = StringRegExp($autorizedMac, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 3)
 	RouteAddDel("route add " & $maskAddr & " mask " & $MASK & " " & $gateWay, $flg)		;Строим маршрут если он есть
 	if (ConsolePing($hostName[0])) = 0 Then		;Проверяем сеть. Если не пингуется
 
