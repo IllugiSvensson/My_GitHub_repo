@@ -5,12 +5,13 @@
 #include <Date.au3>
 #include <Constants.au3>
 #include <WindowsConstants.au3>
+#include <GUIConstants.au3>
 
 
 ;Данные для телеграмм бота
 $sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;Ваш api ключ
 $nChatId = -1001460258261                                      	;Id получателя
-Dim $ip[4] = ["192.168.31.", "192.168.30.", "192.168.18.", "192.168.122."]	;Список может будет пополняться
+Dim $ip[2] = ["192.168.31.", "192.168.30."]			;Список может будет пополняться
 
 
 Func Validator($textstring, $pat)					;Функция проверки строки по шаблону
@@ -94,7 +95,7 @@ Func ListDivider()									;Функция создания строки раз�
 Return $a
 EndFunc
 
-Func FileReader($pathToFile, $sSearchText)		;Функция поиска строки в файле
+Func FileReader($pathToFile, $sSearchText)			;Функция поиска строки в файле
 
 	$sText = FileRead($pathToFile) 							;Читаем список
 	$aLines = StringSplit($sText, @CRLF, 1)					;Делаем массив строк
@@ -111,7 +112,7 @@ Func FileReader($pathToFile, $sSearchText)		;Функция поиска стр�
 
 EndFunc
 
-Func ChangeLog()
+Func ChangeLog()									;Функция отрисовки окошка для записи изменений
 
 	$GUI = GUICreate("GetStand Manager", 256, 144, -1, -1, $WS_DLGFRAME)
 	$Input = GUICtrlCreateInput("Изменения", 5, 15, 246, 40)

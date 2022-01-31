@@ -24,6 +24,7 @@ $iLog = TrayCreateMenu("Логи")						;Логи работы httpN
 $iScheme = TrayCreateMenu("Схема")					;GetStand схема в двух вариантах
 	$iCom = TrayCreateItem("Оффлайн схема", $iScheme)
 	$iEdit = TrayCreateItem("Редактор", $iScheme)
+	TrayCreateItem("", $iScheme)
 	$iExport = TrayCreateItem("Экспорт схемы", $iScheme)
 $iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
 	$iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
@@ -291,12 +292,12 @@ EndFunc
 
 Func SchemeExport()									;Функция экспортирования схемы на диск после редактирования
 
-	If FileExists("D:\Download\DiagramsOt.html") Then
+	If FileExists("D:\Download\DiagramsOT.drawio.html") Then
 
 		$text = ChangeLog()
 		BotMsg("🔥Схема GetStand обновлена!" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление схемы завершено. Изменения: " & $text)
-		FileMove("D:\Download\DiagramsOt.html", "\\main\GetStand\Diagrams\DiagramsOT.html", 1)	;Перемещаем схему с перезаписью
+		FileMove("D:\Download\DiagramsOT.drawio.html", "\\main\GetStand\Diagrams\DiagramsOT.html", 1)	;Перемещаем схему с перезаписью
 
 	Else
 

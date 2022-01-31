@@ -3,8 +3,8 @@
 ;Проверка бинаря на права администратора
 If IsAdmin() = 0 Then		;Приложение должно быть запущено под рутом
 
-	MsgBox(16, "Ошибка", "Пожалуйста, запустите приложение" & @CRLF & "с правами администратора.", 5)
-	Exit
+;	MsgBox(16, "Ошибка", "Пожалуйста, запустите приложение" & @CRLF & "с правами администратора.", 5)
+;	Exit
 
 EndIf
 
@@ -128,8 +128,7 @@ Func CreateAccount()		;Функция регистрации пользоват�
 			BotMsg("✅Новый пользователь добавлен" & @CRLF & "👤" & $text & "🪟Windows" & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
 			FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Добавлен новый пользователь Windows: " & $text)
 			FileCreateShortCut("\\main\GetStand\Diagrams\DiagramsOT.html", @DesktopDir & "\DiagramsOT")			;Делаем ярлык схемы на десктоп
-			MsgBox(64, "GetStand", "Аккаунт успешно создан!" & @CRLF & "Приятного пользования 😉", 5, $GUI)
-			GUIDelete($GUI)
+			TeleLink($GUI)
 			ShellExecute(@DesktopDir & "\DiagramsOT.lnk")
 
 		EndIf
@@ -137,4 +136,46 @@ Func CreateAccount()		;Функция регистрации пользоват�
 	EndIf
 
 Return 0
+EndFunc
+
+Func TeleLink($GUI)			;Функция отрисовки последнего окошка с ссылкой на телеграм
+
+	Opt("GUIOnEventMode", 1)		;Включить режим обработки событий мыши
+	$G = GUICreate("GetStand", 280, 180, -1, -1, $WS_DLGFRAME, -1, $GUI)
+	GUISetOnEvent($GUI_EVENT_CLOSE, "AboutOK")
+
+	GUICtrlCreateIcon("\\main\GetStand\App\ChromePortable\GetStand.ICO", -1, 10, 10, 64, 64)
+	$Label = GUICtrlCreateLabel("Аккаунт успешно создан!" & @CRLF & "Приятного пользования :)", 76, 20, 200, 60)
+	GUICtrlSetFont($Label, 12)
+
+	$link = GUICtrlCreateLabel("Подписывайтесь на telegram канал" & @CRLF & "Здесь вся информация о стендах", 24, 70, 250, 50)
+	GuiCtrlSetFont($link, 11, -1, 4) ; underlined
+	GuiCtrlSetColor($link, 0x0000ff)
+	GuiCtrlSetCursor($link, 0)
+	GUICtrlSetOnEvent(-1, "OnLink")
+
+	$But = GUICtrlCreateButton ("Продолжить", 90, 115, 100, 30)
+	GUICtrlSetFont($But, 12)
+	GUICtrlSetState (-1, $GUI_FOCUS)
+	GUICtrlSetOnEvent(-1, "AboutOK")
+	GUISetState(@SW_SHOW, $G)
+
+		While true					;Цикл опроса
+
+			Sleep(100)
+
+		WEnd
+
+EndFunc
+
+Func OnLink()				;Функция открытия ссылки при нажатии на надпись
+
+    Run(@ComSpec & " /c " & 'start https://t.me/+e8d9JjwJMtY4NzYy', "", @SW_HIDE)
+
+EndFunc
+
+Func AboutOK()				;Функция выхода из программы при нажитии Продолжить
+
+    Exit
+
 EndFunc
