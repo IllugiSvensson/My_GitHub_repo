@@ -142,7 +142,7 @@ Func ShowList()										;Функция отображения списка п�
 		DirCreate("\\main\GetStand\App\httpN\system\temp\PIDS")
 		_ArrayDelete($FileList, 0)
 		$MsgList = _ArrayToString($FileList, @CRLF) 							;Вписываем в окно список пользователей
-		BotMsg("✅Пользователи в сети:" & @CRLF & $div & @CRLF & $MsgList, $sBotKey, $nChatId)
+		BotMsg("✅<b>Пользователи в сети:</b>" & @CRLF & $div & @CRLF & $MsgList, 0, $sBotKey, $nChatId)
 		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & $div & @CRLF & $MsgList, 5)
 
 	EndIf
@@ -208,7 +208,7 @@ Func ConfigEditor()									;Функция создания окна для р�
 					;Ожидаем завершения конфигурирования и выдаем сообщение
 					ProcessWaitClose($KittyPid)
 					ProcessWaitClose($WinPid)
-					BotMsg("💾Создана конфигурация для хоста" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), $sBotKey, $nChatId)
+					BotMsg("💾<b>Создана конфигурация для хоста</b>" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), 0, $sBotKey, $nChatId)
 					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Создана конфигурация для " & $text)
 					MsgBox(64, "GetStand Manager", "Конфигурация сохранена", 3, $GUI)
 
@@ -248,7 +248,7 @@ Func ConfigEditor()									;Функция создания окна для р�
 
 					EndIf
 
-					BotMsg("⚠️Конфигурация для хоста удалена" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), $sBotKey, $nChatId)
+					BotMsg("⚠️<b>Конфигурация для хоста удалена</b>" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), 0, $sBotKey, $nChatId)
 					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Конфигурация для " & $text & " удалена")
 					MsgBox(64, "GetStand Manager", "Конфигурация удалена", 3, $GUI)
 
@@ -282,7 +282,7 @@ Func LogDeleter()									;Функция для удаления логов
 		FileDelete("\\main\GetStand\App\kitty\Log\*")
 		FileDelete("\\main\GetStand\App\winscp\Log\*")
 		FileDelete("\\main\GetStand\App\vnc\Log\*")
-		BotMsg("⚠️Логи подключений удалены" & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
+		BotMsg("⚠️<b>Логи подключений удалены</b>" & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Логи подключений удалены")
 		MsgBox(64, "GetStand Manager", "Логи удалены", 3)
 
@@ -295,7 +295,7 @@ Func SchemeExport()									;Функция экспортирования сх�
 	If FileExists("D:\Download\DiagramsOT.drawio.html") Then
 
 		$text = ChangeLog()
-		BotMsg("🔥Схема GetStand обновлена!" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
+		BotMsg("🔥<b>Схема GetStand обновлена!</b>" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление схемы завершено. Изменения: " & $text)
 		FileMove("D:\Download\DiagramsOT.drawio.html", "\\main\GetStand\Diagrams\DiagramsOT.html", 1)	;Перемещаем схему с перезаписью
 
@@ -313,7 +313,7 @@ Func Update()										;Функция выключения приложений
 
 		$text = ChangeLog()
 		FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE", "")	;Предупреждаем об обновлении
-		BotMsg("⚠️Запущено обновление httpN" & @CRLF & "️🔄Автоотключение через минуту" & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
+		BotMsg("⚠️<b>Запущено обновление httpN</b>" & @CRLF & "️🔄Автоотключение через минуту" & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Запущено обновление httpN")
 		TraySetState(2)															;Скрываем иконку
 		ProgressOn("GetStand Manager", "Обновление httpN", "", -1, -1, 3) 		;Ведем отсчет обновления
@@ -331,7 +331,7 @@ Func Update()										;Функция выключения приложений
 		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE")		;Разрешаем дальнейшую работу
 		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\KILL")
 		TraySetState(1)
-		BotMsg("🔥Обновление завершено!" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), $sBotKey, $nChatId)
+		BotMsg("🔥<b>Обновление завершено!</b>" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление завершено. Изменения: " & $text)
 		MsgBox(64, "GetStand Manager", "Обновление прошло успешно!", 5)
 
