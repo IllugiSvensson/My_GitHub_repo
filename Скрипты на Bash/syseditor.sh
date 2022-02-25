@@ -98,7 +98,7 @@ then
 	echo "	Формат аргументов:"
 	echo "	[xxx.xxx.xxx] - Для смены первых трех октетов. Например 10.101.31.74 на 10.101.18.74"
 	echo "	При этом последний октет останется без изменений во всех подходящих адресах"
-	echo "	[xxx.xxx.xxx.xxx] - Для замены конкретного адреса. Например 192.168.31.74 на 10.101.21.2 "
+	echo "	[xxx.xxx.xxx.xxx] - Для замены конкретного адреса. Например 192.168.1.74 на 10.101.21.2 "
 	echo " "
 	echo "Разработан под Астра 1.6"
 	echo " "
@@ -130,8 +130,8 @@ then
 	echo " "
 	echo "Скрипт запущен в режиме работы с конфигами"
 
-		base_string=`cat $SOFT/system.xml | grep Config` 2>>$DATA/syseditor.txt		#Сначала проверям какой конфиг установлен
-		old_Config=`echo ${base_string:17} | egrep -o '\w{1,20}'`					#Перейдем в каталог и проверим файл system.xml
+		base_string=`cat $SOFT/system.xml | grep Config | tr -d [:space:]` 2>>$DATA/syseditor.txt		#Сначала проверям какой конфиг установлен
+		old_Config=`echo ${base_string:17} | egrep -o '\w{1,30}' | head -n1 | cut -d " " -f1`			#Перейдем в каталог и проверим файл system.xml
 
 	if [ "$#" = 1 ]					#Проверим наличия конфига после ключа
 	then
