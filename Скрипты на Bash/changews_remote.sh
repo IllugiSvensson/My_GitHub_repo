@@ -385,6 +385,7 @@ Xml=`echo $Xml ZIP.xml | sed 's/.xml//g'`	#Список доступных пр�
 		}
 
 		#Блок выбора роли
+		DeleteTmpFile
 		PingHosts $confXML/$1.xml $1
 		echo `cat $DATA/CWR_offline.txt` >$DATA/CWR_offline.txt	#Транспонируем таблицу в список
 		HostsOffline=`cat $DATA/CWR_offline.txt`				#Cохраняем списки хостов
