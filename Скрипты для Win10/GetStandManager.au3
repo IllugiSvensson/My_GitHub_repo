@@ -1,37 +1,38 @@
-#include <MsgSender_lib.au3>
+#include <httpN_Windows_lib.au3>
+
+
 
 ;СОЗДАЕМ МЕНЮ МЕНЕДЖЕРА В ТРЕЕ
-Opt("TrayMenuMode", 1 + 2)							;Отключаем стандартные пункты меню
+Opt("TrayMenuMode", 1 + 2)									;Отключаем стандартные пункты меню
 ;Создаем кнопки меню
-$iList = TrayCreateItem("Пользователи в сети")		;Показать пользователей в сети
-$iConfig = TrayCreateMenu("Конфигурации")			;Конфигурации подключений
-	$iMac = TrayCreateItem("MAC-адреса", $iConfig)
-	$iDNS = TrayCreateItem("DNS-адреса", $iConfig)
-	$iHosts = TrayCreateItem("Хостнеймы", $iConfig)
-	$iKit = TrayCreateItem("Kitty сессии", $iConfig)
-	$iScp = TrayCreateItem("WinSCP сессии", $iConfig)
-	$iVnc = TrayCreateItem("VNC сессии", $iConfig)
-	TrayCreateItem("", $iConfig)					;Полоса разделитель
-	$iConfigCreate = TrayCreateItem("Редактор конфигурации", $iConfig)
-$iLog = TrayCreateMenu("Логи")						;Логи работы httpN
-	$iRuns = TrayCreateItem("Логи подключений", $iLog)
-	$iSystem = TrayCreateItem("Системные логи", $iLog)
-	$iKitLog = TrayCreateItem("Логи Kitty", $iLog)
-	$iScpLog = TrayCreateItem("Логи WinSCP", $iLog)
-	$iVncLog = TrayCreateItem("Логи VNC", $iLog)
+Local $iList = TrayCreateItem("Пользователи в сети")		;Показать пользователей в сети
+Local $iConfig = TrayCreateMenu("Конфигурации")				;Конфигурации подключений
+	Local $iUsers = TrayCreateItem("Пользователи", $iConfig)
+	Local $iHosts = TrayCreateItem("Компьютеры", $iConfig)
+	Local $iKit = TrayCreateItem("Kitty сессии", $iConfig)
+	Local $iScp = TrayCreateItem("WinSCP сессии", $iConfig)
+	Local $iVnc = TrayCreateItem("VNC сессии", $iConfig)
+	TrayCreateItem("", $iConfig)							;Полоса разделитель
+	Local $iConfigCreate = TrayCreateItem("Редактор конфигурации", $iConfig)
+Local $iLog = TrayCreateMenu("Логи")						;Логи работы httpN
+	Local $iRuns = TrayCreateItem("Логи подключений", $iLog)
+	Local $iSystem = TrayCreateItem("Системные логи", $iLog)
+	Local $iKitLog = TrayCreateItem("Логи Kitty", $iLog)
+	Local $iScpLog = TrayCreateItem("Логи WinSCP", $iLog)
+	Local $iVncLog = TrayCreateItem("Логи VNC", $iLog)
 	TrayCreateItem("", $iLog)
-	$iLogClear = TrayCreateItem("Очистить логи", $iLog)
-$iScheme = TrayCreateMenu("Схема")					;GetStand схема в двух вариантах
-	$iCom = TrayCreateItem("Оффлайн схема", $iScheme)
-	$iEdit = TrayCreateItem("Редактор", $iScheme)
+	Local $iLogClear = TrayCreateItem("Очистить логи", $iLog)
+Local $iScheme = TrayCreateMenu("Схема")					;GetStand схема в двух вариантах
+	Local $iCom = TrayCreateItem("Оффлайн схема", $iScheme)
+	Local $iEdit = TrayCreateItem("Редактор", $iScheme)
 	TrayCreateItem("", $iScheme)
-	$iExport = TrayCreateItem("Экспорт схемы", $iScheme)
-$iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
-	$iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
-	$iHN = TrayCreateItem("Каталог httpN", $iCatalog)
-$iUpdate = TrayCreateItem("Обновить httpN")			;Предупреждение об обновлении
+	Local $iExport = TrayCreateItem("Экспорт схемы", $iScheme)
+Local $iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
+	Local $iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
+	Local $iHN = TrayCreateItem("Каталог httpN", $iCatalog)
+Local $iUpdate = TrayCreateItem("Обновить httpN")			;Предупреждение об обновлении
 TrayCreateItem("")
-$iExit = TrayCreateItem("Выход")					;Выход из приложения
+Local $iExit = TrayCreateItem("Выход")						;Выход из приложения
 
 
 
@@ -44,11 +45,8 @@ While True
 		Case $iList						;Открываем список пользователей онлайн
 			ShowList()
 
-		Case $iMac						;Открываем список маков
-			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\MAC")
-
-		Case $iDNS						;Открываем страничку ДНС
-			ShellExecute("http://192.168.30.2/admin/dns_records.php")
+		Case $iUsers					;Открываем список пользователей
+			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\USERS")
 
 		Case $iHosts					;Открываем список хостнеймов
 			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\HOSTS")
@@ -115,9 +113,9 @@ WEnd
 ;ПОЛЬЗОВАТЕЛЬСКИЕ ФУНКЦИИ
 Func ShowList()										;Функция отображения списка пользователей
 
-	FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE", "")		;Опрашиваем пользователей 2 секунды
+	FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE", "")				;Опрашиваем пользователей 2 секунды
 	Sleep(2000)
-	$FileList = _FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS")	;Формируем список пользователей
+	Local $FileList = _FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS")	;Формируем список пользователей
 	If IsArray($FileList) = 0 Then
 
 		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE")
@@ -125,25 +123,23 @@ Func ShowList()										;Функция отображения списка п�
 
 	Else
 
-		For $i = 1 To $FileList[0] Step +1	;Перебираем пользователей
+		For $i = 1 To $FileList[0] Step +1			;Перебираем пользователей
 
-			$time = StringRegExp($FileList[$i], "\.\d+$", 2)	;Выделяем время
+			Local $time = StringRegExp($FileList[$i], "\.\d+$", 2)	;Выделяем время
 			$time[0] = StringTrimLeft($time[0], 1)
-			$host = StringRegExp($FileList[$i], "\.\w+\.", 2)	;Выделяем хост
+			Local $host = StringRegExp($FileList[$i], "\.\w+\.", 2)	;Выделяем хост
 			$host[0] = StringTrimLeft(StringTrimRight($host[0], 1), 1)
-			$name = StringTrimRight($FileList[$i], StringLen($time[0]) + StringLen($host[0]) + 2)	;Выделяяем имя
+			Local $name = StringTrimRight($FileList[$i], StringLen($time[0]) + StringLen($host[0]) + 2)	;Выделяяем имя
 			$FileList[$i] = "👤" & $name & " 🖥" & $host[0] & @CRLF & "        ➡️ В сети ⏱" & $time[0] & " минут."
 
 		Next
 
-		$div = ListDivider()				;Строка разделитель
 		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE")		;Удаляем файлы метки
 		DirRemove("\\main\GetStand\App\httpN\system\temp\PIDS", 1)
 		DirCreate("\\main\GetStand\App\httpN\system\temp\PIDS")
 		_ArrayDelete($FileList, 0)
-		$MsgList = _ArrayToString($FileList, @CRLF) 							;Вписываем в окно список пользователей
-		BotMsg("✅<b>Пользователи в сети:</b>" & @CRLF & $div & @CRLF & $MsgList, 0, $sBotKey, $nChatId)
-		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & $div & @CRLF & $MsgList, 5)
+		BotMsg("✅<b>Пользователи в сети:</b>" & @CRLF & ListDivider() & @CRLF & _ArrayToString($FileList, @CRLF), 0, $sBotKey, $nChatId)
+		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & ListDivider() & @CRLF & _ArrayToString($FileList, @CRLF), 5)
 
 	EndIf
 
@@ -152,58 +148,66 @@ EndFunc
 Func ConfigEditor()									;Функция создания окна для редактирования конфигурации
 
 	;Создаем окно с кнопками
-	$GUI = GUICreate("Редактор конфигурации", 384, 216, -1, -1, $WS_DLGFRAME)
-		$Label = GUICtrlCreateLabel("Введите хостнейм компьютера чтобы создать или удалить конфигурацию для приложений.", 22, 10, 340, 40)
+	Local $GUI = GUICreate("Редактор конфигурации", 384, 384, -1, -1, $WS_DLGFRAME)
+		Local $Label = GUICtrlCreateLabel("Введите данные компьютера чтобы создать, редактировать или удалить конфигурацию для приложений.", 22, 10, 340, 60)
 		GUICtrlSetFont($Label, 12)
-		$Input = GUICtrlCreateInput('Введите Хостнейм', 66, 60, 252, 54)
+		Local $Input = GUICtrlCreateInput('Введите Хостнейм', 66, 80, 252, 40)
 		GUICtrlSetFont($Input, 20)
-		$ButtonCreate = GUICtrlCreateButton("Создать", 42, 122, 100, 54)
-		GUICtrlSetFont($ButtonCreate, 16)
-		$ButtonDelete = GUICtrlCreateButton("Удалить", 142, 122, 100, 54)
-		GUICtrlSetFont($ButtonDelete, 16)
-		$ButtonCancel = GUICtrlCreateButton("Выход", 242, 122, 100, 54)
-		GUICtrlSetFont($ButtonCancel, 16)
+		Local $Input1 = GUICtrlCreateInput('Введите адрес', 66, 120, 252, 40)
+		GUICtrlSetFont($Input1, 20)
+		Local $Input2 = GUICtrlCreateInput('Введите маршрут', 66, 160, 252, 40)
+		GUICtrlSetFont($Input2, 20)
+		Local $Input3 = GUICtrlCreateInput('Введите маску', 66, 200, 252, 40)
+		GUICtrlSetFont($Input3, 20)
+		Local $ButtonCreate = GUICtrlCreateButton("Создать", 42, 250, 100, 40)
+		GUICtrlSetFont($ButtonCreate, 14)
+		Local $ButtonDelete = GUICtrlCreateButton("Удалить", 142, 250, 100, 40)
+		GUICtrlSetFont($ButtonDelete, 14)
+		Local $ButtonCancel = GUICtrlCreateButton("Выход", 242, 250, 100, 40)
+		GUICtrlSetFont($ButtonCancel, 14)
 		GUISetState()
-		;Сразу открываем страничку DNS
-		ShellExecute("http://192.168.30.2/admin/dns_records.php")
 
 	While True			;Запускаем цикл опроса окна
 
 		Switch GUIGetMsg()
 
 			Case $ButtonCreate					;Если нажали "Создать"
-				$text = GUICtrlRead($Input)		;Считываем ввод
-				If Validator($text, "\w+") <> 1 Then	;Проверяем строку
+				Local $text = GUICtrlRead($Input)		;Считываем ввод
+				Local $text1 = GUICtrlRead($Input1)
+				Local $text2 = GUICtrlRead($Input2)
+				if StringLen($text2) <> 0 Then $text2 = "G" & $text2
+				Local $text3 = GUICtrlRead($Input3)
+				if StringLen($text3) <> 0 Then $text3 = "M" & $text3
+				If Validator($text, "\w+") Or Validator($text1, "\w+") <> 1 Then	;Проверяем строку
 
-					;Конфигурация для маршрута
-					FileWrite("\\main\GetStand\App\httpN\system\HOSTS", @CRLF & $text)	;Если нужно вписать маршрут
-					ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\HOSTS")
+					;Конфигурация для компьютера
+					FileWrite("\\main\GetStand\App\httpN\system\HOSTS", @CRLF & $text & " A" & $text1 & " " & $text2 & " " & $text3)
 
 					;Конфигурация для VNC
 					FileCopy("\\main\GetStand\App\vnc\config\Default.vnc", "\\main\GetStand\App\vnc\config\" & $text & ".vnc")
-					FileWrite("\\main\GetStand\App\vnc\config\" & $text & ".vnc", @CRLF & "Host=" & $text & ".ot.net")
+					FileWrite("\\main\GetStand\App\vnc\config\" & $text & ".vnc", @CRLF & "Host=" & $text1)
 
 					;Конфигурация для WinSCP
-					$File = "\\main\GetStand\App\winscp\WinSCP.ini"
-					$Read = FileRead($File)
+					Local $File = "\\main\GetStand\App\winscp\WinSCP.ini"
+					Local $Read = FileRead($File)
 					StringRegExpReplace($Read, "ConfigDeleted", "ConfigDeleted")	;Проверим наличие совпадений
 					if @extended <> 0 Then							;Если есть удаленная конфигурация, перезаписываем её
 
-						$Replace = StringRegExpReplace($Read, "ConfigDeleted", $text)
+						Local $Replace = StringRegExpReplace($Read, "ConfigDeleted", $text)
 						FileDelete($File)			;Перезаписываем файл с новыми данными
 						FileWrite($File, $Replace)
 
 					else											;Если нет, создаем новую
 
-						FileWriteLine("\\main\GetStand\App\winscp\WinSCP.ini", "[Sessions\" & $text & "]" & @CRLF & "HostName=" & $text & ".ot.net" & @CRLF & "UserName=root")
+						FileWriteLine("\\main\GetStand\App\winscp\WinSCP.ini", "[Sessions\" & $text & "]" & @CRLF & "HostName=" & $text1 & @CRLF & "UserName=root")
 
 					EndIf
-					$WinPID = ShellExecute("\\main\GetStand\App\winscp\WinSCP.exe")
+					Local $WinPID = ShellExecute("\\main\GetStand\App\winscp\WinSCP.exe")
 
 					;Конфигурация для Kitty
 					FileCopy("\\main\GetStand\App\kitty\Sessions\Default", "\\main\GetStand\App\kitty\Sessions\" & $text)
-					FileWrite("\\main\GetStand\App\kitty\Sessions\" & $text, @CRLF & "HostName\" & $text & ".ot.net\")
-					$KittyPid = ShellExecute("\\main\GetStand\App\kitty\kitty.exe")	;Пароль нужно задать в окне вручную
+					FileWrite("\\main\GetStand\App\kitty\Sessions\" & $text, @CRLF & "HostName\" & $text1)
+					Local $KittyPid = ShellExecute("\\main\GetStand\App\kitty\kitty.exe")	;Пароль нужно задать в окне вручную
 
 					;Ожидаем завершения конфигурирования и выдаем сообщение
 					ProcessWaitClose($KittyPid)
@@ -219,13 +223,13 @@ Func ConfigEditor()									;Функция создания окна для р�
 				Endif
 
 			Case $ButtonDelete					;Если нажали "Удалить"
-				$text = GUICtrlRead($Input)
+				Local $text = GUICtrlRead($Input)		;Считываем ввод
 				If Validator($text, "\w+") <> 1 Then
 
-					;Удаляем хост в списке маршрутов
-					$File = "\\main\GetStand\App\httpN\system\HOSTS"
-					$Read = FileRead($File)
-					$Replace = StringRegExpReplace($Read, $text & ".*", "")
+					;Удаляем компьютер из списка
+					Local $File = "\\main\GetStand\App\httpN\system\HOSTS"
+					Local $Read = FileRead($File)
+					Local $Replace = StringRegExpReplace($Read, $text & ".*", "")
 					if @extended <> 0 Then
 
 						FileDelete($File)			;Перезаписываем файл с новыми данными
@@ -294,7 +298,7 @@ Func SchemeExport()									;Функция экспортирования сх�
 
 	If FileExists("D:\Download\DiagramsOT.drawio.html") Then
 
-		$text = ChangeLog()
+		Local $text = ChangeLog()
 		BotMsg("🔥<b>Схема GetStand обновлена!</b>" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление схемы завершено. Изменения: " & $text)
 		FileMove("D:\Download\DiagramsOT.drawio.html", "\\main\GetStand\Diagrams\DiagramsOT.html", 1)	;Перемещаем схему с перезаписью
@@ -311,7 +315,7 @@ Func Update()										;Функция выключения приложений
 
 	If MsgBox(36, "GetStand Manager", "Провести обновление httpN?") = 6 Then	;Если нажали да
 
-		$text = ChangeLog()
+		Local $text = ChangeLog()
 		FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE", "")	;Предупреждаем об обновлении
 		BotMsg("⚠️<b>Запущено обновление httpN</b>" & @CRLF & "️🔄Автоотключение через минуту" & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Запущено обновление httpN")
@@ -326,7 +330,7 @@ Func Update()										;Функция выключения приложений
 		ProgressOff()
 		FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\KILL", "")	;Создаем файл, который точно убьет все процессы
 		Sleep(1200)																;Убиваем процессы
-		$AutoIt = "D:\Programms\AutoIt3\Aut2Exe\Aut2exe.exe /in D:\NitaGit\httpN\httpN_Windows.au3 /out \\main\GetStand\App\httpN\httpN_Windows.exe /icon \\main\GetStand\App\ChromePortable\GetStand.ICO /x86"
+		Local $AutoIt = "D:\Programms\AutoIt3\Aut2Exe\Aut2exe.exe /in D:\NitaGit\httpN\httpN_Windows.au3 /out \\main\GetStand\App\httpN\httpN_Windows.exe /icon \\main\GetStand\App\ChromePortable\GetStand.ICO /x86"
 		Run(@ComSpec&' /c ' & $AutoIt, '', @SW_HIDE, $STDOUT_CHILD)				;Компилируем бинарь
 		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE")		;Разрешаем дальнейшую работу
 		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\KILL")
