@@ -184,7 +184,7 @@ Func ConfigEditor()									;Функция создания окна для р�
 					FileWrite("\\main\GetStand\App\httpN\system\HOSTS", @CRLF & $text & " A" & $text1 & " " & $text2 & " " & $text3)
 
 					;Конфигурация для VNC
-					FileCopy("\\main\GetStand\App\vnc\config\Default.vnc", "\\main\GetStand\App\vnc\config\" & $text & ".vnc")
+					FileCopy("\\main\GetStand\App\vnc\config\Pattern.vnc", "\\main\GetStand\App\vnc\config\" & $text & ".vnc")
 					FileWrite("\\main\GetStand\App\vnc\config\" & $text & ".vnc", @CRLF & "Host=" & $text1)
 
 					;Конфигурация для WinSCP
@@ -205,7 +205,7 @@ Func ConfigEditor()									;Функция создания окна для р�
 					Local $WinPID = ShellExecute("\\main\GetStand\App\winscp\WinSCP.exe")
 
 					;Конфигурация для Kitty
-					FileCopy("\\main\GetStand\App\kitty\Sessions\Default", "\\main\GetStand\App\kitty\Sessions\" & $text)
+					FileCopy("\\main\GetStand\App\kitty\Sessions\Pattern", "\\main\GetStand\App\kitty\Sessions\" & $text)
 					FileWrite("\\main\GetStand\App\kitty\Sessions\" & $text, @CRLF & "HostName\" & $text1)
 					Local $KittyPid = ShellExecute("\\main\GetStand\App\kitty\kitty.exe")	;Пароль нужно задать в окне вручную
 

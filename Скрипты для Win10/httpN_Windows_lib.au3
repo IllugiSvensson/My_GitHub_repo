@@ -78,10 +78,8 @@ Func RouteAddDel($ROUTE, $fl)							;Функция создания маршр�
 
 	if $fl = 1 Then
 
-		Local $hFile = FileOpen(@ScriptDir & "\system\temp\system.bat", 2)	;Открывает батник для перезаписи
-		FileWrite($hFile, $ROUTE) 											;Вписываем параметры
-		ShellExecute(@ScriptDir & "\system\temp\httpN.lnk")					;Запускаем батник для постройки/удаления маршрута
-		FileClose($hFile)													;Закрываем файл
+		#RequireAdmin
+		Run(@ComSpec & " /c " & $ROUTE, '', @SW_HIDE)
 
 	EndIf
 
@@ -106,6 +104,8 @@ Func FileReader($pathToFile, $sSearchText)				;Функция поиска ст�
 
 			If StringInStr($aLines[$i], $sSearchText) Then	;Если есть совпадение, выдаем строку
 
+				Local $auth = StringRegExp($aLines[$i], "\w+[-]{0,1}\w{0,}", 2)
+				if StringCompare($auth[0], $sSearchText) <> 0 Then ContinueLoop
 				return $aLines[$i]
 				ExitLoop
 

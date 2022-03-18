@@ -106,7 +106,7 @@ Func CreateAccount()		;Функция регистрации пользоват�
 
 		Else											;Если имя определили, завершаем настройку
 
-			FileWrite($appfolder & "\App\httpN\system\USERS", @CRLF & $username & " " & $text & " standart")
+			FileWrite($appfolder & "\App\httpN\system\USERS", @CRLF & $username & " " & $text & " default")
 			BotMsg("✅<b>Новый пользователь добавлен</b>" & @CRLF & "👤" & $text & "🪟Windows" & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
 			FileWriteLine($appfolder & "\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Добавлен новый пользователь Windows: " & $text)
 			FileCreateShortCut($appfolder & "\Diagrams\DiagramsOT.html", @DesktopDir & "\DiagramsOT")			;Делаем ярлык схемы на десктоп
