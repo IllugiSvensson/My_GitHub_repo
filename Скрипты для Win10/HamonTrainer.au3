@@ -17,7 +17,7 @@ Endif
 Global $remain = 93
 Global $startTime = _NowCalc()						;ВременнЫе переменные
 $path = "D:\Utilities\HamonTrainer\resources"		;Путь до файлов
-GUI($path & "\1.jpg", 0, 620, 450, "Разминка", 15, $path & "\1.mp3", 0xD0ECE7)		;Тренировочные окна
+GUI($path & "\1.jpg", 0, 620, 450, "Разминка", 12, $path & "\1.mp3", 0xD0ECE7)		;Тренировочные окна
 GUI($path & "\2.jpg", 15, 10, 380, "Основная", 30, $path & "\2.mp3", 0x5DADE2)
 GUI($path & "\3.jpg", 45, 10, 450, "Подготовка", 1, $path & "\3.mp3", 0xEBDEF0)
 GUI($path & "\4.jpg", 46, 10, 350, "Функционал", 10, $path & "\4.mp3", 0xD5F5E3)
