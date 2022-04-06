@@ -96,11 +96,23 @@ do
 	fi
 
 	#Спрашиваем, чистить ли последовательность бекапов
+	#Когда заканчивается место
+	freespace=`df -hm /data/ | egrep -o "[0-9]{1,}\s" | tail -1`
+	backupsusage=`du -shm /data/tmp/backups | egrep -o "[0-9]{1,}"`
+	if [ $freespace -lt 500 ]
+	then
+
+		killall -9 zenity
+		zenity --question --text="Удалить созданные бекапы?\nБекапов сделано на $backupsusage Mb\nМеста в /data осталось $freespace Mb\n\nНажмите \'Нет\' чтобы бекапить дальше" --ellipsize --ok-label=Да --cancel-label=Нет
+		[ $? == "0" ] && { rm -rf /data/tmp/backups/$str; }
+
+	fi
+	#Когда прошла неделя
 	if [ `date +%a` == "Вс" -a $Flag == "0" ]
 	then
 
 		killall -9 zenity
-		zenity --question --text="Удалить созданные бекапы?" --ellipsize
+		zenity --question --text="Удалить созданные бекапы?\nБекапов сделано на $backupsusage Mb\nМеста в /data осталось $freespace Mb\n\nНажмите \'Нет\' чтобы бекапить дальше" --ellipsize --ok-label=Да --cancel-label=Нет
 		[ $? == "0" ] && { rm -rf /data/tmp/backups/$str; }
 		Flag=1
 

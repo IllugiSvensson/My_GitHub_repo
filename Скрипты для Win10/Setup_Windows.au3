@@ -2,16 +2,6 @@
 
 
 
-;Проверка бинаря на права администратора
-If IsAdmin() = 0 Then		;Приложение должно быть запущено под рутом
-
-	MsgBox(16, "Ошибка", "Пожалуйста, запустите приложение" & @CRLF & "с правами администратора.", 5)
-	Exit
-
-EndIf
-
-
-
 ;ОТРИСОВЫВАЕМ ОСНОВНОЕ ОКНО
 Global $GUI = GUICreate("GetStand Windows version", 384, 336, -1, -1, $WS_DLGFRAME)
 Local $Label1 = GUICtrlCreateLabel("   Приветствую вас в системе GetStand!" , 12, 12, 360, 30, $WS_BORDER, $WS_EX_DLGMODALFRAME)

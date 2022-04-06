@@ -1,5 +1,4 @@
-;Библиотека некоторых функций
-;В частности генератор сообщений для телеграма
+;Библиотека функций и настроек
 #include <Array.au3>
 #include <File.au3>
 #include <Date.au3>
@@ -9,12 +8,67 @@
 
 
 
-;Данные для телеграмм бота
 AutoItSetOption("MustDeclareVars", 1)
-Global $sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;Ваш api ключ
-Global $nChatId = -1001460258261                                      	;Id получателя
+#RequireAdmin				;Убрать, когда будет проброс портов
+;Данные для телеграмм бота
+Global $sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;api ключ
+Global $nChatId = -1001460258261                                      	;Id группы
 
-Func _URIEncode($sData)									;Генератор сообщений для телеграм бота
+
+
+Func EntryWindow($type)									;Функция отрисовки окошка для записей
+
+	If $type = 1 Then		;Для запуска вручную
+
+		Local $title = "httpn запуск"
+		Local $inputText = "Введите хостнейм"
+		Local $labelText1 = "Введите приложение VNC, KIT или SCP и хостнейм компьютера для подключения вручную"
+		Local $labelText2 = "Пример: VNC default"
+		Local $btnOkText = "Запуск"
+
+	ElseIf $type = 2 Then	;Для обратной связи
+
+		Local $title = "Обратная связь"
+		Local $inputText = "Введите ваше сообщение"
+		Local $labelText1 = "Все вопросы и предложения можете написать разработчику в этой форме"
+		Local $labelText2 = "Разработчик: Смирнов А.Д. ОТ"
+		Local $btnOkText = "Отправить"
+
+	EndIf
+
+		Local $text = ""	;Создаем окно с полями и кнопками
+		Local $GUI = GUICreate($title, 256, 200, -1, -1, $WS_DLGFRAME)
+		Local $Label1 = GUICtrlCreateLabel($labelText1, 5, 7, 246, 62, $WS_BORDER, $WS_EX_DLGMODALFRAME)
+		GUICtrlSetFont($Label1, 12)
+		Local $Label2 = GUICtrlCreateLabel($labelText2, 13, 75, 246, 30)
+		GUICtrlSetFont($Label2, 12)
+		Local $Input = GUICtrlCreateInput($inputText, 5, 95, 246, 30)
+		GUICtrlSetFont($Input, 14)
+		Local $BtnOk = GUICtrlCreateButton($btnOkText, 18, 130, 110, 40)
+		GUICtrlSetFont($BtnOk, 16)
+		Local $BtnNo = GUICtrlCreateButton("Отмена", 128, 130, 110, 40)
+		GUICtrlSetFont($BtnNo, 16)
+		GUISetState()
+			While True		;Следим за нажатием кнопок
+
+				Switch GUIGetMsg()
+
+					Case $BtnOk
+						$text = GUICtrlRead($Input)
+						ExitLoop
+
+					Case $BtnNo
+						Exit
+
+				EndSwitch
+
+			WEnd
+		GUIDelete($GUI)
+
+Return $text
+EndFunc
+
+Func _URIEncode($sData)									;Конвертер текста для телеграм бота
 
     Local $aData = StringSplit(BinaryToString(StringToBinary($sData, 4), 1), "")
     Local $nChar
@@ -40,59 +94,30 @@ Func _URIEncode($sData)									;Генератор сообщений для т
 Return $sData
 EndFunc
 
-Func BotMsg($_TXT, $sNotif, $sBotKey, $nChatId)			;Отправитель сообщений боту в телеграм
+Func BotMsg($_TXT, $sNotif)								;Отправитель сообщений боту
 
-	Local $sText = _URIEncode($_TXT)		; Текст сообщения, не больше 4000 знаков
+	Local $sText = _URIEncode($_TXT)					;Текст сообщения, не больше 4000 знаков
 	ConsoleWrite(InetRead('https://api.telegram.org/' & $sBotKey & '/sendMessage?chat_id=' & $nChatId & '&parse_mode=html&disable_notification=' & $sNotif & '&text=' & $sText, 0))
 
 EndFunc
 
-Func AddrToMask($MSKADDR)								;Функция преобразования адреса в маску
+Func Logger($USER, $ADDRES, $ACT, $HOST, $TYPE)			;Функция логирования действий пользователя
 
-	Switch "1"	;REGEX возвращает массив либо двоичное значение. Сравниваем с единицей для удобства
+	If $TYPE = 1 Then		;Запись лога запусков приложений
 
-		Case StringRegExp($MSKADDR, "((\d{1,3}\.){1}0.0.0)", 0) ;Проверяем последние актеты на 0
-			return "255.0.0.0"							 	 	;Возвращаем маску
+		Local $tmpPath = @ScriptDir & "\system\log\log.txt"	;Путь до лога
+		Local $TIME = StringFormat("%-19s", _Now())			;Форматируем вывод под стандарт
+		$ADDRES = StringFormat("%-18s", $ADDRES)
+		$HOST = StringFormat("%-20s", $HOST)
+		$USER = StringFormat("%-35s", $USER)
+		$ACT = StringFormat("%-18s", $ACT)
+		FileWriteLine($tmpPath, $TIME & " | " & $ADDRES & " | " & $HOST & " | " & $USER & " | " & $ACT)
 
-		Case StringRegExp($MSKADDR, "((\d{1,3}\.){2}0.0)", 0)
-			return "255.255.0.0"
+	ElseIf $TYPE = 2 Then	;Запись системного лога
 
-		Case StringRegExp($MSKADDR, "((\d{1,3}\.){3}0)", 0)
-			return "255.255.255.0"
-
-		Case Else
-			return "255.255.255.255"
-
-	EndSwitch
-
-EndFunc
-
-Func ConsolePing($ADD)									;Функция пинга
-
-	Sleep(1500)			;Без паузы почему то нормально не пингуется
-	return Ping($ADD)
-
-EndFunc
-
-Func RouteAddDel($ROUTE, $fl)							;Функция создания маршрута
-
-	if $fl = 1 Then
-
-		#RequireAdmin
-		Run(@ComSpec & " /c " & $ROUTE, '', @SW_HIDE)
+		FileWriteLine(@ScriptDir & "\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & $USER)
 
 	EndIf
-
-EndFunc
-
-Func Validator($textstring, $pat)						;Функция проверки строки по шаблону
-
-	$textstring = StringRegExp($textstring, $pat, 2)
-	if IsArray($textstring) <> 1 Then
-
-		Return 1
-
-	Endif
 
 EndFunc
 
@@ -105,9 +130,8 @@ Func FileReader($pathToFile, $sSearchText)				;Функция поиска ст�
 			If StringInStr($aLines[$i], $sSearchText) Then	;Если есть совпадение, выдаем строку
 
 				Local $auth = StringRegExp($aLines[$i], "\w+[-]{0,1}\w{0,}", 2)
-				if StringCompare($auth[0], $sSearchText) <> 0 Then ContinueLoop
-				return $aLines[$i]
-				ExitLoop
+				If StringCompare($auth[0], $sSearchText) <> 0 Then ContinueLoop
+				Return $aLines[$i]
 
 			EndIf
 
@@ -115,20 +139,49 @@ Func FileReader($pathToFile, $sSearchText)				;Функция поиска ст�
 
 EndFunc
 
-Func Logger($USER, $ADDRES, $ACT, $HOST, $TYPE)			;Функция логирования действий пользователя
+Func Validator($textstring, $pat)						;Функция проверки строки по шаблону
 
-	If $TYPE = 1 Then			;Запись лога запусков приложений
+	$textstring = StringRegExp($textstring, $pat, 2)
+	If IsArray($textstring) <> 1 Then
 
-		Local $tmpPath = @ScriptDir & "\system\log\log.txt"	;Путь до лога
-		Local $TIME = StringFormat("%-19s", _Now())						;Форматируем вывод под стандарт
-		$USER = StringFormat("%-33s", $USER)
-		$ADDRES = StringFormat("%-21s", $ADDRES)
-		$ACT = StringFormat("%-21s", $ACT)
-		FileWriteLine($tmpPath, $TIME & " | " & $USER & " | " & $ADDRES & " | " & $ACT & " | " & $HOST )
+		Return 1
 
-	ElseIf $TYPE = 2 Then		;Запись системного лога
+	EndIf
 
-		FileWriteLine(@ScriptDir & "\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & $USER)
+EndFunc
+
+Func AddrToMask($MSKADDR)								;Функция преобразования адреса в маску
+
+	Switch "1"	;REGEX возвращает массив либо двоичное значение. Сравниваем с единицей для удобства
+
+		Case StringRegExp($MSKADDR, "((\d{1,3}\.){1}0.0.0)", 0) ;Проверяем последние актеты на 0
+			Return "255.0.0.0"							 	 	;Возвращаем маску
+
+		Case StringRegExp($MSKADDR, "((\d{1,3}\.){2}0.0)", 0)
+			Return "255.255.0.0"
+
+		Case StringRegExp($MSKADDR, "((\d{1,3}\.){3}0)", 0)
+			Return "255.255.255.0"
+
+		Case Else
+			Return "255.255.255.255"
+
+	EndSwitch
+
+EndFunc
+
+Func ConsolePing($ADD)									;Функция пинга
+
+	Sleep(1500)			;Без паузы почему то нормально не пингуется
+	Return Ping($ADD)
+
+EndFunc
+
+Func RouteAddDel($ROUTE, $fl)							;Функция создания маршрута
+
+	if $fl = 1 Then
+
+		Run(@ComSpec & " /c " & $ROUTE, '', @SW_HIDE)
 
 	EndIf
 
@@ -136,43 +189,41 @@ EndFunc
 
 Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запуска и слежения за приложением
 
-	;Выделяем имя пользователя из строки, которое будет использоваться в названии файлов
-	Local $name = StringRegExp($autorizedUser, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 3)
 	RouteAddDel("route add " & $maskAddr & " mask " & $gatemask & " " & $gateway, $flg)	;Строим маршрут если он есть
-	if (ConsolePing($address)) = 0 Then		;Проверяем сеть. Если не пингуется
+	If (ConsolePing($address)) = 0 Then	;Проверяем сеть. Если не пингуется
 
-		BotMsg("👤" & $name[0] & @CRLF & "⚠️Неудачное подключение" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1, $sBotKey, $nChatId)
+		BotMsg("👤" & $name[0] & @CRLF & "⚠️Неудачное подключение" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
 		Logger($name[0], $username, "Хост не отвечает", $hostName[0] & ":" & $EXE, 1)
-		MsgBox(16, "Ошибка", "Не удается подключиться к хосту." & @CRLF & "Обратитесь в Отдел Тестирования.", 3)
+		MsgBox(16, "Ошибка", "Не удается подключиться к хосту" & @CRLF & "Обратитесь в Отдел Тестирования", 3)
 
-	else		;Если пингуется, запускаем приложение
+	Else								;Если пингуется, запускаем приложение
 
 		Local $PID = Run($exeFile & $CONFIG & $hostName[0] & $RES)						;Запускаем приложение и фиксируем его PID
-		BotMsg("👤" & $name[0] & @CRLF & "✅Подключился к хосту" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1, $sBotKey, $nChatId)
+		BotMsg("👤" & $name[0] & @CRLF & "✅Подключился к хосту" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
 		Logger($name[0], $username, "Успешное подключение", $hostName[0] & ":" & $EXE, 1)
 		;Запускаем сессию приложения
 		Local $t = 0
 		While True
 
-			Sleep(1000)		;Отсчитываем условную секунду
+			Sleep(1000)					;Отсчитываем условную секунду
 			$t += 1
 			;Условия окончания сессии
 			If ProcessExists($PID) = 0	Then	;Если завершили процесс вручную
 
-				BotMsg("👤" & $name[0] & @CRLF & "⬅️Отключился от хоста" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1, $sBotKey, $nChatId)
+				BotMsg("👤" & $name[0] & @CRLF & "⬅️Отключился от хоста" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
 				Logger($name[0], $username, "Завершение работы", $hostName[0] & ":" & $EXE, 1)
 				ExitLoop
 
 			ElseIf FileExists(@ScriptDir & "\system\temp\Sessions\UPDATE") = 1 Then 	;Если начали обновление
 
-				MsgBox(48, "Предупреждение", "Обновление системы. Сохраните работу." & @CRLF & "Приложение закроется через минуту.", 5)
+				MsgBox(48, "Предупреждение", "Обновление системы. Сохраните работу" & @CRLF & "Приложение закроется через минуту", 5)
 				Local $j = 0
 				While $j <> 55
 
 					sleep(1000)
 					$j += 1
-					if ProcessExists($PID) = 0 Then ExitLoop
-					if FileExists(@ScriptDir & "\system\temp\Sessions\KILL") = 1 Then ExitLoop
+					If ProcessExists($PID) = 0 Then ExitLoop
+					If FileExists(@ScriptDir & "\system\temp\Sessions\KILL") = 1 Then ExitLoop
 
 				WEnd
 				ProcessClose($PID)
@@ -181,12 +232,12 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 			ElseIf $t = 30000 Then				;Если дождались таймаута
 
 				ProcessClose($PID)
-				BotMsg("👤" & $name[0] & @CRLF & "⬅️Сессия завершена" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1, $sBotKey, $nChatId)
+				BotMsg("👤" & $name[0] & @CRLF & "⬅️Сессия завершена" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
 				Logger($name[0], $username, "Сессия завершена", $hostName[0] & ":" & $EXE, 1)
 				MsgBox(48, "Предупреждение", "Сессия " & $hostName[0] & ": " & $EXE & @CRLF & "завершена по таймауту", 3)
 				ExitLoop
 
-			Endif
+			EndIf
 
 			;Функции, действующие во время сессии
 			if FileExists(@ScriptDir & "\system\temp\Sessions\ONLINE") = 1 Then			;Говорим что онлайн
@@ -198,39 +249,15 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 
 		WEnd
 
-	Endif
+	EndIf
 
 	;Когда закончили работу или не смогли подключиться, нужно удалить маршрут за собой
-	if UBound(ProcessList("httpN_Windows.exe")) = 2 Then			;Если файл один (наш файл)
+	If UBound(ProcessList("httpN_Windows.exe")) = 2 Then	;Если файл один (наш файл)
 
-		RouteAddDel("route delete " & $maskAddr, $flg)	;Удаляем построенный маршрут после окончания работы
+		RouteAddDel("route delete " & $maskAddr, $flg)		;Удаляем построенный маршрут после окончания работы
 
 	EndIf
 
-EndFunc
-
-Func ChangeLog()										;Функция отрисовки окошка для записи изменений
-
-	Local $GUI = GUICreate("GetStand Manager", 256, 144, -1, -1, $WS_DLGFRAME)
-	Local $Input = GUICtrlCreateInput("Изменения", 5, 15, 246, 40)
-	GUICtrlSetFont($Input, 20)
-	Local $BtnOk = GUICtrlCreateButton("Отчет", 53, 60, 150, 50)
-	GUICtrlSetFont($BtnOk, 16)
-	GUISetState()
-		While True
-
-			Switch GUIGetMsg()
-
-				Case $BtnOk
-				Local $text = GUICtrlRead($Input)
-				ExitLoop
-
-			EndSwitch
-
-		WEnd
-	GUIDelete($GUI)
-
-Return $text
 EndFunc
 
 Func ListDivider()										;Функция создания строки разделителя
