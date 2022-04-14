@@ -1,0 +1,193 @@
+#!/bin/bash
+
+
+
+#ПРОВЕРКА УТИЛИТ
+for i in realpath zenity date whoami pkexec curl xdg-open
+do
+
+	$i --help >/dev/null 2>&1
+	[ $? == 0 ] || {
+
+		echo -e "\nУтилита $i не установлена. Пожалуйста, установите утилиту\n"
+		zenity --error --title="GetStand" --ellipsize --text="Утилита $i не установлена\nПожалуйста, установите утилиту"
+		exit
+
+	}
+
+done
+
+
+
+#НЕОБХОДИМЫЕ ПЕРЕМЕННЫЕ
+appfolder=`realpath $0`
+appfolder=${appfolder%/Install/Setup_Linux}
+icon="$appfolder/App/ChromePortable"
+app="$appfolder/App/httpN"
+userName=`whoami`
+#Библиотека функций
+. $appfolder/App/httpN/httpN_Linux_lib
+
+
+
+
+
+#ПОЛЬЗОВАТЕЛЬСКИЕ ФУНКЦИИ
+function CreateAccount {					#Функция создания аккаунта
+
+	test_input=`echo "$input" | egrep -o "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)"`
+	if [ "$input" != "$test_input" ]		#Читаем ввод и проверяем по шаблону
+	then
+
+		zenity --error --title="Ошибка" --window-icon="$icon/install.png" --text="Ошибка в записи имени\nВведите данные по шаблону" --ellipsize --timeout=5
+		return 1	#Выходим обратно в цикл
+
+	else
+
+		[ -e "/home/$userName/" ] || {				#Если имя или каталог не определился
+
+			message=`echo -e "🛑<b>Имя компьютера не определено</b>\n❌$input\n⏱$(_Now)"`
+			BotMsg "$message" 0
+			message=`printf "%-19s" "$(_Now) | Имя компьютера не определено. Проверьте адрес пользователя: $input"`
+			echo -e	"$message" >> "$appfolder/App/httpN/system/log/system.txt"
+			zenity --error --title="Ошибка" --window-icon="$icon/install.png" --ellipsize --text="Имя компьютера не определено\nОбратитесь в Отдел Тестирования" --timeout=5
+			exit
+
+		}
+
+		#Создаем записи для открытия URL
+		touch /home/$userName/.local/share/applications/httpn.desktop	#Создаем файлик
+		cd /home/$userName/.local/share/applications/
+		echo "[Desktop Entry]" > httpn.desktop							#Заполняем нужными командами
+		echo "Type=Application" >> httpn.desktop
+		echo "Name=httpN_Linux" >> httpn.desktop
+		echo "Icon=$icon/GetStand.png" >> httpn.desktop
+		echo "Exec=$app/httpN_Linux %u" >> httpn.desktop
+		echo "Terminal=false" >> httpn.desktop
+		echo "StartupNotify=true" >> httpn.desktop
+		echo "MimeType=x-scheme-handler/httpn" >> httpn.desktop
+		pkexec mv /home/$userName/.local/share/applications/httpn.desktop /usr/share/applications/
+		xdg-mime default httpn.desktop x-scheme-handler/httpn			#Регистрируем приложение по умолчанию
+		[ `xdg-mime query default x-scheme-handler/httpn` == "httpn.desktop" ] || {	#Проверяем работу
+
+			zenity --error --title="Ошибка" --ellipsize --text="Обработчик схемы не назначен\nПопробуйте назначить вручную:\n\nСоздайте файл /home/$userName/share/applications/httpn.desktop\n[Desktop Entry]\nType=Application\nName=httpN_Linux\nExec=$app/httpN_Linux %u\nTerminal=false\nMimeType=x-scheme-handler/httpn\n\nЗатем выполните:\nxdg-mime default httpn.desktop x-scheme-handler/httpn"
+			return 1
+
+		}
+
+		#Делаем запись о пользователе и проверяем
+		echo -e "\n$userName $input default" >> "$appfolder/App/httpN/system/USERS"
+		stringlen=`cat $appfolder/App/httpN/system/USERS | grep "$input"`
+		[ -z "$stringlen" ] && {
+
+			message=`echo -e "🛑<b>Пользователь не зарегистрирован</b>\n❌$input\n⏱$(_Now)"`
+			BotMsg "$message" 0
+			message=`printf "%-19s" "$(_Now) | Пользователь не зарегистрирован. Проверьте адрес пользователя: $input"`
+			echo -e	"$message" >> "$appfolder/App/httpN/system/log/system.txt"
+			zenity --error --title="Ошибка" --window-icon="$icon/install.png" --ellipsize --text="Не удалось зарегистрировать пользователя\nОбратитесь в Отдел Тестирования" --timeout=5
+			exit
+
+		}
+
+			message=`echo -e "✅<b>Новый пользователь добавлен</b>\n👤$input 🐧Linux\n⏱$(_Now)"`
+			BotMsg "$message" 0
+			message=`printf "%-19s" "$(_Now) | Добавлен новый пользователь Linux: $input"`
+			echo -e	"$message" >> "$appfolder/App/httpN/system/log/system.txt"
+
+			#Создаем ярлык схемы
+			touch /home/$userName/.local/share/applications/GetStand.desktop
+			echo "[Desktop Entry]" > GetStand.desktop
+			echo "Name=GetStand" >> GetStand.desktop
+			echo "Exec=/usr/bin/xdg-open $appfolder/Diagrams/DiagramsOT.html" >> GetStand.desktop
+			echo "Icon=$icon/GetStand.png" >> GetStand.desktop
+			echo "Terminal=false" >> GetStand.desktop
+			echo "Type=Application" >> GetStand.desktop
+			mv /home/$userName/.local/share/applications/GetStand.desktop /home/$userName/Desktop/GetStand.desktop
+			mv /home/$userName/.local/share/applications/GetStand.desktop /home/$userName/Рабочий\ стол/GetStand.desktop
+			zenity --info --title="GetStand" --window-icon="$icon/install.png" --ellipsize --text="Аккаунт успешно создан!\nПриятного пользования :)\n\nПодписывайтесь на telegram канал\nЗдесь вся информация о стендах\nhttps://t.me/+e8d9JjwJMtY4NzYy" --ok-label="Продолжить"
+
+	fi
+
+return 0
+}
+
+function Configures {						#Функция конфигурирования приложений
+
+	if [ -e "$1$2" ]	#Если уже есть конфигурация, бекапим её
+	then
+
+		mv "$1$2" "$1$2.origin.`date +%M.%S`"
+		ln -s "$3" "$1$2"
+
+	else
+
+		mkdir "$1"			#Если нет, подстраиваем её под работу
+		ln -s "$3" "$1$2"
+
+	fi
+
+}
+
+
+
+
+
+#ПРОВЕРКА ПРИЛОЖЕНИЙ
+for i in vnc/vncviewer kitty/putty winscp/filezilla
+do
+
+	$appfolder/App/$i --help >/dev/null 2>&1
+	[ $? == 0 -o $? == 255 ] || {
+
+		echo -e "\nУтилита $i имеет неразрешенные зависимости. Устраните их вручную.\n"
+		zenity --error --title="GetStand" --ellipsize --text="Утилита $i имеет неразрешенные зависимости\nПожалуйста, устраните их вручную"
+		exit
+
+	}
+
+done
+
+
+
+#ОТРИСОВЫВАЕМ ОСНОВНОЕ ОКНО И ДИАЛОГ
+while true
+do
+
+	#Отрисовываем основное окно ввода данных
+	input=`zenity --entry --title="GetStand Linux version" --window-icon="$icon/install.png" --width=320 --height=210 --ok-label="Продолжить" --cancel-label="Выход" --text="\tПриветствую вас в системе GetStand!\n\nРегистрация:\nПожалуйста, введите свои данные\nв следующем формате: Иванов Иван(iva)" --entry-text="Фамилия Имя(username)"`
+		if [ $? == 0 ]
+		then
+
+			zenity --question --title="GetStand" --window-icon="$icon/install.png" --text="Подключиться к системе GetStand?" --ellipsize --ok-label="Да" --cancel-label="Нет"
+			[ $? == 0 ] && {
+
+				CreateAccount			#Создание аккаунта и настройка
+				[ $? == 1 ] && { continue; }
+				break
+
+			}
+
+		else
+
+			exit 0
+
+		fi
+
+done
+
+
+
+#ПОДСТРОЙКА КОНФИГОВ
+#Подстройка putty
+Configures "/home/$userName/.putty" "/sessions" "$appfolder/App/kitty/Sessions/linux"
+#Подстройка filezilla. Расположение конфигов немного отличается на разных ОСях
+if [ -e "/etc/redhat-release" ]
+then
+
+	Configures "/home/$userName/.filezilla" "/sitemanager.xml" "$appfolder/App/winscp/sitemanager.xml"
+
+else
+
+	Configures "/home/$userName/.config/filezilla" "/sitemanager.xml" "$appfolder/App/winscp/sitemanager.xml"
+
+fi
