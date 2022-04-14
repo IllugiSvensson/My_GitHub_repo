@@ -50,7 +50,7 @@ Global $name = StringRegExp($autorizedUser, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{
 		Local $stend = StringTrimRight(StringTrimLeft($cmdLine[1], 14), 1)
 		Local $feedback = EntryWindow(2)
 		BotMsg("@IllugiSven" & @CRLF & "👤" & $name[0] & @CRLF & "⚠️Новый вопрос или предложение" & @CRLF & "🖥️Стенд: " & $stend & " ⏱" & _Now(), 0)
-		Logger($name[0] & ". Стенд: " & $stend & ". " & $feedback, "", "", "", 2)
+		Logger($name[0] & ". Новый вопрос или предложение по стенду: " & $stend & ". " & $feedback, "", "", "", 2)
 		MsgBox(64, "Информация", "Ваше сообщение передано" & @CRLF & "разработчику", 3)
 		Exit
 
@@ -67,7 +67,7 @@ Global $name = StringRegExp($autorizedUser, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{
 
 ;ПОЛУЧЕНИЕ ИНФОРМАЦИИ О КОМПЬЮТЕРЕ СТЕНДА ИЗ КОМАНДНОЙ СТРОКИ ЗАПУСКА
 ReDim $hostName[2]
-$hostName[1] = FileReader(@ScriptDir & "\system\HOSTS", $hostName[0])		;Получим строку с хостом и прочей инфой, если она есть
+$hostName[1] = FileReader(@ScriptDir & "\system\HOSTS", $hostName[0])		;Получим строку с хостом и адресом
 Local $hn = StringRegExp($hostName[1], "\w+", 3)
 	If ($hostName[1] = "0") Or (StringLen($hn[0]) <> StringLen($hostName[0])) Then	;Если имя не найдено
 
@@ -77,12 +77,11 @@ Local $hn = StringRegExp($hostName[1], "\w+", 3)
 		Exit
 
 	EndIf
-;Разбираем строку адреса и маршрута, если такой есть
-Local $addcheck = StringRegExp($hostName[1], "[A]((\w+\.){3}\w+)", 2)		;Получаем шаблон днс адреса компьютера
+;Разбираем строку адреса или маршрута
 ;Проверим правильность ip-адрессов на соответствие частным сетям ipv4
-;Вообще блок с адресом и адресами шлюза нужно переработать под проброс портов
 ;"^((10|192|127|169)\.){1}((25[0..5]|(2[0..4]\d|1{0,1}\d){0,1}\d)(\.?)){3}$" пропускает значащие нули
-	If IsArray($addcheck) = 0 Then
+Local $addcheck = Validator($hostName[1], "[AG](([0-9]{1,3}\.){3}[0-9]{1,3})")
+	If $addcheck <> 1 Then
 
 		BotMsg("🛑<b>Ошибка конфигурации</b>" & @CRLF & "❌Ошибка в списке хостов" & @CRLF & "🖥️" & $hostName[0] & " ⏱" & _Now(), 0)
 		Logger("В записи адреса " & $hostName[0] & " ошибка. Проверьте запись в списке хостов.", "", "", "", 2)
@@ -90,32 +89,8 @@ Local $addcheck = StringRegExp($hostName[1], "[A]((\w+\.){3}\w+)", 2)		;Полу
 		Exit
 
 	EndIf
-Global $address = StringTrimLeft($addcheck[0], 1)							;Получаем днс адрес компьютера
-Local $gwcheck = StringRegExp($hostName[1], "[G]((\w+\.){3}\w+)", 2)		;Получаем шаблон адреса шлюза
-Local $mskcheck = StringRegExp($hostName[1], "[M]((\w+\.){3}\w+)", 2)		;Получаем шаблон маски шлюза
-	If IsArray($gwcheck) = 1 Then
-
-		Global $flag = 1		;Если маршрут есть, устанавливаем флаг для запуска с маршрутом
-		Global $gateway = StringTrimLeft($gwcheck[0], 1)
-		Global $maskAddr = StringTrimLeft($mskcheck[0], 1)
-		Global $gatemask = AddrToMask($maskAddr)		;Получаем маску сети
-		If (Validator($gateway, "((\w+\.){3}\w+)") = 1) Or (Validator($maskAddr, "((\w+\.){3}\w+)") = 1) Then
-
-			BotMsg("🛑<b>Ошибка конфигурации</b>" & @CRLF & "❌Ошибка в списке хостов" & @CRLF & "🖥️" & $hostName[0] & " ⏱" & _Now(), 0)
-			Logger("В записи адреса " & $hostName[0] & " ошибка. Проверьте запись в списке хостов.", "", "", "", 2)
-			MsgBox(16, "Ошибка", "Ошибка в списке хостов" & @CRLF & "Обратитесь в Отдел Тестирования", 3)
-			Exit
-
-		EndIf
-
-	Else 						;Если маршрута нет, устанавливаем флаг запуска напрямую
-
-		Global $flag = 0		;Обнуляем параметры, чтобы программа не падала
-		Global $gateway = 0
-		Global $maskAddr = 0
-		Global $gatemask = 0
-
-	EndIf
+$addcheck = StringRegExp($hostName[1], "[AG]((\w+\.){3}\w+)", 2)			;Получаем шаблон адреса
+Global $address = StringTrimLeft($addcheck[0], 1)							;Получаем адрес компьютера
 
 
 
@@ -127,17 +102,17 @@ Switch $exeFile					;Запускаем приложение с нужными �
 	Case "httpn://VNC"
 		$exeFile = $appfolder & "\vnc\VNC.exe"
 		$Config = " -config " & $appfolder & "\vnc\config\"
-		TrackExeFile("VNC", $exeFile, $Config, ".vnc", $flag)
+		TrackExeFile("VNC", $exeFile, $Config, ".vnc")
 
 	Case "httpn://KIT"
 		$exeFile = $appfolder & "\kitty\kitty.exe"
 		$Config = " -load "
-		TrackExeFile("Kitty", $exeFile, $Config, "", $flag)
+		TrackExeFile("Kitty", $exeFile, $Config, "")
 
 	Case "httpn://SCP"
 		$exeFile = $appfolder & "\winscp\WinSCP.exe"
 		$Config = " "
-		TrackExeFile("WinSCP", $exeFile, $Config, "", $flag)
+		TrackExeFile("WinSCP", $exeFile, $Config, "")
 
 	Case Else
 		BotMsg("🛑<b>Ошибка конфигурации</b>" & @CRLF & "❌Ошибка в ссылке на схеме" & @CRLF & "🖥️" & $hostName[0] & " ⏱" & _Now(), 0)

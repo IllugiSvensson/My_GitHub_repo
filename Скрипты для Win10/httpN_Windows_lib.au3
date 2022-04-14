@@ -9,7 +9,6 @@
 
 
 AutoItSetOption("MustDeclareVars", 1)
-#RequireAdmin				;Убрать, когда будет проброс портов
 ;Данные для телеграмм бота
 Global $sBotKey = 'bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	;api ключ
 Global $nChatId = -1001460258261                                      	;Id группы
@@ -32,6 +31,14 @@ Func EntryWindow($type)									;Функция отрисовки окошка 
 		Local $inputText = "Введите ваше сообщение"
 		Local $labelText1 = "Все вопросы и предложения можете написать разработчику в этой форме"
 		Local $labelText2 = "Разработчик: Смирнов А.Д. ОТ"
+		Local $btnOkText = "Отправить"
+
+	ElseIf $type = 3 Then	;Для сообщений пользователям
+
+		Local $title = "Сообщение"
+		Local $inputText = "Введите ваше сообщение"
+		Local $labelText1 = "Введите текст сообщения для отправки всем пользователям онлайн и оффлайн"
+		Local $labelText2 = "Информационное сообщение"
 		Local $btnOkText = "Отправить"
 
 	EndIf
@@ -142,31 +149,11 @@ EndFunc
 Func Validator($textstring, $pat)						;Функция проверки строки по шаблону
 
 	$textstring = StringRegExp($textstring, $pat, 2)
-	If IsArray($textstring) <> 1 Then
+	If IsArray($textstring) = 1 Then
 
-		Return 1
+		Return 1	;Строка прошла шаблон
 
 	EndIf
-
-EndFunc
-
-Func AddrToMask($MSKADDR)								;Функция преобразования адреса в маску
-
-	Switch "1"	;REGEX возвращает массив либо двоичное значение. Сравниваем с единицей для удобства
-
-		Case StringRegExp($MSKADDR, "((\d{1,3}\.){1}0.0.0)", 0) ;Проверяем последние актеты на 0
-			Return "255.0.0.0"							 	 	;Возвращаем маску
-
-		Case StringRegExp($MSKADDR, "((\d{1,3}\.){2}0.0)", 0)
-			Return "255.255.0.0"
-
-		Case StringRegExp($MSKADDR, "((\d{1,3}\.){3}0)", 0)
-			Return "255.255.255.0"
-
-		Case Else
-			Return "255.255.255.255"
-
-	EndSwitch
 
 EndFunc
 
@@ -177,35 +164,24 @@ Func ConsolePing($ADD)									;Функция пинга
 
 EndFunc
 
-Func RouteAddDel($ROUTE, $fl)							;Функция создания маршрута
+Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES)		;Функция запуска и слежения за приложением
 
-	if $fl = 1 Then
-
-		Run(@ComSpec & " /c " & $ROUTE, '', @SW_HIDE)
-
-	EndIf
-
-EndFunc
-
-Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запуска и слежения за приложением
-
-	RouteAddDel("route add " & $maskAddr & " mask " & $gatemask & " " & $gateway, $flg)	;Строим маршрут если он есть
-	If (ConsolePing($address)) = 0 Then	;Проверяем сеть. Если не пингуется
+	If (ConsolePing($address)) = 0 Then	;Проверяем сеть. Если не пингуется хост или шлюз
 
 		BotMsg("👤" & $name[0] & @CRLF & "⚠️Неудачное подключение" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
-		Logger($name[0], $username, "Хост не отвечает", $hostName[0] & ":" & $EXE, 1)
+		Logger($name[0], $username, "Хост или шлюз не отвечает", $hostName[0] & ":" & $EXE, 1)
 		MsgBox(16, "Ошибка", "Не удается подключиться к хосту" & @CRLF & "Обратитесь в Отдел Тестирования", 3)
 
 	Else								;Если пингуется, запускаем приложение
 
-		Local $PID = Run($exeFile & $CONFIG & $hostName[0] & $RES)						;Запускаем приложение и фиксируем его PID
+		Local $PID = Run($exeFile & $CONFIG & $hostName[0] & $RES)					;Запускаем приложение и фиксируем его PID
 		BotMsg("👤" & $name[0] & @CRLF & "✅Подключился к хосту" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
 		Logger($name[0], $username, "Успешное подключение", $hostName[0] & ":" & $EXE, 1)
 		;Запускаем сессию приложения
 		Local $t = 0
 		While True
 
-			Sleep(1000)					;Отсчитываем условную секунду
+			Sleep(1000)							;Отсчитываем условную секунду
 			$t += 1
 			;Условия окончания сессии
 			If ProcessExists($PID) = 0	Then	;Если завершили процесс вручную
@@ -214,7 +190,7 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 				Logger($name[0], $username, "Завершение работы", $hostName[0] & ":" & $EXE, 1)
 				ExitLoop
 
-			ElseIf FileExists(@ScriptDir & "\system\temp\Sessions\UPDATE") = 1 Then 	;Если начали обновление
+			ElseIf FileExists(@ScriptDir & "\system\temp\Sessions\UPDATE") = 1 Then ;Если начали обновление
 
 				MsgBox(48, "Предупреждение", "Обновление системы. Сохраните работу" & @CRLF & "Приложение закроется через минуту", 5)
 				Local $j = 0
@@ -240,59 +216,23 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES, $flg)	;Функция запу�
 			EndIf
 
 			;Функции, действующие во время сессии
-			if FileExists(@ScriptDir & "\system\temp\Sessions\ONLINE") = 1 Then			;Говорим что онлайн
+			If FileExists(@ScriptDir & "\system\temp\Sessions\ONLINE") = 1 Then		;Говорим что онлайн
 
 				;Создаем файлик-метку, обрабатываем его другой прогой, которая его удалит
 				FileWrite(@ScriptDir & "\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & "." & Round($t/60), "")
 
-			Endif
+			EndIf
+			If FileExists(@ScriptDir & "\system\temp\Changes\" & $name[0]) = 1 Then	;Оповещаем пользователя
+
+				;Ищем файлик-метку. Выводим содержимое и удаляем файлик
+				Local $changes = FileRead(@ScriptDir & "\system\temp\Changes\" & $name[0])
+				MsgBox(64 + 262144, "Информация", $changes, 30)
+				FileDelete(@ScriptDir & "\system\temp\Changes\" & $name[0])
+
+			EndIf
 
 		WEnd
 
 	EndIf
-
-	;Когда закончили работу или не смогли подключиться, нужно удалить маршрут за собой
-	If UBound(ProcessList("httpN_Windows.exe")) = 2 Then	;Если файл один (наш файл)
-
-		RouteAddDel("route delete " & $maskAddr, $flg)		;Удаляем построенный маршрут после окончания работы
-
-	EndIf
-
-EndFunc
-
-Func ListDivider()										;Функция создания строки разделителя
-
-	Local $a = "-"
-	For $i = 0 To 61 Step 1
-
-		$a &= "-"				;Создаем строку разделитель
-
-	Next
-
-Return $a
-EndFunc
-
-Func GetMac($_MACsIP)									;Функция получения MAC по айпи(взял из гугла)
-
-    Local $_MAC, $_MACSize
-    Local $_MACi, $_MACs, $_MACr, $_MACiIP
-    $_MAC = DllStructCreate("byte[6]")
-    $_MACSize = DllStructCreate("int")
-    DllStructSetData($_MACSize, 1, 6)
-    $_MACr = DllCall ("Ws2_32.dll", "int", "inet_addr", "str", $_MACsIP)
-    $_MACiIP = $_MACr[0]
-    $_MACr = DllCall ("iphlpapi.dll", "int", "SendARP", "int", $_MACiIP, "int", 0, "ptr", DllStructGetPtr($_MAC), "ptr", DllStructGetPtr($_MACSize))
-    $_MACs  = ""
-
-		For $_MACi = 0 To 5
-
-			If $_MACi Then $_MACs = $_MACs & ":"
-			$_MACs = $_MACs & Hex(DllStructGetData($_MAC, 1, $_MACi + 1), 2)
-
-		Next
-
-    DllClose($_MAC)
-    DllClose($_MACSize)
-    Return $_MACs
 
 EndFunc

@@ -6,6 +6,7 @@
 Opt("TrayMenuMode", 1 + 2)									;Отключаем стандартные пункты меню
 ;Создаем кнопки меню
 Local $iList = TrayCreateItem("Пользователи в сети")		;Показать пользователей в сети
+Local $iMessage = TrayCreateItem("Сообщение пользователям")	;Отправить сообщение всем пользователям
 Local $iConfig = TrayCreateMenu("Конфигурации")				;Конфигурации подключений
 	Local $iUsers = TrayCreateItem("Пользователи", $iConfig)
 	Local $iHosts = TrayCreateItem("Компьютеры", $iConfig)
@@ -44,6 +45,9 @@ While True
 
 		Case $iList						;Открываем список пользователей онлайн
 			ShowList()
+
+		Case $iMessage					;Открываем форму для ввода сообщений
+			Message(3)
 
 		Case $iUsers					;Открываем список пользователей
 			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\USERS")
@@ -142,6 +146,20 @@ Func ShowList()										;Функция отображения списка п�
 		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & ListDivider() & @CRLF & _ArrayToString($FileList, @CRLF), 5)
 
 	EndIf
+
+EndFunc
+
+Func Message($type)									;Функция отправки сообщений всем пользователям
+
+	Local $entry = EntryWindow($type)
+	Local $text = FileRead("\\main\GetStand\App\httpN\system\USERS")
+	$text = StringRegExp($text, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 3)
+	For $i = 0 To UBound($text) - 1
+
+		FileWriteLine("\\main\GetStand\App\httpN\system\temp\Changes\" & $text[$i], $entry)
+
+	Next
+	MsgBox(64, "GetStand", "Сообщение отправлено пользователям", 3)
 
 EndFunc
 
@@ -340,5 +358,77 @@ Func Update()										;Функция выключения приложений
 		MsgBox(64, "GetStand Manager", "Обновление прошло успешно!", 5)
 
 	EndIf
+
+EndFunc
+
+
+
+
+
+
+Func ListDivider()										;Функция создания строки разделителя
+
+	Local $a = "-"
+	For $i = 0 To 61 Step 1
+
+		$a &= "-"				;Создаем строку разделитель
+
+	Next
+
+Return $a
+EndFunc
+
+Func AddrToMask($MSKADDR)								;Функция преобразования адреса в маску
+
+	Switch "1"	;REGEX возвращает массив либо двоичное значение. Сравниваем с единицей для удобства
+
+		Case StringRegExp($MSKADDR, "((\d{1,3}\.){1}0.0.0)", 0) ;Проверяем последние актеты на 0
+			Return "255.0.0.0"							 	 	;Возвращаем маску
+
+		Case StringRegExp($MSKADDR, "((\d{1,3}\.){2}0.0)", 0)
+			Return "255.255.0.0"
+
+		Case StringRegExp($MSKADDR, "((\d{1,3}\.){3}0)", 0)
+			Return "255.255.255.0"
+
+		Case Else
+			Return "255.255.255.255"
+
+	EndSwitch
+
+EndFunc
+
+Func RouteAddDel($ROUTE, $fl)							;Функция создания маршрута
+
+	if $fl = 1 Then
+
+		Run(@ComSpec & " /c " & $ROUTE, '', @SW_HIDE)
+
+	EndIf
+
+EndFunc
+
+Func GetMac($_MACsIP)									;Функция получения MAC по айпи(взял из гугла)
+
+    Local $_MAC, $_MACSize
+    Local $_MACi, $_MACs, $_MACr, $_MACiIP
+    $_MAC = DllStructCreate("byte[6]")
+    $_MACSize = DllStructCreate("int")
+    DllStructSetData($_MACSize, 1, 6)
+    $_MACr = DllCall ("Ws2_32.dll", "int", "inet_addr", "str", $_MACsIP)
+    $_MACiIP = $_MACr[0]
+    $_MACr = DllCall ("iphlpapi.dll", "int", "SendARP", "int", $_MACiIP, "int", 0, "ptr", DllStructGetPtr($_MAC), "ptr", DllStructGetPtr($_MACSize))
+    $_MACs  = ""
+
+		For $_MACi = 0 To 5
+
+			If $_MACi Then $_MACs = $_MACs & ":"
+			$_MACs = $_MACs & Hex(DllStructGetData($_MAC, 1, $_MACi + 1), 2)
+
+		Next
+
+    DllClose($_MAC)
+    DllClose($_MACSize)
+    Return $_MACs
 
 EndFunc
