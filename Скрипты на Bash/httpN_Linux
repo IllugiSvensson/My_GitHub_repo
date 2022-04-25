@@ -5,12 +5,8 @@
 #НЕОБХОДИМЫЕ ПЕРЕМЕННЫЕ
 appfolder=`realpath $0`
 appfolder=${appfolder%/httpN/httpN_Linux}
-icon="$appfolder/ChromePortable"
-cmdLine="$1"
-app="$appfolder/httpN"
-userName=`whoami`
-#Библиотека функций
 . $appfolder/httpN/httpN_Linux_lib
+#Библиотека функций
 
 
 
@@ -28,7 +24,7 @@ userName=`whoami`
 	if [ $? == 0 ]		#Разбираем командную строку и запускаем подключение
 	then
 
-		cmdLine=httpn://${input:0:3}"%20"${input#${input:0:4}}
+		cmdLine="httpn://"${input:0:3}"%20"${input#${input:0:4}}
 
 	else exit;
 	fi
@@ -38,32 +34,33 @@ userName=`whoami`
 
 
 #ПРОВЕРКА ИМЕНИ И ПРАВ ПОЛЬЗОВАТЕЛЯ ПО СПИСКУ АВТОРИЗАЦИИ
-[ -e "/home/$userName/" ] || {				#Если имя или каталог не определился
+[ -e "/home/$userName/" ] || {								#Если имя или каталог не определился
 
-	message=`echo -e "🛑<b>Ошибка конфигурации</b>\n❌Имя компьютера не определено\n⏱$(_Now)"`
+	message=`echo -e "🛑<b>Ошибка конфигурации</b>\n❌Имя пользователя не определено\n⏱$(_Now)"`
 	BotMsg "$message" 0
-	message=`printf "%-19s" "$(_Now) | Имя компьютера не определено. Проверьте компьютер пользователя."`
+	message=`printf "%-19s" "$(_Now) | Имя пользователя не определено. Проверьте компьютер пользователя."`
 	echo -e	"$message" >> "$appfolder/httpN/system/log/system.txt"
-	zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --ellipsize --text="Имя компьютера не определено\nОбратитесь в Отдел Тестирования" --timeout=3
+	zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --text="Имя пользователя не определено\nОбратитесь в Отдел Тестирования" --ellipsize --timeout=3
 	exit
 
 }
-autorizedUser="`FileReader $app/system/USERS $userName`"	#Ищем пользователя в списке
+autorizedUser="`FileReader $appfolder/httpN/system/USERS $userName`"	#Ищем пользователя в списке
 #Захватим название выбранного пользователем компьютера в виде кода стойки-стенда.
 hostName=`echo ${cmdLine#${cmdLine:0:14}}`					#Выбираем имя компьютера
+binFile=`echo $cmdLine | grep -Eo "VNC|KIT|SCP|FBC"`
 	[ `echo ${#autorizedUser}` == 0 ] && {	#Если имя пользователя отсутствует в списке, заканчиваем работу
 
-		eks=`echo $cmdLine | grep -Eo "VNC|KIT|SCP|FBC"`
 		message=`echo -e "👤<b>Неизвестный Пользователь</b>\n️⚠️Пытался подключиться к хосту\n🖥️$hostName 🕹$eks ⏱$(_Now)"`
 		BotMsg "$message" 0
-		message=`Logger "$userName" "$hostName:$eks" "Неизвестный Пользователь(unknown)" "Неавторизованный вход"`
-		echo -e	"$message" >> "$app/system/log/log.txt"
-		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --ellipsize --text="Авторизация не пройдена\nОбратитесь в Отдел Тестирования" --timeout=3
+		message=`Logger "$userName" "$hostName:$binFile" "Неизвестный Пользователь(unknown)" "Неавторизованный вход"`
+		echo -e	"$message" >> "$appfolder/httpN/system/log/log.txt"
+		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --text="Авторизация не пройдена\nОбратитесь в Отдел Тестирования" --ellipsize --timeout=3
 		exit
 
 	}
 #Выделяем имя пользователя из строки, которое будет использоваться в названии файлов
 name=`echo "$autorizedUser" | egrep -o "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)" | head -1`
+ChangesM	#Проверяем наличие сообщений
 	[ `echo $cmdLine | egrep -o "FBC"` == "FBC" ] && {		#Окошко для фидбека
 
 		stend=`echo ${cmdLine#${cmdLine:0:14}}`
@@ -72,8 +69,8 @@ name=`echo "$autorizedUser" | egrep -o "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(
 		message=`echo -e "@IllugiSven\n👤$name\n️⚠️Новый вопрос или предложение\n🖥️Стенд: $stend ⏱$(_Now)"`
 		BotMsg "$message" 0
 		message=`printf "%-19s" "$(_Now) | $name. Новый вопрос или предложение по стенду: $stend. $feedback"`
-		echo -e	"$message" >> "$app/system/log/system.txt"
-		zenity --info --title="Информация" --window-icon="$icon/GetStand.png" --ellipsize --text="Ваше сообщение передано\nразработчику" --timeout=3
+		echo -e	"$message" >> "$appfolder/httpN/system/log/system.txt"
+		zenity --info --title="Информация" --window-icon="$icon/GetStand.png" --text="Ваше сообщение передано\nразработчику" --ellipsize --timeout=3
 		exit
 
 	}
@@ -81,7 +78,7 @@ name=`echo "$autorizedUser" | egrep -o "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(
 	if [[ -z `echo $autorizedUser | grep "$hostName"` && -z `echo $autorizedUser | grep "ADMIN"` ]]
 	then
 
-		zenity --warning --title="Предупреждение" --window-icon="$icon/GetStand.png" --ellipsize --text="Недостаточно пользовательских прав\nна подключение к $hostName" --timeout=3
+		zenity --warning --title="Предупреждение" --window-icon="$icon/GetStand.png" --text="Недостаточно пользовательских прав\nна подключение к $hostName" --ellipsize --timeout=3
 		exit
 
 	fi
@@ -89,70 +86,77 @@ name=`echo "$autorizedUser" | egrep -o "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(
 
 
 #ПОЛУЧЕНИЕ ИНФОРМАЦИИ О КОМПЬЮТЕРЕ СТЕНДА ИЗ КОМАНДНОЙ СТРОКИ ЗАПУСКА
-namehost="`FileReader $app/system/HOSTS $hostName`" 		#Получим строку с хостом и адресом
-hn=`echo ${namehost%% *}`
+namehost="`FileReader $appfolder/httpN/system/HOSTS $hostName`" 	#Получим строку с хостом и адресом
+hn=`echo $namehost | egrep -o "\w+" | head -1`
 #Ищем информацию о хосте из списка хостов
-	if [[ -z "$namehost" || `echo ${#hn}` != `echo ${#hostName}` ]]	#Если имя не найдено
+	if [[ -z "$namehost" || `echo "${#hn}"` != `echo "${#hostName}"` ]]	#Если имя не найдено
 	then
 
-		message=`echo -e "🛑<b>Ошибка конфигурации</b>\n️❌Имя хоста не найдено\n🖥️$hostName ⏱$(_Now)"`
+		message=`echo -e "🛑<b>Ошибка конфигурации</b>\n️❌Имя компьютера не найдено\n🖥️$hostName ⏱$(_Now)"`
 		BotMsg "$message" 0
 		message=`printf "%-19s" "$(_Now) | Имя компьютера $hostName не найдено. Проверьте схему, список и строку запуска."`
 		echo -e	"$message" >> "$appfolder/httpN/system/log/system.txt"
-		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --ellipsize --text="Имя компьютера не найдено\nОбратитесь в Отдел Тестирования" --timeout=3
+		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --text="Имя компьютера не найдено\nОбратитесь в Отдел Тестирования" --ellipsize --timeout=3
 		exit
 
 	fi
 #Разбираем строку адреса или маршрута
 #Проверим правильность ip-адрессов на соответствие частным сетям ipv4
 #"^((10|192|127|169)\.){1}((25[0..5]|(2[0..4]\d|1{0,1}\d){0,1}\d)(\.?)){3}$" пропускает значащие нули
-addcheck=`Validator "$namehost" "[AG](([0-9]{1,3}\.){3}[0-9]{1,3})"`
-	[ "$addcheck" == 1 ] && {
+addcheck=`Validator "$namehost" "[A](([0-9]{1,3}\.){3}[0-9]{1,3})"`
+portcheck=`Validator "$namehost" "[S][0-9]{2,5}"`
+passcheck=`Validator "$namehost" "[#]\S+"`
+	[[ $(($addcheck + $portcheck + $passcheck)) == 0 ]] || {
 
 		message=`echo -e "🛑<b>Ошибка конфигурации</b>\n️❌Ошибка в списке хостов\n🖥️$hostName ⏱$(_Now)"`
 		BotMsg "$message" 0
 		message=`printf "%-19s" "$(_Now) | В записи адреса $hostName ошибка. Проверьте запись в списке хостов."`
 		echo -e	"$message" >> "$appfolder/httpN/system/log/system.txt"
-		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --ellipsize --text="Ошибка в списке хостов\nОбратитесь в Отдел Тестирования" --timeout=3
+		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --text="Ошибка в списке хостов\nОбратитесь в Отдел Тестирования" --ellipsize --timeout=3
 		exit
 
 	}
-addcheck=`echo "$namehost" | egrep -o "[AG]((\w+\.){3}\w+)"`		#Получаем шаблон адреса
+addcheck=`echo "$namehost" | egrep -o "[A]((\w+\.){3}\w+)"`			#Получаем шаблон адреса
+portcheck=`echo "$namehost" | egrep -o "[S][0-9]{2,5}"`				#Получаем шаблон порта
+passcheck=`echo "$namehost" | egrep -o "[#]\S+"`					#Получаем шаблон пароля
 address=`echo ${addcheck#${addcheck:0:1}}`							#Получаем адрес компьютера
+port=`echo ${portcheck#${portcheck:0:1}}`							#Получаем порт компьютера
+pass=`echo ${passcheck#${passcheck:0:1}}`							#Получаем пароль компьютера
+pass=`echo "$pass" | base64 -d`
+pass=`echo "$pass" | sed "s/$hostName//"`
+pass=`echo "$pass" | sed "s/$addcheck//"`
+pass=`echo "$pass" | sed "s/$portcheck//"`
 
 
 
 #ЗАПУСК ПРИЛОЖЕНИЯ И НАБЛЮДЕНИЕ ЗА ХОДОМ РАБОТЫ
-binFile=`echo ${cmdLine:0:11}`		#Выбираем из аргумента приложение для запуска
 #Запускаем приложение с нужными параметрами
-	case $binFile in
-	"httpn://VNC")
+case $binFile in
+
+	"VNC")
 		binFile="$appfolder/vnc/vncviewer"
-		config=" -config $appfolder/vnc/config/"
-		TrackBinFile "VNC" "$binFile" "$config" ".vnc" 0
+		config=" -config $appfolder/vnc/config/$hostName.vnc"
+		TrackBinFile "VNC" "$binFile" "$config"
 		;;
-	"httpn://KIT")
-		binFile="$appfolder/kitty/putty "
-		config=" -load "
-		pswrd=`cat $appfolder/kitty/Sessions/linux/$hostName | grep "pw *"`
-		[ "$pswrd" == "-pw 1!" ] && { pswrd="-pw KarRambA!"; }
-		[ "$pswrd" == "-pw 2!" ] && { pswrd="-pw nitasoft"; }
-		TrackBinFile "Putty" "$binFile" "$pswrd$config" "" 0
+	"KIT")
+		binFile="$appfolder/kitty/putty"
+		[ $port != 22 ] && { port=$(($port - 1)); }
+		config=" root@$address -P $port -pw $pass"
+		TrackBinFile "Putty" "$binFile" "$config"
 		;;
-	"httpn://SCP")
+	"SCP")
 		binFile="$appfolder/winscp/filezilla"
-		config=" -c 0/"
-		cp "$appfolder/winscp/sitemanager.xml" "$appfolder/winscp/sitemanager1.xml"
-		sed -i 's/1!/KarRambA!/' "$appfolder/winscp/sitemanager.xml"
-		sed -i 's/2!/nitasoft/' "$appfolder/winscp/sitemanager.xml"	
-		TrackBinFile "FileZilla" "$binFile" "$config" "" "pswrd"
+		[ $port != 22 ] && { port=$(($port - 2)); }
+		config=" sftp://root:$pass@$address:$port"
+		TrackBinFile "FileZilla" "$binFile" "$config"
 		;;
 	*)
 		message=`echo -e "🛑<b>Ошибка конфигурации</b>\n️❌Ошибка в ссылке на схеме\n🖥️$hostName ⏱$(_Now)"`
 		BotMsg "$message" 0
 		message=`printf "%-19s" "$(_Now) | При запуске $binFile произошла ошибка. Проверьте схему, записи и диск GetStand"`
 		echo -e	"$message" >> "$appfolder/httpN/system/log/system.txt"
-		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --ellipsize --text="Ошибка запуска приложения\nОбратитесь в Отдел Тестирования" --timeout=3
+		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --text="Ошибка запуска приложения\nОбратитесь в Отдел Тестирования" --ellipsize --timeout=3
 		exit
 		;;
-	esac
+
+esac

@@ -2,6 +2,17 @@
 
 
 
+#НЕОБХОДИМЫЕ ПЕРЕМЕННЫЕ
+cmdLine="$1"
+userName=`whoami`
+icon="$appfolder/ChromePortable"
+diagram=${appfolder%/App}
+diagram="$diagram/Diagrams"
+#Данные для телеграмм бота
+sBotKey='bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	#Ваш api ключ
+nChatId='-1001460258261'									#Id получателя
+
+
 function _Now {						#функция генерации текущего времени
 
 	echo $(date +"%d.%m.%Y %H:%M:%S")
@@ -10,15 +21,12 @@ function _Now {						#функция генерации текущего вре�
 
 function BotMsg {					#функция отправки сообщений боту в телеграм
 
-	#Данные для телеграмм бота
-	sBotKey='bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	#Ваш api ключ
-	nChatId='-1001460258261'									#Id получателя
 	local URL="https://api.telegram.org/$sBotKey/sendMessage"
 	curl -s -X POST $URL -d chat_id="$nChatId" -d parse_mode=html -d disable_notification=$2 -d text="$1"
 
 }
 
-function FileReader {				#функция поиска строки в файле	
+function FileReader {				#функция поиска строки в файле
 
 	local sText="$1"				#Список строк
 	local sSearchText="$2"			#Искомая строка
@@ -48,58 +56,57 @@ function Logger {					#функция отправки текста в логи
 
 }
 
+function ChangesM {					#Функция прочитывания сообщений
+
+	[ -e "$appfolder/httpN/system/temp/Changes/$name" ] && {	#Оповещаем пользователя
+
+		#Ищем файлик-метку. Выводим содержимое и удаляем файлик
+		changes=`cat "$appfolder/httpN/system/temp/Changes/$name"`
+		zenity --info --title="Информация" --window-icon="$icon/GetStand.png" --text="$changes" --ellipsize --timeout=30
+		rm "$appfolder/httpN/system/temp/Changes/$name"
+
+	}
+
+}
+
 function Validator {				#Функция проверки строки по шаблону
 
 	if [ -z `echo "$1" | egrep -o "$2"` ]
 	then
 
 		echo 1		#Строка не прошла шаблон
-	
+
 	else echo 0
 	fi
-	
-}
-
-function ConsolePing {				#Функция пинга
-
-	#sleep 1s		#Без паузы почему то нормально не пингуется
-	ping -c 3 -W 1 $1 >/dev/null
-	echo $?
 
 }
 
 function TrackBinFile {				#Функция запуска и слежения за приложением
 
-	if [[ `ConsolePing $address` != 0 ]]	#Проверяем сеть. Если не пингуется хост или шлюз
+	ping -c 3 -W 1 $address >/dev/null
+	if [ $? != 0 ]	#Проверяем сеть. Если не пингуется хост или шлюз
 	then
 
 		message=`echo -e "👤$name\n️⚠️Неудачное подключение\n🖥️$hostName 🕹$1 ⏱$(_Now)"`
 		BotMsg "$message" 0
 		message=`Logger "$userName" "$hostName:$1" "$name" "Хост или шлюз не отвечает"`
 		echo -e	"$message" >> "$appfolder/httpN/system/log/log.txt"
-		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --ellipsize --text="Не удается подключиться к хосту\nОбратитесь в Отдел Тестирования" --timeout=3
+		zenity --error --title="Ошибка" --window-icon="$icon/GetStand.png" --text="Не удается подключиться к хосту\nОбратитесь в Отдел Тестирования" --ellipsize --timeout=3
 
 	else									#Если пингуется, запускаем приложение
 
-		$2$3$hostName$4 &					#Запускаем приложение и фиксируем его PID
+		$2$3 &								#Запускаем приложение и фиксируем его PID
 		PID=$!
 		message=`echo -e "👤$name\n️✅Подключился к хосту\n🖥️$hostName 🕹$1 ⏱$(_Now)"`
 		BotMsg "$message" 0
 		message=`Logger "$userName" "$hostName:$1" "$name" "Успешное подключение"`
 		echo -e	"$message" >> "$appfolder/httpN/system/log/log.txt"
-		[ $5 == "pswrd" ] && {		#В случае filezilla подмена паролей
-		
-			sleep 2s
-			rm "$appfolder/winscp/sitemanager.xml"
-			mv "$appfolder/winscp/sitemanager1.xml" "$appfolder/winscp/sitemanager.xml"
-
-		}
 		#Запускаем сессию приложения
 		t=0
 		while true
 		do
 
-			sleep 1s						#Отсчитываем условную секунду
+			sleep 1s							#Отсчитываем условную секунду
 			t=$(($t + 1))
 			#Условия окончания сессии
 			if [ -z `ps --no-headers $PID` ]	#Если завершили процесс вручную
@@ -111,7 +118,7 @@ function TrackBinFile {				#Функция запуска и слежения з
 				echo -e	"$message" >> "$appfolder/httpN/system/log/log.txt"
 				break
 
-			elif [ -e "$app/system/temp/Sessions/UPDATE" ]	#Если начали обновление
+			elif [ -e "$appfolder/httpN/system/temp/Sessions/UPDATE" ]	#Если начали обновление
 			then
 
 				zenity --warning --title="Предупреждение" --window-icon="$icon/GetStand.png" --text="Обновление системы. Сохраните работу\nПриложение закроется через минуту" --ellipsize --timeout=5
@@ -122,7 +129,7 @@ function TrackBinFile {				#Функция запуска и слежения з
 					sleep 1s
 					j=$(($j + 1))
 					[ -z `ps --no-headers $PID` ] && { break; }
-					[ -e "$app/system/temp/Sessions/KILL" ] && { break; }
+					[ -e "$appfolder/httpN/system/temp/Sessions/KILL" ] && { break; }
 
 				done
 				kill -9 $PID
@@ -136,7 +143,7 @@ function TrackBinFile {				#Функция запуска и слежения з
 				BotMsg "$message" 0
 				message=`Logger "$userName" "$hostName:$1" "$name" "Сессия завершена"`
 				echo -e	"$message" >> "$appfolder/httpN/system/log/log.txt"
-				zenity --warning --title="Предупреждение" --window-icon="$icon/GetStand.png" --ellipsize --text="Сессия $hostName:$1\nзавершена по таймауту" --timeout=3
+				zenity --warning --title="Предупреждение" --window-icon="$icon/GetStand.png" --text="Сессия $hostName:$1\nзавершена по таймауту" --ellipsize --timeout=3
 				break
 
 			fi
@@ -145,17 +152,10 @@ function TrackBinFile {				#Функция запуска и слежения з
 			[ -e "$app/system/temp/Sessions/ONLINE" ] && {	#Говорим что онлайн
 
 				#Создаем файлик-метку, обрабатываем его другой прогой, которая его удалит
-				touch "$app/system/temp/PIDS/$name.$hostName.$(($t/60))"
+				touch "$appfolder/httpN/system/temp/PIDS/$name.$hostName.$(($t/60))"
 
 			}
-			[ -e "$app/system/temp/Changes/$name" ] && {	#Оповещаем пользователя
-
-				#Ищем файлик-метку. Выводим содержимое и удаляем файлик
-				changes=`cat "$app/system/temp/Changes/$name"`
-				zenity --info --title="Информация" --window-icon="$icon/GetStand.png" --ellipsize --text="$changes" --timeout=30
-				rm "$app/system/temp/Changes/$name"
-
-			}
+			ChangesM
 
 		done
 

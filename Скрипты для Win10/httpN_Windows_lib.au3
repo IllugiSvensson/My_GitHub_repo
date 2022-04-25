@@ -5,6 +5,7 @@
 #include <Constants.au3>
 #include <WindowsConstants.au3>
 #include <GUIConstants.au3>
+#include <Encoding.au3>
 
 
 
@@ -15,7 +16,7 @@ Global $nChatId = -1001460258261                                      	;Id гр�
 
 
 
-Func EntryWindow($type)									;Функция отрисовки окошка для записей
+Func EntryWindow($type, $logout)						;Функция отрисовки окошка для записей
 
 	If $type = 1 Then		;Для запуска вручную
 
@@ -35,10 +36,18 @@ Func EntryWindow($type)									;Функция отрисовки окошка 
 
 	ElseIf $type = 3 Then	;Для сообщений пользователям
 
-		Local $title = "Сообщение"
+		Local $title = "Сообщение пользователям"
 		Local $inputText = "Введите ваше сообщение"
-		Local $labelText1 = "Введите текст сообщения для отправки всем пользователям онлайн и оффлайн"
-		Local $labelText2 = "Информационное сообщение"
+		Local $labelText1 = "Введите @username и текст сообщения для отправки"
+		Local $labelText2 = "Метки: @ALL, @username"
+		Local $btnOkText = "Отправить"
+
+	ElseIf $type = 4 Then	;Для сообщений об изменениях
+
+		Local $title = "Отчет"
+		Local $inputText = "Изменения"
+		Local $labelText1 = "Введите текст сообщения об изменениях в схеме и работе программ"
+		Local $labelText2 = "Отправка всем пользователям"
 		Local $btnOkText = "Отправить"
 
 	EndIf
@@ -65,7 +74,15 @@ Func EntryWindow($type)									;Функция отрисовки окошка 
 						ExitLoop
 
 					Case $BtnNo
-						Exit
+						If $logout = 1 Then
+
+							Exit
+
+						Else
+
+							ExitLoop
+
+						EndIf
 
 				EndSwitch
 
@@ -146,6 +163,19 @@ Func FileReader($pathToFile, $sSearchText)				;Функция поиска ст�
 
 EndFunc
 
+Func ChangesM()											;Функция прочитывания сообщений
+
+	If FileExists(@ScriptDir & "\system\temp\Changes\" & $name[0]) = 1 Then	;Оповещаем пользователя
+
+		;Ищем файлик-метку. Выводим содержимое и удаляем файлик
+		Local $changes = FileRead(@ScriptDir & "\system\temp\Changes\" & $name[0])
+		MsgBox(64 + 262144, "Информация", $changes, 30)
+		FileDelete(@ScriptDir & "\system\temp\Changes\" & $name[0])
+
+	EndIf
+
+EndFunc
+
 Func Validator($textstring, $pat)						;Функция проверки строки по шаблону
 
 	$textstring = StringRegExp($textstring, $pat, 2)
@@ -155,18 +185,12 @@ Func Validator($textstring, $pat)						;Функция проверки стро
 
 	EndIf
 
+Return 0
 EndFunc
 
-Func ConsolePing($ADD)									;Функция пинга
+Func TrackExeFile($EXE, $exeFile, $CONFIG)				;Функция запуска и слежения за приложением
 
-	Sleep(1500)			;Без паузы почему то нормально не пингуется
-	Return Ping($ADD)
-
-EndFunc
-
-Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES)		;Функция запуска и слежения за приложением
-
-	If (ConsolePing($address)) = 0 Then	;Проверяем сеть. Если не пингуется хост или шлюз
+	If (Ping($address)) = 0 Then		;Проверяем сеть. Если не пингуется хост или шлюз
 
 		BotMsg("👤" & $name[0] & @CRLF & "⚠️Неудачное подключение" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
 		Logger($name[0], $username, "Хост или шлюз не отвечает", $hostName[0] & ":" & $EXE, 1)
@@ -174,7 +198,7 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES)		;Функция запуска
 
 	Else								;Если пингуется, запускаем приложение
 
-		Local $PID = Run($exeFile & $CONFIG & $hostName[0] & $RES)					;Запускаем приложение и фиксируем его PID
+		Local $PID = Run($exeFile & $CONFIG)			;Запускаем приложение и фиксируем его PID
 		BotMsg("👤" & $name[0] & @CRLF & "✅Подключился к хосту" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
 		Logger($name[0], $username, "Успешное подключение", $hostName[0] & ":" & $EXE, 1)
 		;Запускаем сессию приложения
@@ -222,14 +246,7 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG, $RES)		;Функция запуска
 				FileWrite(@ScriptDir & "\system\temp\PIDS\" & $name[0] & "." & $hostName[0] & "." & Round($t/60), "")
 
 			EndIf
-			If FileExists(@ScriptDir & "\system\temp\Changes\" & $name[0]) = 1 Then	;Оповещаем пользователя
-
-				;Ищем файлик-метку. Выводим содержимое и удаляем файлик
-				Local $changes = FileRead(@ScriptDir & "\system\temp\Changes\" & $name[0])
-				MsgBox(64 + 262144, "Информация", $changes, 30)
-				FileDelete(@ScriptDir & "\system\temp\Changes\" & $name[0])
-
-			EndIf
+			ChangesM()
 
 		WEnd
 

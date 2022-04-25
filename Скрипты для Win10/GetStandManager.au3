@@ -5,29 +5,22 @@
 ;СОЗДАЕМ МЕНЮ МЕНЕДЖЕРА В ТРЕЕ
 Opt("TrayMenuMode", 1 + 2)									;Отключаем стандартные пункты меню
 ;Создаем кнопки меню
-Local $iList = TrayCreateItem("Пользователи в сети")		;Показать пользователей в сети
 Local $iMessage = TrayCreateItem("Сообщение пользователям")	;Отправить сообщение всем пользователям
+Local $iList = TrayCreateItem("Пользователи в сети")		;Показать пользователей в сети
 Local $iConfig = TrayCreateMenu("Конфигурации")				;Конфигурации подключений
 	Local $iUsers = TrayCreateItem("Пользователи", $iConfig)
 	Local $iHosts = TrayCreateItem("Компьютеры", $iConfig)
-	Local $iKit = TrayCreateItem("Kitty сессии", $iConfig)
-	Local $iScp = TrayCreateItem("WinSCP сессии", $iConfig)
 	Local $iVnc = TrayCreateItem("VNC сессии", $iConfig)
 	TrayCreateItem("", $iConfig)							;Полоса разделитель
 	Local $iConfigCreate = TrayCreateItem("Редактор конфигурации", $iConfig)
 Local $iLog = TrayCreateMenu("Логи")						;Логи работы httpN
 	Local $iRuns = TrayCreateItem("Логи подключений", $iLog)
 	Local $iSystem = TrayCreateItem("Системные логи", $iLog)
-	Local $iKitLog = TrayCreateItem("Логи Kitty", $iLog)
-	Local $iScpLog = TrayCreateItem("Логи WinSCP", $iLog)
-	Local $iVncLog = TrayCreateItem("Логи VNC", $iLog)
 	TrayCreateItem("", $iLog)
 	Local $iLogClear = TrayCreateItem("Очистить логи", $iLog)
 Local $iScheme = TrayCreateMenu("Схема")					;GetStand схема в двух вариантах
 	Local $iCom = TrayCreateItem("Оффлайн схема", $iScheme)
 	Local $iEdit = TrayCreateItem("Редактор", $iScheme)
-	TrayCreateItem("", $iScheme)
-	Local $iExport = TrayCreateItem("Экспорт схемы", $iScheme)
 Local $iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
 	Local $iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
 	Local $iHN = TrayCreateItem("Каталог httpN", $iCatalog)
@@ -43,11 +36,11 @@ While True
 	;БЛОК УПРАВЛЕНИЯ ПУНКТАМИ МЕНЮ ТРЕЯ
 	Switch TrayGetMsg()		;Обрабатываем пункты меню
 
-		Case $iList						;Открываем список пользователей онлайн
-			ShowList()
-
 		Case $iMessage					;Открываем форму для ввода сообщений
 			Message(3)
+
+		Case $iList						;Открываем список пользователей онлайн
+			ShowList()
 
 		Case $iUsers					;Открываем список пользователей
 			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\USERS")
@@ -55,13 +48,7 @@ While True
 		Case $iHosts					;Открываем список хостнеймов
 			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\HOSTS")
 
-		Case $iKit						;Открываем сессии китти
-			ShellExecute("\\main\GetStand\App\kitty\Sessions")
-
-		Case $iScp						;Открываем сессии scp
-			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\winscp\WinSCP.ini")
-
-		Case $iVnc						;Открываем список мак адресов
+		Case $iVnc						;Открываем список vnc
 			ShellExecute("\\main\GetStand\App\vnc\config")
 
 		Case $iConfigCreate				;Открываем редактор конфигурации
@@ -73,15 +60,6 @@ While True
 		Case $iSystem					;Открываем лог системы
 			ShellExecute("\\main\GetStand\App\httpN\system\log\system.txt")
 
-		Case $iKitLog					;Открываем логи по kitty
-			ShellExecute("\\main\GetStand\App\kitty\Log")
-
-		Case $iScpLog					;Открываем логи по winscp
-			ShellExecute("\\main\GetStand\App\winscp\Log")
-
-		Case $iVncLog					;Открываем логи по vnc
-			ShellExecute("\\main\GetStand\App\vnc\Log")
-
 		Case $iLogClear					;Предложение очистить все логи
 			LogDeleter()
 
@@ -89,10 +67,7 @@ While True
 			ShellExecute("\\main\GetStand\Diagrams\DiagramsOT.html")
 
 		Case $iEdit						;Открываем редактор схемы
-			ShellExecute("https://app.diagrams.net/?lang=ru&lightbox=0&highlight=1E90FF&layers=0&nav=1#G1oRpwSBE6dq6JEUCgGE6crQ1N3naf_PQp")
-
-		Case $iExport					;Экспортируем на диск схему после редактирования
-			SchemeExport()
+			ShellExecute("https://cloud.nboot.ru/nextcloud/apps/drawio/36850")
 
 		Case $iGS						;Открываем основной каталог
 			ShellExecute("\\main\GetStand")
@@ -107,6 +82,10 @@ While True
 			ExitLoop
 
 	EndSwitch
+	If FileExists("D:\Download\drawio.html") Then
+		ConfigEditor()
+		SchemeExport()
+	EndIf
 
 WEnd
 
@@ -115,10 +94,64 @@ WEnd
 
 
 ;ПОЛЬЗОВАТЕЛЬСКИЕ ФУНКЦИИ
+Func Message($type)									;Функция отправки сообщений всем пользователям
+
+	Local $entry = EntryWindow($type, 0)
+	Local $text = FileRead("\\main\GetStand\App\httpN\system\USERS")		;Читаем список
+	$text = StringRegExp($text, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 3) ;Формируем имена
+		If StringInStr($entry, "@all") Then		;Если метка "Всем"
+
+			$entry = StringTrimLeft($entry, 5)
+			For $i = 0 To UBound($text) - 1
+
+				FileWriteLine("\\main\GetStand\App\httpN\system\temp\Changes\" & $text[$i], _NowDate() & " " & $entry)
+
+			Next
+			MsgBox(64, "GetStand", "Сообщение отправлено пользователям", 3)
+
+		ElseIf StringInStr($entry, "@") Then
+
+			Local $locUser = StringRegExp($entry, "(@\w+){1}(\@\w+){0,}", 3)	;Список получателей
+			For $i = 0 To UBound($locUser) - 1									;Фильтруем строку ввода
+
+				$entry = StringTrimLeft($entry, StringLen($locUser[$i]) + 1)
+
+			Next
+			For $i = 0 To UBound($text) - 1
+
+				For $j = 0 To UBound($locUser) - 1
+
+					If StringInStr($text[$i], StringTrimLeft($locUser[$j], 1)) <> 0 Then	;Если получатель есть в общем списке
+
+						FileWriteLine("\\main\GetStand\App\httpN\system\temp\Changes\" & $text[$i], _NowDate() & " " & $entry)
+
+					EndIf
+
+				Next
+
+			Next
+			MsgBox(64, "GetStand", "Сообщение отправлено пользователям", 3)
+
+		EndIf
+
+EndFunc
+
+Func ListDivider()									;Функция создания строки разделителя
+
+	Local $a = "-"
+	For $i = 0 To 61 Step 1
+
+		$a &= "-"		;Создаем строку разделитель
+
+	Next
+
+Return $a
+EndFunc
+
 Func ShowList()										;Функция отображения списка пользователей
 
 	FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE", "")				;Опрашиваем пользователей 2 секунды
-	Sleep(2000)
+	Sleep(2500)
 	Local $FileList = _FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS")	;Формируем список пользователей
 	If IsArray($FileList) = 0 Then
 
@@ -134,7 +167,7 @@ Func ShowList()										;Функция отображения списка п�
 			Local $host = StringRegExp($FileList[$i], "\.\w+\.", 2)	;Выделяем хост
 			$host[0] = StringTrimLeft(StringTrimRight($host[0], 1), 1)
 			Local $name = StringTrimRight($FileList[$i], StringLen($time[0]) + StringLen($host[0]) + 2)	;Выделяяем имя
-			$FileList[$i] = "👤" & $name & " 🖥" & $host[0] & @CRLF & "        ➡️ В сети ⏱" & $time[0] & " минут."
+			$FileList[$i] = "👤" & $name & " 🖥" & $host[0] & @CRLF & "        ➡️ В сети ⏱" & $time[0] & " минут"
 
 		Next
 
@@ -142,146 +175,311 @@ Func ShowList()										;Функция отображения списка п�
 		DirRemove("\\main\GetStand\App\httpN\system\temp\PIDS", 1)
 		DirCreate("\\main\GetStand\App\httpN\system\temp\PIDS")
 		_ArrayDelete($FileList, 0)
-		BotMsg("✅<b>Пользователи в сети:</b>" & @CRLF & ListDivider() & @CRLF & _ArrayToString($FileList, @CRLF), 0, $sBotKey, $nChatId)
-		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & ListDivider() & @CRLF & _ArrayToString($FileList, @CRLF), 5)
+		BotMsg("✅<b>Пользователи в сети:</b>" & @CRLF & ListDivider() & @CRLF & _ArrayToString($FileList, @CRLF), 0)
+		MsgBox(64, "GetStand Manager", "Пользователи в сети: " & ListDivider() & @CRLF & _ArrayToString($FileList, @CRLF), 10)
 
 	EndIf
 
 EndFunc
 
-Func Message($type)									;Функция отправки сообщений всем пользователям
+Func HOSTConfig($mode, $hostname, $address, $port, $pass, $e_host, $e_add, $e_port, $e_pass, $stend)	;Функция редактирования хостов
 
-	Local $entry = EntryWindow($type)
-	Local $text = FileRead("\\main\GetStand\App\httpN\system\USERS")
-	$text = StringRegExp($text, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 3)
-	For $i = 0 To UBound($text) - 1
+	Dim $Array
+	_FileReadToArray("\\main\GetStand\App\httpN\system\HOSTS", $Array)
+	Switch $mode
 
-		FileWriteLine("\\main\GetStand\App\httpN\system\temp\Changes\" & $text[$i], $entry)
+		Case 0		;Записали новый адрес
+			For $i = 0 To $Array[$i]
 
-	Next
-	MsgBox(64, "GetStand", "Сообщение отправлено пользователям", 3)
+				If StringInStr($Array[$i], $stend) Then
+
+					Local $code = _Encoding_Base64Encode($pass & $hostname & "A" & $address & "S" & $port)
+					_FileWriteToLine("\\main\GetStand\App\httpN\system\HOSTS", $i + 1, StringStripWS($hostname & " A" & $address & " S" & $port & " #" & $code, 2), 0)
+					ExitLoop
+
+				EndIf
+
+			Next
+
+		Case 1		;Изменили существующий адрес
+			For $i = 0 To $Array[0]
+
+				If StringInStr($Array[$i], $hostname) Then
+
+					Local $a = StringRegExp($Array[$i], "\w+", 2)
+					If $a[0] <> $hostname Then ContinueLoop
+					Local $sText = $Array[$i]
+					If $e_host <> -1 Then $sText = StringReplace($sText, $hostname, $e_host)
+					If $e_add <> -1 Then $sText = StringReplace($sText, $address, $e_add)
+					If $e_port <> -1 Then $sText = StringReplace($sText, " S" & $port & " ", " S" & $e_port & " ")
+					$sText = StringRegExpReplace($sText, "[#]\S+", "")
+					If $e_pass <> -1 Then
+						$sText = $sText & " #" & _Encoding_Base64Encode($e_pass & StringStripWS($sText, 8))
+					Else
+						$sText = $sText & " #" & _Encoding_Base64Encode($pass & StringStripWS($sText, 8))
+					EndIf
+					_FileWriteToLine("\\main\GetStand\App\httpN\system\HOSTS", $i, StringStripWS($sText, 2), 1)
+					ExitLoop
+
+				EndIf
+
+			Next
+
+		Case 2		;Удалили существующий адрес
+			For $i = 0 To $Array[0]
+
+				If StringInStr($Array[$i], $hostname) Then
+
+					Local $a = StringRegExp($Array[$i], "\w+", 2)
+					If $a[0] <> $hostname Then ContinueLoop
+					_FileWriteToLine("\\main\GetStand\App\httpN\system\HOSTS", $i, "", 1)
+					For $j = $i To $Array[0] - 1
+
+						_FileWriteToLine("\\main\GetStand\App\httpN\system\HOSTS", $j, $Array[$j + 1], 1)
+
+					Next
+					_FileWriteToLine("\\main\GetStand\App\httpN\system\HOSTS", _FileCountLines("\\main\GetStand\App\httpN\system\HOSTS"), '', 1)
+					ExitLoop
+
+				EndIf
+
+			Next
+
+	EndSwitch
+
+EndFunc
+
+Func VNCConfig($mode, $hostname, $address, $port, $e_host, $e_add, $e_port)	;Функция изменения конфигов vnc
+
+	Dim $Array
+	_FileReadToArray("\\main\GetStand\App\vnc\config\" & $hostname & ".vnc", $Array)
+	Switch $mode
+
+		Case 0		;Создали новый конфиг
+			If $port <> 22 Then
+				Local $let = ":" & $port
+			Else
+				Local $let = ""
+			EndIf
+			FileCopy("\\main\GetStand\App\vnc\config\Pattern.vnc", "\\main\GetStand\App\vnc\config\" & $hostname & ".vnc")
+			FileWrite("\\main\GetStand\App\vnc\config\" & $hostname & ".vnc", @CRLF & "Host=" & $address & $let)
+
+		Case 1		;Изменили существующий конфиг
+			For $i = 0 To $Array[0]
+
+				If StringInStr($Array[$i], "Host=") Then
+
+					Local $sText = $Array[$i]
+					If $e_add <> -1 Then $sText = StringReplace($sText, $address, $e_add)
+					If $e_port <> -1 Then
+
+						Local $b = StringReplace($sText, "Host=" & $e_add, "")
+						If StringLen($b) = 0 Then $sText = $sText & ":" & $e_port
+						If StringLen($b) <> 0 Then $sText = StringReplace($sText, $b, $b & ":" & $e_port)
+
+					EndIf
+					If $e_port = 22 Then $sText = StringRegExpReplace($sText, "\:[0-9]{2,5}", "")
+					_FileWriteToLine("\\main\GetStand\App\vnc\config\" & $hostname & ".vnc", $i, $sText, 1)
+					ExitLoop
+
+				EndIf
+
+			Next
+			If $e_host <> -1 Then FileMove("\\main\GetStand\App\vnc\config\" & $hostname & ".vnc", "\\main\GetStand\App\vnc\config\" & $e_host & ".vnc")
+
+		Case 2		;Удалили существующий конфиг
+			FileDelete("\\main\GetStand\App\vnc\config\" & $hostname & ".vnc")
+
+	EndSwitch
+
+EndFunc
+
+Func InputValidator($str1, $str2, $str3, $str4)		;Функция проверки пользовательского ввода
+
+	Local $val1 = Validator($str1, "\w+|\-1")
+	Local $val2 = Validator($str2, "(([0-9]{1,3}\.){3}[0-9]{1,3})|\-1")
+	Local $val3 = Validator($str3, "[0-9]{2,5}|\-1")
+	Local $val4 = Validator($str4, "\S+|\-1")
+	If ($val1 + $val2 + $val3 + $val4) <> 4 Then
+
+		MsgBox(16, "Ошибка", "Ошибка в одном из полей", 3)
+		Return 1
+
+	EndIf
+
+Return 0
+EndFunc
+
+Func FindConfig($hst)								;Функция поиска данных конфига
+
+	Local $path = "\\main\GetStand\App\"
+	Dim $CFG[3] = [ -1, -1, -1 ]					;Массив параметров
+	If StringInStr(FileRead($path & "\httpN\system\HOSTS"), $hst) AND FileExists($path & "vnc\config\" & $hst & ".vnc") Then
+
+		Local $conf = FileRead($path & "httpN\system\HOSTS")			;Читаем список
+		Local $aLines = StringSplit($conf, @CRLF, 0)					;Делаем массив строк
+		For $i = 1 To $aLines[0] Step +1								;Перебираем строки
+
+			If StringInStr($aLines[$i], $hst) Then						;Если есть совпадение, выдаем строку
+
+				Local $a = StringRegExp($aLines[$i], "\w+", 2)
+				If $a[0] <> $hst Then ContinueLoop
+				Local $x = StringRegExp($aLines[$i], "[A]((\w+\.){3}\w+)", 2)	;Получаем шаблон адреса
+				Local $y = StringRegExp($aLines[$i], "[S][0-9]{2,5}", 2)		;Получаем шаблон порта
+				Local $z = StringRegExp($aLines[$i], "[#]\S+", 2)				;Получаем шаблон пароля
+				$CFG[2] = StringTrimLeft($z[0], 1)
+				$CFG[1] = StringTrimLeft($y[0], 1)
+				$CFG[0] = StringTrimLeft($x[0], 1)
+				$CFG[2] = _Encoding_Base64Decode($CFG[2])
+				$CFG[2] = StringReplace($CFG[2], $hst, "")
+				$CFG[2] = StringReplace($CFG[2], $x[0], "")
+				$CFG[2] = StringReplace($CFG[2], $y[0], "")
+				ExitLoop
+
+			EndIf
+
+		Next
+		GUICtrlSetState($E_Input2, $GUI_ENABLE)
+		GUICtrlSetState($E_Input3, $GUI_ENABLE)
+		GUICtrlSetState($E_Input4, $GUI_ENABLE)
+		GUICtrlSetState($E_Input5, $GUI_ENABLE)
+		Return $CFG
+
+	Else
+
+		MsgBox(16, "Ошибка", "Конфиг не найден", 3)
+		ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\HOSTS")
+		ShellExecute("\\main\GetStand\App\vnc\config")
+		GUICtrlSetState($E_Input2, $GUI_DISABLE)
+		GUICtrlSetState($E_Input3, $GUI_DISABLE)
+		GUICtrlSetState($E_Input4, $GUI_DISABLE)
+		GUICtrlSetState($E_Input5, $GUI_DISABLE)
+		Return $CFG
+
+	EndIf
 
 EndFunc
 
 Func ConfigEditor()									;Функция создания окна для редактирования конфигурации
 
-	;Создаем окно с кнопками
-	Local $GUI = GUICreate("Редактор конфигурации", 384, 384, -1, -1, $WS_DLGFRAME)
-		Local $Label = GUICtrlCreateLabel("Введите данные компьютера чтобы создать, редактировать или удалить конфигурацию для приложений.", 22, 10, 340, 60)
-		GUICtrlSetFont($Label, 12)
-		Local $Input = GUICtrlCreateInput('Введите Хостнейм', 66, 80, 252, 40)
-		GUICtrlSetFont($Input, 20)
-		Local $Input1 = GUICtrlCreateInput('Введите адрес', 66, 120, 252, 40)
-		GUICtrlSetFont($Input1, 20)
-		Local $Input2 = GUICtrlCreateInput('Введите маршрут', 66, 160, 252, 40)
-		GUICtrlSetFont($Input2, 20)
-		Local $Input3 = GUICtrlCreateInput('Введите маску', 66, 200, 252, 40)
-		GUICtrlSetFont($Input3, 20)
-		Local $ButtonCreate = GUICtrlCreateButton("Создать", 42, 250, 100, 40)
-		GUICtrlSetFont($ButtonCreate, 14)
-		Local $ButtonDelete = GUICtrlCreateButton("Удалить", 142, 250, 100, 40)
-		GUICtrlSetFont($ButtonDelete, 14)
-		Local $ButtonCancel = GUICtrlCreateButton("Выход", 242, 250, 100, 40)
-		GUICtrlSetFont($ButtonCancel, 14)
-		GUISetState()
+	Local $GUI = GUICreate("Редактор конфигурации", 330, 330, -1, -1, $WS_DLGFRAME)	;Основные элементы
+	Local $TAB = GUICtrlCreateTab(5, 5, 320, 240)
+	Local $OKbtn = GUICtrlCreateButton("Продолжить", 25, 255, 125, 40)
+	Local $CNCLbtn = GUICtrlCreateButton("Выход", 175, 255, 125, 40)
+	Local $path = "\\main\GetStand\App\"
 
-	While True			;Запускаем цикл опроса окна
+		Local $Tab1 = GUICtrlCreateTabItem("Создать")								;Внутренние элементы
+			Local $C_Input1 = GUICtrlCreateInput('Хостнейм', 20, 80, 285, 30)
+			GUICtrlSetFont($C_Input1, 14)
+			Local $C_Input2 = GUICtrlCreateInput("Адрес", 20, 120, 285, 30)
+			GUICtrlSetFont($C_Input2, 14)
+			Local $C_Input3 = GUICtrlCreateInput('Порт', 20, 160, 285, 30)
+			GUICtrlSetFont($C_Input3, 14)
+			Local $C_Input4 = GUICtrlCreateInput('Пароль', 20, 200, 285, 30)
+			GUICtrlSetFont($C_Input4, 14)
+			Local $C_Box = GUICtrlCreateCombo('', 20, 40, 285, 30, $CBS_DROPDOWNLIST)
+			GUICtrlSetFont($C_Box, 14)
+			Dim $Array
+			_FileReadToArray("\\main\GetStand\App\httpN\system\HOSTS", $Array)
+			For $i = 0 To $Array[0]
+
+				If StringInStr($Array[$i], ":") Then GUICtrlSetData($C_Box, StringTrimRight($Array[$i], 1), "Прочие")
+
+			Next
+			GUICtrlSetState(-1, $GUI_SHOW)
+
+		Local $Tab2 = GUICtrlCreateTabItem("Редактировать")
+			Local $E_Input1 = GUICtrlCreateInput('Хостнейм', 20, 40, 140, 30)
+			GUICtrlSetFont($E_Input1, 14)
+			Local $E_Button1 = GUICtrlCreateButton("Получить", 20, 80, 140, 30)
+			GUICtrlSetFont($E_Button1, 14)
+			Local $E_Label1 = GUICtrlCreateLabel('Адрес', 20, 120, 140, 30, $WS_BORDER)
+			GUICtrlSetFont($E_Label1, 14)
+			GUICtrlSetState($E_Label1, $GUI_DISABLE)
+			Local $E_Label2 = GUICtrlCreateLabel('Порт', 20, 160, 140, 30, $WS_BORDER)
+			GUICtrlSetFont($E_Label2, 14)
+			GUICtrlSetState($E_Label2, $GUI_DISABLE)
+			Local $E_Label3 = GUICtrlCreateLabel('Пароль', 20, 200, 140, 30, $WS_BORDER)
+			GUICtrlSetFont($E_Label3, 14)
+			GUICtrlSetState($E_Label3, $GUI_DISABLE)
+			Local $E_Label4 = GUICtrlCreateLabel('Поставить -1, чтобы не редактитовать поле', 170, 40, 140, 30)
+			GUICtrlSetFont($E_Label4, 9)
+			Global $E_Input2= GUICtrlCreateInput("Хостнейм", 170, 80, 140, 30)
+			GUICtrlSetFont($E_Input2, 14)
+			GUICtrlSetState($E_Input2, $GUI_DISABLE)
+			Global $E_Input3 = GUICtrlCreateInput('Адрес', 170, 120, 140, 30)
+			GUICtrlSetFont($E_Input3, 14)
+			GUICtrlSetState($E_Input3, $GUI_DISABLE)
+			Global $E_Input4 = GUICtrlCreateInput('Порт', 170, 160, 140, 30)
+			GUICtrlSetFont($E_Input4, 14)
+			GUICtrlSetState($E_Input4, $GUI_DISABLE)
+			Global $E_Input5 = GUICtrlCreateInput('Пароль', 170, 200, 140, 30)
+			GUICtrlSetFont($E_Input5, 14)
+			GUICtrlSetState($E_Input5, $GUI_DISABLE)
+
+		Local $Tab3 = GUICtrlCreateTabItem("Удалить")
+			Local $D_Input1 = GUICtrlCreateInput("Хостнейм", 20, 100, 285, 30)
+			GUICtrlSetFont($D_Input1, 14)
+
+	GUICtrlCreateTabItem("") 	;определяет конец вкладок
+	GUISetState()
+
+	While True
 
 		Switch GUIGetMsg()
 
-			Case $ButtonCreate					;Если нажали "Создать"
-				Local $text = GUICtrlRead($Input)		;Считываем ввод
-				Local $text1 = GUICtrlRead($Input1)
-				Local $text2 = GUICtrlRead($Input2)
-				if StringLen($text2) <> 0 Then $text2 = "G" & $text2
-				Local $text3 = GUICtrlRead($Input3)
-				if StringLen($text3) <> 0 Then $text3 = "M" & $text3
-				If Validator($text, "\w+") Or Validator($text1, "\w+") <> 1 Then	;Проверяем строку
+			Case $OKbtn				;Нажали ОК. В зависимости от вкладки, выполняем разные действия
+				Switch GUICtrlRead($TAB)
 
-					;Конфигурация для компьютера
-					FileWrite("\\main\GetStand\App\httpN\system\HOSTS", @CRLF & $text & " A" & $text1 & " " & $text2 & " " & $text3)
+					Case 0			;Проверяем ввод элементов и вызываем функции обработки
+						If InputValidator(GUICtrlRead($C_Input1), GUICtrlRead($C_Input2), GUICtrlRead($C_Input3), GUICtrlRead($C_Input4)) Then ContinueLoop
+						If StringInStr(FileRead("\\main\GetStand\App\httpN\system\HOSTS"), GUICtrlRead($C_Input1) & " ") Then
 
-					;Конфигурация для VNC
-					FileCopy("\\main\GetStand\App\vnc\config\Pattern.vnc", "\\main\GetStand\App\vnc\config\" & $text & ".vnc")
-					FileWrite("\\main\GetStand\App\vnc\config\" & $text & ".vnc", @CRLF & "Host=" & $text1)
+							MsgBox(64, "GetStand Manager", "Конфигурация существует", 3, $GUI)
+							ContinueLoop
 
-					;Конфигурация для WinSCP
-					Local $File = "\\main\GetStand\App\winscp\WinSCP.ini"
-					Local $Read = FileRead($File)
-					StringRegExpReplace($Read, "ConfigDeleted", "ConfigDeleted")	;Проверим наличие совпадений
-					if @extended <> 0 Then							;Если есть удаленная конфигурация, перезаписываем её
+						EndIf
+						HOSTConfig(0, GUICtrlRead($C_Input1), GUICtrlRead($C_Input2), GUICtrlRead($C_Input3), GUICtrlRead($C_Input4), -1, -1, -1, -1, GUICtrlRead($C_Box))
+						VNCConfig(0, GUICtrlRead($C_Input1), GUICtrlRead($C_Input2), GUICtrlRead($C_Input3), -1, -1, -1)
+						BotMsg("💾<b>Создана конфигурация для хоста</b>" & @CRLF & "🖥️" & GUICtrlRead($C_Input1) & " ⏱" & _Now(), 0)
+						FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Создана конфигурация для " & GUICtrlRead($C_Input1))
+						MsgBox(64, "GetStand Manager", "Конфигурация сохранена", 3, $GUI)
 
-						Local $Replace = StringRegExpReplace($Read, "ConfigDeleted", $text)
-						FileDelete($File)			;Перезаписываем файл с новыми данными
-						FileWrite($File, $Replace)
+					Case 1
+						If InputValidator(GUICtrlRead($E_Input2), GUICtrlRead($E_Input3), GUICtrlRead($E_Input4), GUICtrlRead($E_Input5)) Then ContinueLoop
+						HOSTConfig(1, GUICtrlRead($E_Input1), GUICtrlRead($E_Label1), GUICtrlRead($E_Label2), GUICtrlRead($E_Label3), GUICtrlRead($E_Input2), GUICtrlRead($E_Input3), GUICtrlRead($E_Input4), GUICtrlRead($E_Input5), -1)
+						VNCConfig(1, GUICtrlRead($E_Input1), GUICtrlRead($E_Label1), GUICtrlRead($E_Label2), GUICtrlRead($E_Input2), GUICtrlRead($E_Input3), GUICtrlRead($E_Input4))
+						GUICtrlSetState($E_Input2, $GUI_DISABLE)
+						GUICtrlSetState($E_Input3, $GUI_DISABLE)
+						GUICtrlSetState($E_Input4, $GUI_DISABLE)
+						GUICtrlSetState($E_Input5, $GUI_DISABLE)
+						BotMsg("💾<b>Изменена конфигурация хоста</b>" & @CRLF & "🖥️" & GUICtrlRead($E_Input1) & " ⏱" & _Now(), 0)
+						FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Изменена конфигурация для " & GUICtrlRead($E_Input1))
+						MsgBox(64, "GetStand Manager", "Конфигурация изменена", 3, $GUI)
 
-					else											;Если нет, создаем новую
+					Case 2
+						If InputValidator(GUICtrlRead($D_Input1), -1, -1, -1) Then ContinueLoop
+						If StringInStr(FileRead("\\main\GetStand\App\httpN\system\HOSTS"), GUICtrlRead($D_Input1) & " ") = 0 Then
 
-						FileWriteLine("\\main\GetStand\App\winscp\WinSCP.ini", "[Sessions\" & $text & "]" & @CRLF & "HostName=" & $text1 & @CRLF & "UserName=root")
+							MsgBox(64, "GetStand Manager", "Конфигурация не существует", 3, $GUI)
+							ContinueLoop
 
-					EndIf
-					Local $WinPID = ShellExecute("\\main\GetStand\App\winscp\WinSCP.exe")
+						EndIf
+						HOSTConfig(2, GUICtrlRead($D_Input1), -1, -1, -1, -1, -1, -1, -1, -1)
+						VNCConfig(2, GUICtrlRead($D_Input1), -1, -1, -1, -1, -1)
+						BotMsg("⚠️<b>Конфигурация для хоста удалена</b>" & @CRLF & "🖥️" & GUICtrlRead($D_Input1) & " ⏱" & _Now(), 0)
+						FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Конфигурация для " & GUICtrlRead($D_Input1) & " удалена")
+						MsgBox(64, "GetStand Manager", "Конфигурация удалена", 3, $GUI)
 
-					;Конфигурация для Kitty
-					FileCopy("\\main\GetStand\App\kitty\Sessions\Pattern", "\\main\GetStand\App\kitty\Sessions\" & $text)
-					FileWrite("\\main\GetStand\App\kitty\Sessions\" & $text, @CRLF & "HostName\" & $text1)
-					Local $KittyPid = ShellExecute("\\main\GetStand\App\kitty\kitty.exe")	;Пароль нужно задать в окне вручную
+				EndSwitch
 
-					;Ожидаем завершения конфигурирования и выдаем сообщение
-					ProcessWaitClose($KittyPid)
-					ProcessWaitClose($WinPid)
-					BotMsg("💾<b>Создана конфигурация для хоста</b>" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), 0, $sBotKey, $nChatId)
-					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Создана конфигурация для " & $text)
-					MsgBox(64, "GetStand Manager", "Конфигурация сохранена", 3, $GUI)
+			Case $E_Button1			;Проверяем наличие конфига
+				Dim $FC = FindConfig(GUICtrlRead($E_Input1))
+				GUICtrlSetData($E_Label1, $FC[0])
+				GUICtrlSetData($E_Label2, $FC[1])
+				GUICtrlSetData($E_Label3, $FC[2])
 
-				Else
-
-					MsgBox(16, "GetStand Manager", "Недопустимый хостнейм", 3, $GUI)
-
-				Endif
-
-			Case $ButtonDelete					;Если нажали "Удалить"
-				Local $text = GUICtrlRead($Input)		;Считываем ввод
-				If Validator($text, "\w+") <> 1 Then
-
-					;Удаляем компьютер из списка
-					Local $File = "\\main\GetStand\App\httpN\system\HOSTS"
-					Local $Read = FileRead($File)
-					Local $Replace = StringRegExpReplace($Read, $text & ".*", "")
-					if @extended <> 0 Then
-
-						FileDelete($File)			;Перезаписываем файл с новыми данными
-						FileWrite($File, $Replace)
-
-					EndIf
-
-					;Удаляем конфигурации
-					FileDelete("\\main\GetStand\App\vnc\config\" & $text & ".vnc")
-					FileDelete("\\main\GetStand\App\kitty\Sessions\" & $text)
-
-					;Для WinSCP нужно редактировать файл
-					$File = "\\main\GetStand\App\winscp\WinSCP.ini"
-					$Read = FileRead($File)
-					$Replace = StringRegExpReplace($Read, $text, "ConfigDeleted")
-					if @extended <> 0 Then
-
-						FileDelete($File)			;Перезаписываем файл с новыми данными
-						FileWrite($File, $Replace)
-
-					EndIf
-
-					BotMsg("⚠️<b>Конфигурация для хоста удалена</b>" & @CRLF & "🖥️" & $text & " ⏱" & _Now(), 0, $sBotKey, $nChatId)
-					FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Конфигурация для " & $text & " удалена")
-					MsgBox(64, "GetStand Manager", "Конфигурация удалена", 3, $GUI)
-
-				Else
-
-					MsgBox(16, "GetStand Manager", "Недопустимый хостнейм", 3, $GUI)
-
-				Endif
-
-			Case $ButtonCancel					;Если нажали "Выход"
-
+			Case $CNCLbtn			;Выходим
 				ExitLoop
 
 		EndSwitch
@@ -300,11 +498,7 @@ Func LogDeleter()									;Функция для удаления логов
 		FileWrite("\\main\GetStand\App\httpN\system\log\log.txt", "")
 		;Системные логи
 		FileWrite("\\main\GetStand\App\httpN\system\log\system.txt", "")
-		;Логи приложений
-		FileDelete("\\main\GetStand\App\kitty\Log\*")
-		FileDelete("\\main\GetStand\App\winscp\Log\*")
-		FileDelete("\\main\GetStand\App\vnc\Log\*")
-		BotMsg("⚠️<b>Логи подключений удалены</b>" & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
+		BotMsg("⚠️<b>Логи подключений удалены</b>" & @CRLF & "⏱" & _Now(), 0)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Логи подключений удалены")
 		MsgBox(64, "GetStand Manager", "Логи удалены", 3)
 
@@ -314,16 +508,24 @@ EndFunc
 
 Func SchemeExport()									;Функция экспортирования схемы на диск после редактирования
 
-	If FileExists("D:\Download\DiagramsOT.drawio.html") Then
+	Local $entry = EntryWindow(4, 0)
+	If StringLen($entry) > 1 Then
 
-		Local $text = ChangeLog()
-		BotMsg("🔥<b>Схема GetStand обновлена!</b>" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
-		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление схемы завершено. Изменения: " & $text)
-		FileMove("D:\Download\DiagramsOT.drawio.html", "\\main\GetStand\Diagrams\DiagramsOT.html", 1)	;Перемещаем схему с перезаписью
+		Local $text = FileRead("\\main\GetStand\App\httpN\system\USERS")		;Читаем список
+		$text = StringRegExp($text, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 3) ;Формируем имена
+		BotMsg("🔥<b>Схема GetStand обновлена!</b>" & @CRLF & "📋" & $entry & @CRLF & "⏱" & _Now(), 0)
+		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление схемы завершено. Изменения: " & $entry)
+		FileMove("D:\Download\drawio.html", "\\main\GetStand\Diagrams\DiagramsOT.html", 1)	;Перемещаем схему с перезаписью
+			For $i = 0 To UBound($text) - 1
+
+				FileWriteLine("\\main\GetStand\App\httpN\system\temp\Changes\" & $text[$i], _NowDate() & " Изменения схемы: " & $entry)
+
+			Next
+			MsgBox(64, "GetStand", "Отчет отправлен пользователям", 3)
 
 	Else
 
-		MsgBox(16, "GetStand Manager", "Нет схемы для экспорта", 3)
+		FileDelete("D:\Download\drawio.html")
 
 	EndIf
 
@@ -358,77 +560,5 @@ Func Update()										;Функция выключения приложений
 		MsgBox(64, "GetStand Manager", "Обновление прошло успешно!", 5)
 
 	EndIf
-
-EndFunc
-
-
-
-
-
-
-Func ListDivider()										;Функция создания строки разделителя
-
-	Local $a = "-"
-	For $i = 0 To 61 Step 1
-
-		$a &= "-"				;Создаем строку разделитель
-
-	Next
-
-Return $a
-EndFunc
-
-Func AddrToMask($MSKADDR)								;Функция преобразования адреса в маску
-
-	Switch "1"	;REGEX возвращает массив либо двоичное значение. Сравниваем с единицей для удобства
-
-		Case StringRegExp($MSKADDR, "((\d{1,3}\.){1}0.0.0)", 0) ;Проверяем последние актеты на 0
-			Return "255.0.0.0"							 	 	;Возвращаем маску
-
-		Case StringRegExp($MSKADDR, "((\d{1,3}\.){2}0.0)", 0)
-			Return "255.255.0.0"
-
-		Case StringRegExp($MSKADDR, "((\d{1,3}\.){3}0)", 0)
-			Return "255.255.255.0"
-
-		Case Else
-			Return "255.255.255.255"
-
-	EndSwitch
-
-EndFunc
-
-Func RouteAddDel($ROUTE, $fl)							;Функция создания маршрута
-
-	if $fl = 1 Then
-
-		Run(@ComSpec & " /c " & $ROUTE, '', @SW_HIDE)
-
-	EndIf
-
-EndFunc
-
-Func GetMac($_MACsIP)									;Функция получения MAC по айпи(взял из гугла)
-
-    Local $_MAC, $_MACSize
-    Local $_MACi, $_MACs, $_MACr, $_MACiIP
-    $_MAC = DllStructCreate("byte[6]")
-    $_MACSize = DllStructCreate("int")
-    DllStructSetData($_MACSize, 1, 6)
-    $_MACr = DllCall ("Ws2_32.dll", "int", "inet_addr", "str", $_MACsIP)
-    $_MACiIP = $_MACr[0]
-    $_MACr = DllCall ("iphlpapi.dll", "int", "SendARP", "int", $_MACiIP, "int", 0, "ptr", DllStructGetPtr($_MAC), "ptr", DllStructGetPtr($_MACSize))
-    $_MACs  = ""
-
-		For $_MACi = 0 To 5
-
-			If $_MACi Then $_MACs = $_MACs & ":"
-			$_MACs = $_MACs & Hex(DllStructGetData($_MAC, 1, $_MACi + 1), 2)
-
-		Next
-
-    DllClose($_MAC)
-    DllClose($_MACSize)
-    Return $_MACs
 
 EndFunc
