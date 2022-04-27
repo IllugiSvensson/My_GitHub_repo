@@ -13,6 +13,7 @@ sBotKey='bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	#Ваш api ключ
 nChatId='-1001460258261'									#Id получателя
 
 
+
 function _Now {						#функция генерации текущего времени
 
 	echo $(date +"%d.%m.%Y %H:%M:%S")

@@ -13,6 +13,7 @@ Local $iConfig = TrayCreateMenu("Конфигурации")				;Конфигур
 	Local $iVnc = TrayCreateItem("VNC сессии", $iConfig)
 	TrayCreateItem("", $iConfig)							;Полоса разделитель
 	Local $iConfigCreate = TrayCreateItem("Редактор конфигурации", $iConfig)
+	Local $iRightsCreate = TrayCreateItem("Редактор прав", $iConfig)
 Local $iLog = TrayCreateMenu("Логи")						;Логи работы httpN
 	Local $iRuns = TrayCreateItem("Логи подключений", $iLog)
 	Local $iSystem = TrayCreateItem("Системные логи", $iLog)
@@ -24,9 +25,12 @@ Local $iScheme = TrayCreateMenu("Схема")					;GetStand схема в дву
 Local $iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
 	Local $iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
 	Local $iHN = TrayCreateItem("Каталог httpN", $iCatalog)
-Local $iUpdate = TrayCreateItem("Обновить httpN")			;Предупреждение об обновлении
+Local $iBackup = TrayCreateItem("Сделать Backup")			;Зарезервировать файлы
+Global $iUpdate = TrayCreateItem("Обновить систему")		;Предупреждение об обновлении
 TrayCreateItem("")
+Local $iManage = TrayCreateItem("Обновить менеджер")		;Обновление менеджера
 Local $iExit = TrayCreateItem("Выход")						;Выход из приложения
+Global $iPause = 0											;Индикатор галочки
 
 
 
@@ -54,6 +58,9 @@ While True
 		Case $iConfigCreate				;Открываем редактор конфигурации
 			ConfigEditor()
 
+		Case $iRightsCreate				;Открываем редактор прав пользователя
+			RightsEditor()
+
 		Case $iRuns						;Открываем лог подключений
 			ShellExecute("\\main\GetStand\App\httpN\system\log\log.txt")
 
@@ -75,8 +82,14 @@ While True
 		Case $iHN 						;Открыть каталог httpN
 			ShellExecute("\\main\GetStand\App\httpN\system")
 
+		Case $iBackup					;Зарезервировать файлы приложений и конфигураций
+			Backup()
+
 		Case $iUpdate					;Закрываем приложения и обновляем бинарник
-			Update()
+			Update($iPause)
+
+		Case $iManage					;Обновить менеджер
+			Manage()
 
 		Case $iExit						;Закрываем программу
 			ExitLoop
@@ -365,7 +378,9 @@ Func ConfigEditor()									;Функция создания окна для р�
 	Local $GUI = GUICreate("Редактор конфигурации", 330, 330, -1, -1, $WS_DLGFRAME)	;Основные элементы
 	Local $TAB = GUICtrlCreateTab(5, 5, 320, 240)
 	Local $OKbtn = GUICtrlCreateButton("Продолжить", 25, 255, 125, 40)
+	GUICtrlSetFont($OKbtn, 14)
 	Local $CNCLbtn = GUICtrlCreateButton("Выход", 175, 255, 125, 40)
+	GUICtrlSetFont($CNCLbtn, 14)
 	Local $path = "\\main\GetStand\App\"
 
 		Local $Tab1 = GUICtrlCreateTabItem("Создать")								;Внутренние элементы
@@ -489,9 +504,258 @@ Func ConfigEditor()									;Функция создания окна для р�
 
 EndFunc
 
+Func Users()										;Функция формирования списка пользователей 
+
+	Dim $Array
+	_FileReadToArray("\\main\GetStand\App\httpN\system\USERS", $Array)
+	For $i = 0 To $Array[0]
+
+		Local $a = StringRegExp($Array[$i], "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 2)
+		If IsArray($a) Then GUICtrlSetData($Box1, $a[0], $a[0])
+
+	Next
+
+EndFunc
+
+Func Stends()										;Функция формирования списка стендов
+
+	Dim $Array
+	_FileReadToArray("\\main\GetStand\App\httpN\system\HOSTS", $Array)
+	For $i = 0 To $Array[0]
+
+		If StringInStr($Array[$i], ":") Then GUICtrlSetData($Box2, StringTrimRight($Array[$i], 1), "Прочие")
+
+	Next
+
+EndFunc
+
+Func Hosts($stend)									;Функция формирования списка стендов
+
+	Dim $Array
+	_FileReadToArray("\\main\GetStand\App\httpN\system\HOSTS", $Array)
+	For $i = 0 To $Array[0]
+
+		If StringInStr($Array[$i], $stend) Then
+
+			Local $t = $i
+			While StringLen($Array[$t]) <> 0
+
+				Local $a = StringRegExp($Array[$t], "\w+(\s|\t)", 2)
+				If IsArray($a) Then GUICtrlSetData($Box3, $a[0], "")
+				$t += 1
+
+			WEnd
+			ExitLoop
+
+		EndIf
+
+	Next
+	GUICtrlSetData($Box3, "Выбрать все", "Выбрать все")
+
+EndFunc
+
+Func AddRights($user, $stend, $host)				;Функция добавления прав
+
+	Dim $Array
+	_FileReadToArray("\\main\GetStand\App\httpN\system\USERS", $Array)
+	For $i = 0 To $Array[0]
+
+		If StringInStr($Array[$i], $user) Then
+
+			If $host <> "Выбрать все" Then
+
+				_FileWriteToLine("\\main\GetStand\App\httpN\system\USERS", $i, $Array[$i] & "," & StringStripWS($host, 2), 1)
+
+			Else
+
+					Dim $ArrayH
+					_FileReadToArray("\\main\GetStand\App\httpN\system\HOSTS", $ArrayH)
+					For $j = 0 To $ArrayH[0]
+
+						If StringInStr($ArrayH[$j], $stend) Then
+
+							Local $t = $j + 1
+							Local $ArrayS = $Array[$i]
+							While StringLen($ArrayH[$t]) <> 0
+
+								Local $a = StringRegExp($ArrayH[$t], "\w+", 2)
+								_FileWriteToLine("\\main\GetStand\App\httpN\system\USERS", $i, $ArrayS & "," & $a[0], 1)
+								$ArrayS = $ArrayS & "," & $a[0]
+								$t += 1
+
+							WEnd
+							ExitLoop
+
+						EndIf
+
+					Next
+
+			EndIf
+			ExitLoop
+
+		EndIf
+
+	Next
+	MsgBox(64, "GetStand", "Права добавлены для" & @CRLF & $user)
+
+EndFunc
+
+Func DelRights($user, $stend, $host)				;Функция удаления прав
+
+	Dim $Array
+	_FileReadToArray("\\main\GetStand\App\httpN\system\USERS", $Array)
+	For $i = 0 To $Array[0]
+
+		If StringInStr($Array[$i], $user) Then
+
+			If $host <> "Выбрать все" Then
+
+				Local $s = StringReplace($Array[$i], StringStripWS("," & $host, 8), "")
+				_FileWriteToLine("\\main\GetStand\App\httpN\system\USERS", $i, $s, 1)
+
+			Else
+
+					Dim $ArrayH
+					_FileReadToArray("\\main\GetStand\App\httpN\system\HOSTS", $ArrayH)
+					For $j = 0 To $ArrayH[0]
+
+						If StringInStr($ArrayH[$j], $stend) Then
+
+							Local $t = $j + 1
+							Local $ArrayS = $Array[$i]
+							While StringLen($ArrayH[$t]) <> 0
+
+								Local $a = StringRegExp($ArrayH[$t], "\w+", 2)
+								$ArrayS = StringReplace($ArrayS, "," & $a[0], "")
+								_FileWriteToLine("\\main\GetStand\App\httpN\system\USERS", $i, $ArrayS, 1)
+								$t += 1
+
+							WEnd
+							ExitLoop
+
+						EndIf
+
+					Next
+
+			EndIf
+			ExitLoop
+
+		EndIf
+
+	Next
+	MsgBox(64, "GetStand", "Права удалены для" & @CRLF & $user)
+
+EndFunc
+
+Func ShowRights($user, $g)							;Функция отображения текущих прав
+
+	Dim $ArrayU
+	Dim $ArrayH
+	_FileReadToArray("\\main\GetStand\App\httpN\system\USERS", $ArrayU)
+	_FileReadToArray("\\main\GetStand\App\httpN\system\HOSTS", $ArrayH)
+
+	For $i = 0 To $ArrayU[0]
+
+		If StringInStr($ArrayU[$i], $user) Then	;Если нашли строку с пользователем и правами
+
+			Local $a = StringRegExp($ArrayU[$i], "(\s|\t)\w+(,\w+){0,}", 2)	;Отфильтровали только права
+
+				Local $Gg = GUICreate("Права пользователя:", 260, 400, -1, -1, $WS_DLGFRAME, -1, $g)
+				GUICtrlCreateLabel($user, 10, 10, 240, 20)
+				GUICtrlSetFont(-1, 14)
+				Local $l = GUICtrlCreateList("", 5, 35, 250, 290, $LBS_NOSEL + $WS_VSCROLL)
+				GUICtrlSetFont($l, 14)
+				Local $ok = GUICtrlCreateButton("Выход", 100, 320, 60, 40)
+				GUICtrlSetFont(-1, 14)
+				GUISetState(@SW_SHOW, $Gg)
+				If StringInStr($a[0], "ADMIN") Then GUICtrlSetData($l, " - " & "ADMIN" & @CRLF)
+				For $j = 1 To $ArrayH[0] - 1
+
+					If StringInStr($ArrayH[$j], ":") Then
+
+						GUICtrlSetData($l, $ArrayH[$j])
+						ContinueLoop
+
+					EndIf
+					If StringLen($ArrayH[$j]) < 3 Then ContinueLoop ;GUICtrlSetData($l, "------" & @CRLF)
+					Local $b = StringRegExp($ArrayH[$j], "\w+", 2)
+					If StringInStr($a[0], $b[0]) Then GUICtrlSetData($l, " - " & $b[0] & @CRLF)
+
+				Next
+
+					While True
+
+						Switch GUIGetMsg()
+
+							Case $ok
+								ExitLoop
+
+						EndSwitch
+
+					WEnd
+			ExitLoop
+
+		EndIf
+
+	Next
+	GUIDelete($Gg)
+
+EndFunc
+
+Func RightsEditor()									;Функция редактирования прав пользователей
+
+	Local $GUI = GUICreate("Редактор прав пользователя", 330, 240, -1, -1, $WS_DLGFRAME)	;Основные элементы
+	Local $Addbtn = GUICtrlCreateButton("Задать", 15, 150, 72, 40)
+	GUICtrlSetFont($Addbtn, 13)
+	Local $Delbtn = GUICtrlCreateButton("Удалить", 87, 150, 75, 40)
+	GUICtrlSetFont($Delbtn, 13)
+	Local $Showbtn = GUICtrlCreateButton("Показать", 166, 150, 75, 40)
+	GUICtrlSetFont($Showbtn, 13)
+	Local $CNCLbtn = GUICtrlCreateButton("Выход", 241, 150, 72, 40)
+	GUICtrlSetFont($CNCLbtn, 13)
+	Local $path = "\\main\GetStand\App\"
+
+		Global $Box1 = GUICtrlCreateCombo('', 20, 20, 285, 30, $CBS_DROPDOWNLIST + $WS_VSCROLL)
+		GUICtrlSetFont($Box1, 14)
+		Global $Box2 = GUICtrlCreateCombo('', 20, 60, 285, 30, $CBS_DROPDOWNLIST + $WS_VSCROLL)
+		GUICtrlSetFont($Box2, 14)
+		Global $Box3 = GUICtrlCreateCombo('Выбрать все', 20, 100, 285, 30, $CBS_DROPDOWNLIST + $WS_VSCROLL)
+		GUICtrlSetFont($Box3, 14)
+		Users()
+		Stends()
+
+	GUISetState()
+
+	While True
+
+		Switch GUIGetMsg()
+
+			Case $Box2
+				_GUICtrlComboBox_ResetContent($Box3)
+				Hosts(GUICtrlRead($Box2))
+
+			Case $Addbtn
+				AddRights(GUICtrlRead($Box1), GUICtrlRead($Box2), GUICtrlRead($Box3))
+
+			Case $Delbtn
+				DelRights(GUICtrlRead($Box1), GUICtrlRead($Box2), GUICtrlRead($Box3))
+
+			Case $Showbtn
+				ShowRights(GUICtrlRead($Box1), $GUI)
+
+			Case $CNCLbtn			;Выходим
+				ExitLoop
+
+		EndSwitch
+
+	WEnd
+	GUIDelete()
+
+EndFunc
+
 Func LogDeleter()									;Функция для удаления логов
 
-	if MsgBox(36, "GetStand Manager", "Очистить все логи?" & @CRLF & "(Действие необратимо)") = 6 Then
+	If MsgBox(36, "GetStand Manager", "Очистить все логи?" & @CRLF & "(Действие необратимо)") = 6 Then
 
 		;Логи подключений
 		FileDelete("\\main\GetStand\App\httpN\system\log\*")
@@ -531,34 +795,102 @@ Func SchemeExport()									;Функция экспортирования сх�
 
 EndFunc
 
-Func Update()										;Функция выключения приложений и обновления httpN
+Func Backup()										;Функция резервирования приложений и конфигов
 
-	If MsgBox(36, "GetStand Manager", "Провести обновление httpN?") = 6 Then	;Если нажали да
+	DirCreate("D:\Бекап_GetStand\Backup_" & _NowDate())
+	Local $dirPath = "D:\Бекап_GetStand\Backup_" & _NowDate()
+	Run(@ComSpec & " /c " & 'xcopy D:\NitaGit\httpN ' & $dirPath & "\Sources /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy U:\Install ' & $dirPath & "\Install /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy U:\Diagrams ' & $dirPath & "\Diagrams /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy U:\App\httpN ' & $dirPath & "\App\httpN /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy U:\App\kitty ' & $dirPath & "\App\kitty /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy U:\App\vnc ' & $dirPath & "\App\vnc /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy U:\App\winscp ' & $dirPath & "\App\winscp /e /i /h /y", "", @SW_HIDE)
+	MsgBox(64, "GetStand", "Файлы зарезервированы", 3)
 
-		Local $text = ChangeLog()
-		FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE", "")	;Предупреждаем об обновлении
-		BotMsg("⚠️<b>Запущено обновление httpN</b>" & @CRLF & "️🔄Автоотключение через минуту" & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
-		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Запущено обновление httpN")
-		TraySetState(2)															;Скрываем иконку
-		ProgressOn("GetStand Manager", "Обновление httpN", "", -1, -1, 3) 		;Ведем отсчет обновления
-			For $i = 1 To 100 Step 1.67											;Ожидаем минуту
+EndFunc
+
+Func Update($pause)									;Функция выключения приложений и обновления системы
+
+	If $pause = 0 Then
+
+		$iPause = 1
+		TrayItemSetState($iUpdate, $TRAY_CHECKED)
+		TrayItemSetText($iUpdate, "Завершить обновление")
+		If MsgBox(36, "GetStand Manager", "Провести обновление системы?") = 6 Then	;Если нажали да
+
+			ShellExecute("D:\NitaGit\httpN")
+			FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE", "")	;Предупреждаем об обновлении
+			BotMsg("⚠️<b>Запущено обновление системы</b>" & @CRLF & "️🔄Приостановка программ ⏱" & _Now(), 0)
+			FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Запущено обновление системы")
+			TraySetState(2)															;Скрываем трей и вызываем отсчет
+			ProgressOn("GetStand Manager", "Завершение программ", "", -1, -1, 3) 	;Ведем отсчет обновления
+			For $i = 1 To 100 Step 1.67												;Ожидаем минуту
 
 				ProgressSet($i)
-				Sleep(1000)
+				Sleep(900)
 
 			Next
-		ProgressOff()
-		FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\KILL", "")	;Создаем файл, который точно убьет все процессы
-		Sleep(1200)																;Убиваем процессы
-		Local $AutoIt = "D:\Programms\AutoIt3\Aut2Exe\Aut2exe.exe /in D:\NitaGit\httpN\httpN_Windows.au3 /out \\main\GetStand\App\httpN\httpN_Windows.exe /icon \\main\GetStand\App\ChromePortable\GetStand.ICO /x86"
-		Run(@ComSpec&' /c ' & $AutoIt, '', @SW_HIDE, $STDOUT_CHILD)				;Компилируем бинарь
-		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE")		;Разрешаем дальнейшую работу
-		FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\KILL")
-		TraySetState(1)
-		BotMsg("🔥<b>Обновление завершено!</b>" & @CRLF & "📋" & $text & @CRLF & "⏱" & _Now(), 0, $sBotKey, $nChatId)
-		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление завершено. Изменения: " & $text)
-		MsgBox(64, "GetStand Manager", "Обновление прошло успешно!", 5)
+			ProgressOff()
+			TraySetState(5)
+			FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\KILL", "")	;Создаем файл, который точно убьет все процессы
+			Sleep(2500)
+			FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\KILL")
+			MsgBox(64, "GetStand Manager", "Программы закрыты, можно обновлять", 3)
+
+		Else
+
+			$iPause = 0
+			TrayItemSetState($iUpdate, $TRAY_UNCHECKED)
+			TrayItemSetText($iUpdate, "Обновить систему")
+
+		EndIf
+
+	Else
+
+		$iPause = 0
+		TrayItemSetState($iUpdate, $TRAY_UNCHECKED)
+		TrayItemSetText($iUpdate, "Обновить систему")
+		If MsgBox(36, "GetStand Manager", "Закончить обновление системы?") = 6 Then
+
+			Local $AutoIt = "D:\Programms\AutoIt3\Aut2Exe\Aut2exe.exe /in D:\NitaGit\httpN\httpN_Windows.au3 /out \\main\GetStand\App\httpN\httpN_Windows.exe /icon \\main\GetStand\App\ChromePortable\GetStand.ICO /x86"
+			Run(@ComSpec&' /c ' & $AutoIt, '', @SW_HIDE, $STDOUT_CHILD)				;Компилируем бинарь
+			Local $AutoIt = "D:\Programms\AutoIt3\Aut2Exe\Aut2exe.exe /in D:\NitaGit\httpN\Setup_Windows.au3 /out \\main\GetStand\Install\Setup_Windows.exe /icon \\main\GetStand\App\ChromePortable\install.ICO /x86"
+			Run(@ComSpec&' /c ' & $AutoIt, '', @SW_HIDE, $STDOUT_CHILD)				;Компилируем бинарь
+			FileDelete("\\main\GetStand\App\httpN\system\temp\Sessions\UPDATE")		;Разрешаем дальнейшую работу
+			Local $entry = EntryWindow(4, 0)
+			If StringLen($entry) > 1 Then
+
+				Local $text = FileRead("\\main\GetStand\App\httpN\system\USERS")		;Читаем список
+				$text = StringRegExp($text, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 3) ;Формируем имена
+				For $i = 0 To UBound($text) - 1
+
+					FileWriteLine("\\main\GetStand\App\httpN\system\temp\Changes\" & $text[$i], _NowDate() & " " & $entry)
+
+				Next
+				BotMsg("🔥<b>Обновление завершено!</b>" & @CRLF & "📋" & $entry & @CRLF & "⏱" & _Now(), 0)
+				FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление завершено. Изменения: " & $entry)
+
+			EndIf
+			TraySetState(8)
+			MsgBox(64, "GetStand Manager", "Обновление прошло успешно!", 3)
+
+		Else
+
+			$iPause = 1
+			TrayItemSetState($iUpdate, $TRAY_CHECKED)
+			TrayItemSetText($iUpdate, "Завершить обновление")
+
+		EndIf
 
 	EndIf
+
+EndFunc
+
+Func Manage()										;Функция обновления менеджера
+
+	ShellExecute("D:\Programms\AutoIt3\Aut2Exe\Aut2exe_x64.exe")
+	ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "D:\NitaGit\httpN\GetStandManager.au3")
+	Exit
 
 EndFunc

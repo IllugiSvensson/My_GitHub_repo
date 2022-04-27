@@ -23,7 +23,7 @@ done
 appfolder=`realpath $0`
 appfolder=${appfolder%/Install/Setup_Linux}
 appfolder="$appfolder/App"
-. $appfolder/httpN/httpN_Linux_lib
+. $appfolder/httpN/system/httpN_linux_lib
 #Библиотека функций
 
 
@@ -48,7 +48,7 @@ function CreateAccount {					#Функция создания аккаунта
 			BotMsg "$message" 0
 			message=`printf "%-19s" "$(_Now) | Имя пользователя не определено. Проверьте адрес пользователя: $input"`
 			echo -e	"$message" >> "$appfolder/httpN/system/log/system.txt"
-			zenity --error --title="Ошибка" --window-icon="$icon/install.png" --ellipsize --text="Имя пользователя не определено\nОбратитесь в Отдел Тестирования" --ellipsize --timeout=5
+			zenity --error --title="Ошибка" --window-icon="$icon/install.png" --text="Имя пользователя не определено\nОбратитесь в Отдел Тестирования" --ellipsize --timeout=5
 			exit
 
 		}
@@ -117,12 +117,11 @@ return 0
 for i in vnc/vncviewer kitty/putty winscp/filezilla
 do
 
-	$appfolder/$i --help >/dev/null 2>&1
+	"$appfolder/$i" --help >/dev/null 2>&1
 	[ $? == 0 -o $? == 255 ] || {
 
-		echo -e "\nУтилита $i имеет неразрешенные зависимости. Устраните их вручную.\n"
-		zenity --error --title="GetStand" --text="Утилита $i имеет неразрешенные зависимости\nПожалуйста, устраните их вручную" --ellipsize --timeout=5
-		exit
+		echo -e "\nУтилита $i, проблемы с зависимостями. Разрешите их, чтобы пользоваться приложением.\n"
+		zenity --error --title="GetStand" --text="Утилита $i, проблемы с зависимостями\nРазрешите их, чтобы пользоваться приложением" --ellipsize --timeout=5
 
 	}
 

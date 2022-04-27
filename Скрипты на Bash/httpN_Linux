@@ -5,7 +5,7 @@
 #НЕОБХОДИМЫЕ ПЕРЕМЕННЫЕ
 appfolder=`realpath $0`
 appfolder=${appfolder%/httpN/httpN_Linux}
-. $appfolder/httpN/httpN_Linux_lib
+. $appfolder/httpN/system/httpN_linux_lib
 #Библиотека функций
 
 
