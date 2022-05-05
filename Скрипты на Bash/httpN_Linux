@@ -24,7 +24,7 @@ appfolder=${appfolder%/httpN/httpN_Linux}
 	if [ $? == 0 ]		#Разбираем командную строку и запускаем подключение
 	then
 
-		cmdLine="httpn://"${input:0:3}"%20"${input#${input:0:4}}
+		cmdLine="httpn://"${input:0:3}" "${input#${input:0:4}}
 
 	else exit;
 	fi
@@ -46,7 +46,8 @@ appfolder=${appfolder%/httpN/httpN_Linux}
 }
 autorizedUser="`FileReader $appfolder/httpN/system/USERS $userName`"	#Ищем пользователя в списке
 #Захватим название выбранного пользователем компьютера в виде кода стойки-стенда.
-hostName=`echo ${cmdLine#${cmdLine:0:14}}`					#Выбираем имя компьютера
+hostName=`echo $cmdLine | sed "s/%20/ /"`
+hostName=`echo ${hostName#${hostName:0:12}}`					#Выбираем имя компьютера
 binFile=`echo $cmdLine | grep -Eo "VNC|KIT|SCP|FBC"`
 	[ `echo ${#autorizedUser}` == 0 ] && {	#Если имя пользователя отсутствует в списке, заканчиваем работу
 
@@ -63,7 +64,8 @@ name=`echo "$autorizedUser" | egrep -o "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(
 ChangesM	#Проверяем наличие сообщений
 	[ `echo $cmdLine | egrep -o "FBC"` == "FBC" ] && {		#Окошко для фидбека
 
-		stend=`echo ${cmdLine#${cmdLine:0:14}}`
+		stend=`echo $cmdLine | sed "s/%20/ /"`
+		stend=`echo ${stend#${stend:0:12}}`
 		feedback=$(zenity --entry --title="Обратная связь" --window-icon="$icon/GetStand.png" --width=256 --height=200 --text="Все вопросы и предложения можете \nнаписать разработчику в этой форме\nРазработчик: Смирнов А.Д. ОТ" --entry-text="Введите ваше сообщение" --ok-label="Отправить" --cancel-label="Выход")
 		[ $? == 0 ] || { exit; }
 		message=`echo -e "@IllugiSven\n👤$name\n️⚠️Новый вопрос или предложение\n🖥️Стенд: $stend ⏱$(_Now)"`

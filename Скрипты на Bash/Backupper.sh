@@ -1,5 +1,18 @@
 #!/bin/bash
 
+function FreeSpaceCheck {
+
+	freespace1=`df -hm /data/ | egrep -o "[0-9]{1,}\s" | tail -1`
+	freespace2=`df -hm $1 | egrep -o "[0-9]{1,}%" | tail -1 | egrep -o "[0-9]{1,}"`
+	[ "$freespace1" -lt "2000" -o "$freespace2" -gt "95" ] && {
+
+		zenity --warning --title="Backupper" --text="Недостаточно места в каталогах\n/data или $1\nОсвободите место!" --ellipsize --timeout=30
+		exit
+
+	}
+
+}
+
 function BackUp {
 
 	#Формируем текущую дату в удобном формате
@@ -19,8 +32,10 @@ function BackUp {
 
 	fi
 	#Создаем архив с текущей датой
-	tar -cf /data/tmp/backups/$1/${Prefix}_D${Date}_T$Time.tar -g /data/tmp/backups/$1/$d $1
+	cd /data/tmp/backups$1
+	tar -cf /data/tmp/backups$1/${Prefix}_D${Date}_T$Time.tar -g /data/tmp/backups$1/$d $1 inventory.txt changes.txt
 	echo "Архив ${Prefix}_D${Date}_T$Time.tar создан"
+	cd /data
 
 }
 
@@ -58,38 +73,40 @@ do
 
 	#Создание первого архива, от которого пойдут проверки
 	#Создаем каталог бекапов если такого нет
-	[ -e "/data/tmp/backups/$scd" ] || { mkdir -p /data/tmp/backups/$scd; }
+	[ -e "/data/tmp/backups$scd" ] || { mkdir -p /data/tmp/backups$scd; }
 
 	#Префикс имени это название каталога, который резервируется
 	Prefix=`echo $2 | sed 's/\W/-/g' | cut -c2-`
 	if [ -z `ls /data/tmp/backups/$scd | egrep ${Prefix}_D.*.snar` ]
 	then
+
+		FreeSpaceCheck $scd
 		#Если архива не существует, создаем новый(первый)
-		touch $scd/changes.txt	#Проводим инвентаризацию ПО
-		ls -R -l -t -I changes.txt $2 | egrep -v inventory.txt > $scd/inventory.txt
+		touch /data/tmp/backups$scd/changes.txt	#Проводим инвентаризацию ПО
+		ls -R -l -t $scd > /data/tmp/backups$scd/inventory.txt
 		BackUp $scd now
 
 	else
 
+		FreeSpaceCheck $scd
 		#Определяем самый последний существующий бекап
-		lastBackup=`ls -t /data/tmp/backups/$scd | grep ${Prefix}_D.*.tar | head -1`
-		lastSnar=`ls -t /data/tmp/backups/$scd | grep ${Prefix}_D.*.snar | head -1`
+		lastBackup=`ls -t /data/tmp/backups$scd | grep ${Prefix}_D.*.tar | head -1`
+		lastSnar=`ls -t /data/tmp/backups$scd | grep ${Prefix}_D.*.snar | head -1`
 		#Вынимаем список каталогов из архива и создаем новый
-		str=`echo $2 | cut -c2-`
-		tar -xf /data/tmp/backups/$scd/$lastBackup -C /data/tmp/backups $str/inventory.txt
-		tar -xf /data/tmp/backups/$scd/$lastBackup -C /data/tmp/backups $str/changes.txt
-		ls -R -l -t -I changes.txt $2 | egrep -v inventory.txt > $scd/inventory.txt
+		tar -xf /data/tmp/backups$scd/$lastBackup -C /data/tmp/backups inventory.txt	#Записи из архива
+		tar -xf /data/tmp/backups$scd/$lastBackup -C /data/tmp/backups changes.txt
+		ls -R -l -t $scd > /data/tmp/backups$scd/inventory.txt							#Текущая инвентаризация
 		#Сравниваем оба списка
-		echo " " >> $2/changes.txt
-		echo " " >> $2/changes.txt
-		date >> $2/changes.txt
-		diff -r -u1 /data/tmp/backups/$str/inventory.txt $2/inventory.txt >> $2/changes.txt
+		diff -r -u1 /data/tmp/backups$scd/inventory.txt /data/tmp/backups/inventory.txt >/dev/null 2>&1
 		if [ `echo $?` != 0 ]
 		then
 
 			#Если есть изменения, создаем новый архив
-			cat /data/tmp/backups/$str/changes.txt >> $2/changes.txt
-			BackUp $2 $lastSnar
+			date > /data/tmp/backups$scd/changes.txt
+			diff -r -u1 /data/tmp/backups$scd/inventory.txt /data/tmp/backups/inventory.txt >> /data/tmp/backups$scd/changes.txt
+			echo -e "\n\n" >> /data/tmp/backups$scd/changes.txt
+			cat /data/tmp/backups/changes.txt >> /data/tmp/backups$scd/changes.txt
+			BackUp $scd $lastSnar
 
 		fi
 
@@ -97,29 +114,29 @@ do
 
 	#Спрашиваем, чистить ли последовательность бекапов
 	#Когда заканчивается место
-	freespace=`df -hm /data/ | egrep -o "[0-9]{1,}\s" | tail -1`
+	freespace1=`df -hm /data/ | egrep -o "[0-9]{1,}\s" | tail -1`
+	freespace2=`df -hm $scd | egrep -o "[0-9]{1,}%" | tail -1 | egrep -o "[0-9]{1,}"`
 	backupsusage=`du -shm /data/tmp/backups | egrep -o "[0-9]{1,}"`
-	if [ $freespace -lt 500 ]
-	then
+	[ "$freespace1" -lt "4000" -o "$freespace2" -gt "90" ] && {
 
 		killall -9 zenity
-		zenity --question --text="Удалить созданные бекапы?\nБекапов сделано на $backupsusage Mb\nМеста в /data осталось $freespace Mb\n\nНажмите \'Нет\' чтобы бекапить дальше" --ellipsize --ok-label=Да --cancel-label=Нет
-		[ $? == "0" ] && { rm -rf /data/tmp/backups/$str; }
+		zenity --question --text="Заканчивается место в каталогах\n/data и $scd\nУдалить созданные бекапы?\nБекапов сделано на $backupsusage Mb\nНажмите \'Нет\' чтобы бекапить дальше" --ellipsize --ok-label=Да --cancel-label=Нет
+		[ $? == "0" ] && { rm -rf /data/tmp/backups$scd; }
 
-	fi
+	}
 	#Когда прошла неделя
 	if [ `date +%a` == "Вс" -a $Flag == "0" ]
 	then
 
 		killall -9 zenity
-		zenity --question --text="Удалить созданные бекапы?\nБекапов сделано на $backupsusage Mb\nМеста в /data осталось $freespace Mb\n\nНажмите \'Нет\' чтобы бекапить дальше" --ellipsize --ok-label=Да --cancel-label=Нет
-		[ $? == "0" ] && { rm -rf /data/tmp/backups/$str; }
+		zenity --question --text="Удалить созданные бекапы?\nБекапов сделано на $backupsusage Mb\nМеста в /data осталось $freespace1 Mb\nМеста в $scd осталось $((100 - freespace2)) %\nНажмите \'Нет\' чтобы бекапить дальше" --ellipsize --ok-label=Да --cancel-label=Нет
+		[ $? == "0" ] && { rm -rf /data/tmp/backups$scd; }
 		Flag=1
 
 	fi
 
 	[ `date +%a` == "Пн" ] && { Flag=0; }
-	rm $2/inventory.txt $2/changes.txt
+	rm /data/tmp/backups/inventory.txt /data/tmp/backups/changes.txt
 	sleep $frs
 
 done

@@ -11,6 +11,7 @@ Local $iConfig = TrayCreateMenu("Конфигурации")				;Конфигур
 	Local $iUsers = TrayCreateItem("Пользователи", $iConfig)
 	Local $iHosts = TrayCreateItem("Компьютеры", $iConfig)
 	Local $iVnc = TrayCreateItem("VNC сессии", $iConfig)
+	Local $iSources = TrayCreateItem("Исходники", $iConfig)	;Открыть папку с исходниками
 	TrayCreateItem("", $iConfig)							;Полоса разделитель
 	Local $iConfigCreate = TrayCreateItem("Редактор конфигурации", $iConfig)
 	Local $iRightsCreate = TrayCreateItem("Редактор прав", $iConfig)
@@ -55,6 +56,9 @@ While True
 		Case $iVnc						;Открываем список vnc
 			ShellExecute("\\main\GetStand\App\vnc\config")
 
+		Case $iSources					;Открыть папку с исходниками
+			ShellExecute("D:\NitaGit\httpN")
+
 		Case $iConfigCreate				;Открываем редактор конфигурации
 			ConfigEditor()
 
@@ -96,8 +100,10 @@ While True
 
 	EndSwitch
 	If FileExists("D:\Download\drawio.html") Then
+
 		ConfigEditor()
 		SchemeExport()
+
 	EndIf
 
 WEnd
@@ -163,8 +169,8 @@ EndFunc
 
 Func ShowList()										;Функция отображения списка пользователей
 
-	FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE", "")				;Опрашиваем пользователей 2 секунды
-	Sleep(2500)
+	FileWrite("\\main\GetStand\App\httpN\system\temp\Sessions\ONLINE", "")				;Опрашиваем пользователей 5 секунд
+	Sleep(5000)
 	Local $FileList = _FileListToArray("\\main\GetStand\App\httpN\system\temp\PIDS")	;Формируем список пользователей
 	If IsArray($FileList) = 0 Then
 
@@ -865,7 +871,7 @@ Func Update($pause)									;Функция выключения приложе�
 				$text = StringRegExp($text, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 3) ;Формируем имена
 				For $i = 0 To UBound($text) - 1
 
-					FileWriteLine("\\main\GetStand\App\httpN\system\temp\Changes\" & $text[$i], _NowDate() & " " & $entry)
+					FileWriteLine("\\main\GetStand\App\httpN\system\temp\Changes\" & $text[$i], _NowDate() & " Изменение программ: " & $entry)
 
 				Next
 				BotMsg("🔥<b>Обновление завершено!</b>" & @CRLF & "📋" & $entry & @CRLF & "⏱" & _Now(), 0)

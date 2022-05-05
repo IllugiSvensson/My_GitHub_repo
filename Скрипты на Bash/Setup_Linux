@@ -74,7 +74,8 @@ function CreateAccount {					#Функция создания аккаунта
 		}
 
 		#Делаем запись о пользователе и проверяем
-		echo -e "\n$userName $input default" >> "$appfolder/httpN/system/USERS"
+		sed -i "s/End_of_List@/$userName $input default/" "$appfolder/httpN/system/USERS"
+		echo -e "\nEnd_of_List@\n" >> "$appfolder/httpN/system/USERS"
 		stringlen=`cat $appfolder/httpN/system/USERS | grep "$input"`
 		[ -z "$stringlen" ] && {
 
