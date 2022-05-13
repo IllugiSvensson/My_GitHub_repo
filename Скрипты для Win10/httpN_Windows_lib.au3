@@ -5,6 +5,7 @@
 #include <Constants.au3>
 #include <WindowsConstants.au3>
 #include <GuiComboBox.au3>
+#include <GuiListBox.au3>
 #include <GUIConstants.au3>
 #include <Encoding.au3>
 

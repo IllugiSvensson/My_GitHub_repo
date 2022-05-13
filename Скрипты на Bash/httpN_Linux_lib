@@ -51,7 +51,7 @@ function Logger {					#функция отправки текста в логи
 	local TIME=$(printf "%-19s" "$(_Now)")
 	local ADDRES=$(printf "%-18s" "$1")
 	local HOST=$(printf "%-20s" "$2")
-	local USER=$(printf "%-35s" "$3")
+	local USER=$(printf "%-42s" "$3")
 	local ACT=$(printf "%-18s" "$4")
 	echo "$TIME | $ADDRES | $HOST | $USER | $ACT"
 

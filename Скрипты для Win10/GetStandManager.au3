@@ -66,10 +66,10 @@ While True
 			RightsEditor()
 
 		Case $iRuns						;Открываем лог подключений
-			ShellExecute("\\main\GetStand\App\httpN\system\log\log.txt")
+			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\log\log.txt")
 
 		Case $iSystem					;Открываем лог системы
-			ShellExecute("\\main\GetStand\App\httpN\system\log\system.txt")
+			ShellExecute("\\main\GetStand\App\notepad\notepad++.exe", "\\main\GetStand\App\httpN\system\log\system.txt")
 
 		Case $iLogClear					;Предложение очистить все логи
 			LogDeleter()
@@ -653,7 +653,7 @@ Func DelRights($user, $stend, $host)				;Функция удаления пра�
 
 EndFunc
 
-Func ShowRights($user, $g)							;Функция отображения текущих прав
+Func ShowRights($user)							;Функция отображения текущих прав
 
 	Dim $ArrayU
 	Dim $ArrayH
@@ -666,59 +666,39 @@ Func ShowRights($user, $g)							;Функция отображения теку
 
 			Local $a = StringRegExp($ArrayU[$i], "(\s|\t)\w+(,\w+){0,}", 2)	;Отфильтровали только права
 
-				Local $Gg = GUICreate("Права пользователя:", 260, 400, -1, -1, $WS_DLGFRAME, -1, $g)
-				GUICtrlCreateLabel($user, 10, 10, 240, 20)
-				GUICtrlSetFont(-1, 14)
-				Local $l = GUICtrlCreateList("", 5, 35, 250, 290, $LBS_NOSEL + $WS_VSCROLL)
-				GUICtrlSetFont($l, 14)
-				Local $ok = GUICtrlCreateButton("Выход", 100, 320, 60, 40)
-				GUICtrlSetFont(-1, 14)
-				GUISetState(@SW_SHOW, $Gg)
-				If StringInStr($a[0], "ADMIN") Then GUICtrlSetData($l, " - " & "ADMIN" & @CRLF)
+				If StringInStr($a[0], "ADMIN") Then GUICtrlSetData($list, " - " & "ADMIN" & @CRLF)
 				For $j = 1 To $ArrayH[0] - 1
 
 					If StringInStr($ArrayH[$j], ":") Then
 
-						GUICtrlSetData($l, $ArrayH[$j])
+						GUICtrlSetData($list, $ArrayH[$j])
 						ContinueLoop
 
 					EndIf
-					If StringLen($ArrayH[$j]) < 3 Then ContinueLoop ;GUICtrlSetData($l, "------" & @CRLF)
+					If StringLen($ArrayH[$j]) < 3 Then ContinueLoop
 					Local $b = StringRegExp($ArrayH[$j], "\w+", 2)
-					If StringInStr($a[0], $b[0]) Then GUICtrlSetData($l, " - " & $b[0] & @CRLF)
+					If StringInStr($a[0], $b[0]) Then GUICtrlSetData($list, " - " & $b[0] & @CRLF)
 
 				Next
-
-					While True
-
-						Switch GUIGetMsg()
-
-							Case $ok
-								ExitLoop
-
-						EndSwitch
-
-					WEnd
 			ExitLoop
 
 		EndIf
 
 	Next
-	GUIDelete($Gg)
 
 EndFunc
 
 Func RightsEditor()									;Функция редактирования прав пользователей
 
-	Local $GUI = GUICreate("Редактор прав пользователя", 330, 240, -1, -1, $WS_DLGFRAME)	;Основные элементы
-	Local $Addbtn = GUICtrlCreateButton("Задать", 15, 150, 72, 40)
+	Local $GUI = GUICreate("Редактор прав пользователя", 592, 360, -1, -1, $WS_DLGFRAME)	;Основные элементы
+	Local $Addbtn = GUICtrlCreateButton("Задать", 20, 150, 95, 40)
 	GUICtrlSetFont($Addbtn, 13)
-	Local $Delbtn = GUICtrlCreateButton("Удалить", 87, 150, 75, 40)
+	Local $Delbtn = GUICtrlCreateButton("Удалить", 115, 150, 95, 40)
 	GUICtrlSetFont($Delbtn, 13)
-	Local $Showbtn = GUICtrlCreateButton("Показать", 166, 150, 75, 40)
-	GUICtrlSetFont($Showbtn, 13)
-	Local $CNCLbtn = GUICtrlCreateButton("Выход", 241, 150, 72, 40)
+	Local $CNCLbtn = GUICtrlCreateButton("Выход", 210, 150, 95, 40)
 	GUICtrlSetFont($CNCLbtn, 13)
+	Global $list = GUICtrlCreateList("", 324, 20, 250, 290, $LBS_NOSEL + $WS_VSCROLL)
+	GUICtrlSetFont($list, 14)
 	Local $path = "\\main\GetStand\App\"
 
 		Global $Box1 = GUICtrlCreateCombo('', 20, 20, 285, 30, $CBS_DROPDOWNLIST + $WS_VSCROLL)
@@ -729,6 +709,7 @@ Func RightsEditor()									;Функция редактирования пра�
 		GUICtrlSetFont($Box3, 14)
 		Users()
 		Stends()
+		ShowRights(GUICtrlRead($Box1))
 
 	GUISetState()
 
@@ -740,16 +721,21 @@ Func RightsEditor()									;Функция редактирования пра�
 				_GUICtrlComboBox_ResetContent($Box3)
 				Hosts(GUICtrlRead($Box2))
 
+			Case $Box1
+				_GUICtrlListBox_ResetContent($list)
+				ShowRights(GUICtrlRead($Box1))
+
 			Case $Addbtn
 				AddRights(GUICtrlRead($Box1), GUICtrlRead($Box2), GUICtrlRead($Box3))
+				_GUICtrlListBox_ResetContent($list)
+				ShowRights(GUICtrlRead($Box1))
 
 			Case $Delbtn
 				DelRights(GUICtrlRead($Box1), GUICtrlRead($Box2), GUICtrlRead($Box3))
+				_GUICtrlListBox_ResetContent($list)
+				ShowRights(GUICtrlRead($Box1))
 
-			Case $Showbtn
-				ShowRights(GUICtrlRead($Box1), $GUI)
-
-			Case $CNCLbtn			;Выходим
+			Case $CNCLbtn
 				ExitLoop
 
 		EndSwitch
