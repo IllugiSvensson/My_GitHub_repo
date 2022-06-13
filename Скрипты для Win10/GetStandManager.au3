@@ -32,6 +32,7 @@ TrayCreateItem("")
 Local $iManage = TrayCreateItem("Обновить менеджер")		;Обновление менеджера
 Local $iExit = TrayCreateItem("Выход")						;Выход из приложения
 Global $iPause = 0											;Индикатор галочки
+FileCopy("C:\Users\Александр Смирнов\Desktop\GetStand Manager.exe", "\\main\OT\GetStand Manager.exe", 1)
 
 
 
@@ -78,7 +79,7 @@ While True
 			ShellExecute("\\main\GetStand\Diagrams\DiagramsOT.html")
 
 		Case $iEdit						;Открываем редактор схемы
-			ShellExecute("https://cloud.nboot.ru/nextcloud/apps/drawio/36850")
+			ShellExecute("\\main\GetStand\App\ChromePortable\DiagramsReader.lnk")
 
 		Case $iGS						;Открываем основной каталог
 			ShellExecute("\\main\GetStand")
@@ -99,7 +100,7 @@ While True
 			ExitLoop
 
 	EndSwitch
-	If FileExists("D:\Download\drawio.html") Then
+	If FileExists("\\main\GetStand\DiagramsOT.drawio.html") Then
 
 		ConfigEditor()
 		SchemeExport()
@@ -771,7 +772,13 @@ Func SchemeExport()									;Функция экспортирования сх�
 		$text = StringRegExp($text, "[а-яА-Я]{1,}\s{1,}[а-яА-Я]{1,}\(\w+\)", 3) ;Формируем имена
 		BotMsg("🔥<b>Схема GetStand обновлена!</b>" & @CRLF & "📋" & $entry & @CRLF & "⏱" & _Now(), 0)
 		FileWriteLine("\\main\GetStand\App\httpN\system\log\system.txt", StringFormat("%-19s", _Now()) & " | " & "Обновление схемы завершено. Изменения: " & $entry)
-		FileMove("D:\Download\drawio.html", "\\main\GetStand\Diagrams\DiagramsOT.html", 1)	;Перемещаем схему с перезаписью
+		FileMove("\\main\GetStand\DiagramsOT.drawio.html", "\\main\GetStand\Diagrams\DiagramsOT.html", 1)	;Перемещаем схему с перезаписью
+		Local $Read = FileRead("\\main\GetStand\Diagrams\DiagramsOT.html")
+		Local $Replace = StringReplace($Read, "https://viewer.diagrams.net/js/viewer-static.min.js", "viewer", -1)
+		FileDelete("\\main\GetStand\Diagrams\DiagramsOT.html")
+		FileWrite("\\main\GetStand\Diagrams\DiagramsOT.html", $Replace)
+		FileDelete("\\main\GetStand\Diagrams\viewer")
+		FileWrite("\\main\GetStand\Diagrams\viewer", InetRead("https://viewer.diagrams.net/js/viewer-static.min.js"))
 			For $i = 0 To UBound($text) - 1
 
 				FileWriteLine("\\main\GetStand\App\httpN\system\temp\Changes\" & $text[$i], _NowDate() & " Изменения схемы: " & $entry)
@@ -781,7 +788,7 @@ Func SchemeExport()									;Функция экспортирования сх�
 
 	Else
 
-		FileDelete("D:\Download\drawio.html")
+		FileDelete("\\main\GetStand\DiagramsOT.drawio.html")
 
 	EndIf
 
