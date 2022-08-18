@@ -131,7 +131,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path)
 
 		Local $continue = $continue_time
 		$continue_time = 0
-		Local $interval_window = GUICreate("Таймер Задач", $resolution_x, $resolution_y, $coordinate_x, $coordinate_y, $WS_DLGFRAME)
+		Local $interval_window = GUICreate("Таймер Задач", $resolution_x, $resolution_y, $coordinate_x, $coordinate_y, $WS_DLGFRAME + $WS_MINIMIZEBOX)
 			Local $pic_count = DirGetSize($path_to_background, 1)
 			GUICtrlCreatePic($path_to_background & "\" & Random(1, $pic_count[1], 1) & ".jpg", 0, 0, $resolution_x, $resolution_y)
 			GUICtrlSetState(-1, $GUI_DISABLE)
