@@ -89,12 +89,12 @@ GUIDelete($start_window)
 ;ЗАЧИТЫВАНИЕ НАСТРОЕК
 Global $tele_bot_key = StringTrimLeft(FileReader($profile_path & "\other", "Бот"), 4)
 Global $tele_chat_id = StringTrimLeft(FileReader($profile_path & "\other", "Чат"), 4)
-Global $resolution_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "#[0-9]{2,4}", "")
-Global $resolution_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "[0-9]{2,4}#", "")
-Global $coordinate_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "#[0-9]{2,4}", "")
-Global $coordinate_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "[0-9]{2,4}#", "")
-Global $position_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Позиция"), 8), "#[0-9]{2,4}", "")
-Global $position_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Позиция"), 8), "[0-9]{2,4}#", "")
+Global $resolution_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "#[0-9]{1,4}", "")
+Global $resolution_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "[0-9]{1,4}#", "")
+Global $coordinate_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "#[0-9]{1,4}", "")
+Global $coordinate_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "[0-9]{1,4}#", "")
+Global $position_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Позиция"), 8), "#[0-9]{1,4}", "")
+Global $position_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Позиция"), 8), "[0-9]{1,4}#", "")
 
 
 
@@ -158,8 +158,9 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path)
 
 			SoundPlay("")
 			SoundPlay($s_sound)
-			BotMsg("✅➡️" & $s_name, $tele_bot_key, $tele_chat_id)
-			Local $go_time = _NowCalc()
+			BotMsg("✅ Интервал начался" & @CRLF & "   ➡️" & $s_name, $tele_bot_key, $tele_chat_id)
+			Local $go_time = _NowCalc(), $cnt = 0
+			Dim $Array
 			While true
 
 				Switch GUIGetMsg()
@@ -171,22 +172,31 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path)
 						Tasks($interval_window, $s_profile_path)
 
 					Case Else
-						Local $stm = _DateDiff("n", $start_time, _NowCalc())
-						Local $gtm = _DateDiff("n", $go_time, _NowCalc())
-						GUICtrlSetData($interval_window_common_progress, (100 / $sum_intervals) * $stm)
-						GUICtrlSetData($interval_window_time_label, _NowTime() & "   " & abs($sum_intervals - $gtm - $s_past - $continue) & "   " & TimeCalc(_NowTime(4), abs($sum_intervals - $gtm - $s_past - $continue), 0))
-						GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm + $continue * (100 / $s_duration))
-						GUICtrlSetData($interval_window_remain_label, $gtm + $continue & " из " & $s_duration & " минут")
-						If StringInStr(FileRead($s_profile_path & "\tasks"), TimeCalc(_NowTime(4), 10, 0)) <> 0 Then
+						If $cnt == 30 Then
 
-							BotMsg("⚠️➡️" & "Событие через 10 минут!", $tele_bot_key, $tele_chat_id)
-							SoundPlay("")
-							SoundPlay($s_sound)
-							Tasks($interval_window)
+							Local $stm = _DateDiff("n", $start_time, _NowCalc())
+							Local $gtm = _DateDiff("n", $go_time, _NowCalc())
+							Local $task = TimeCalc(_NowTime(4), 10, 0)
+							Local $st = FileReader($s_profile_path & "\tasks", $task)
+							GUICtrlSetData($interval_window_common_progress, (100 / $sum_intervals) * $stm)
+							GUICtrlSetData($interval_window_time_label, _NowTime() & "   " & abs($sum_intervals - $gtm - $s_past - $continue) & "   " & TimeCalc(_NowTime(4), abs($sum_intervals - $gtm - $s_past - $continue), 0))
+							GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm + $continue * (100 / $s_duration))
+							GUICtrlSetData($interval_window_remain_label, $gtm + $continue & " из " & $s_duration & " минут")
+								If  $st <> 0 Then
+
+									BotMsg("⚠️➡️" & "Событие через 10 минут!" & @CRLF & $st, $tele_bot_key, $tele_chat_id)
+									SoundPlay("")
+									SoundPlay($s_sound)
+									MsgBox(48 + 262144, "Таймер Задач", "Событие через 10 минут!" & @CRLF & $st, 3)
+									Tasks($interval_window, $s_profile_path)
+
+								EndIf
+								If $gtm + $continue >= $s_duration Then ExitLoop
+								$cnt = 0
 
 						EndIf
-						If $gtm + $continue >= $s_duration Then ExitLoop
-						sleep(50)
+						$cnt = $cnt + 1
+						sleep(25)
 
 				EndSwitch
 
@@ -281,60 +291,40 @@ Func Settings($s_start_window, $s_profile_path)
 		Switch GUIGetMsg()
 
 			Case $settings_window_accept_button
-				Switch GUICtrlRead($settings_tab)
+				Local $file = FileOpen($path_to_script & "\time", 2)
+				FileWrite($file, GUICtrlRead($settings_window_edit_time))
+				FileClose($file)
+				$file = FileOpen($s_profile_path & "\tasks", 2)
+				FileWrite($file, GUICtrlRead($settings_window_edit_tasks))
+				FileClose($file)
+				$file = FileOpen($s_profile_path & "\intervals", 2)
+				FileWrite($file, GUICtrlRead($settings_window_edit_intervals))
+				FileClose($file)
+				$file = FileOpen($s_profile_path & "\geometry", 2)
+				FileWrite($file, GUICtrlRead($settings_window_edit_geometry))
+				FileClose($file)
+				$file = FileOpen($s_profile_path & "\other", 2)
+				FileWrite($file, GUICtrlRead($settings_window_edit_other))
+				FileClose($file)
+				$file = FileOpen($path_to_script & "\_profiles", 2)
+				FileWrite($file, GUICtrlRead($settings_window_edit_profiles))
+				FileClose($file)
+					MsgBox(64, "Таймер Задач", "Сохранено", 3, $settings_window)
+					GUICtrlSetData($profile_combo, "")
+					Dim $Array
+					_FileReadToArray($path_to_script & "\_profiles", $Array)
+					For $i = 1 To $Array[0]
 
-					Case 0
-						Local $file = FileOpen($path_to_script & "\time", 2)
-						FileWrite($file, GUICtrlRead($settings_window_edit_time))
-						FileClose($file)
-						MsgBox(64, "Таймер Задач", "Сохранено", 3, $settings_window)
+						GUICtrlSetData($profile_combo, $Array[$i], $Array[1])
+						DirCreate($path_to_profiles & "\" & $Array[$i])
+						DirCreate($path_to_profiles & "\" & $Array[$i] & "\background")
+						DirCreate($path_to_profiles & "\" & $Array[$i] & "\sound")
+						FileWrite($path_to_profiles & "\" & $Array[$i] & "\tasks", "")
+						FileWrite($path_to_profiles & "\" & $Array[$i] & "\other", "")
+						FileWrite($path_to_profiles & "\" & $Array[$i] & "\intervals", "")
+						FileWrite($path_to_profiles & "\" & $Array[$i] & "\geometry", "")
 
-					Case 1
-						Local $file = FileOpen($s_profile_path & "\tasks", 2)
-						FileWrite($file, GUICtrlRead($settings_window_edit_tasks))
-						FileClose($file)
-						MsgBox(64, "Таймер Задач", "Сохранено", 3, $settings_window)
-
-					Case 2
-						Local $file = FileOpen($s_profile_path & "\intervals", 2)
-						FileWrite($file, GUICtrlRead($settings_window_edit_intervals))
-						FileClose($file)
-						MsgBox(64, "Таймер Задач", "Сохранено", 3, $settings_window)
-
-					Case 3
-						Local $file = FileOpen($s_profile_path & "\geometry", 2)
-						FileWrite($file, GUICtrlRead($settings_window_edit_geometry))
-						FileClose($file)
-						MsgBox(64, "Таймер Задач", "Сохранено", 3, $settings_window)
-
-					Case 4
-						Local $file = FileOpen($s_profile_path & "\other", 2)
-						FileWrite($file, GUICtrlRead($settings_window_edit_other))
-						FileClose($file)
-						MsgBox(64, "Таймер Задач", "Сохранено", 3, $settings_window)
-
-					Case 5
-						Local $file = FileOpen($path_to_script & "\_profiles", 2)
-						FileWrite($file, GUICtrlRead($settings_window_edit_profiles))
-						FileClose($file)
-						MsgBox(64, "Таймер Задач", "Сохранено", 3, $settings_window)
-						GUICtrlSetData($profile_combo, "")
-						Dim $Array
-						_FileReadToArray($path_to_script & "\_profiles", $Array)
-						For $i = 1 To $Array[0]
-
-							GUICtrlSetData($profile_combo, $Array[$i], $Array[1])
-							DirCreate($path_to_profiles & "\" & $Array[$i])
-							DirCreate($path_to_profiles & "\" & $Array[$i] & "\background")
-							DirCreate($path_to_profiles & "\" & $Array[$i] & "\sound")
-							FileWrite($path_to_profiles & "\" & $Array[$i] & "\tasks", "")
-							FileWrite($path_to_profiles & "\" & $Array[$i] & "\other", "")
-							FileWrite($path_to_profiles & "\" & $Array[$i] & "\intervals", "")
-							FileWrite($path_to_profiles & "\" & $Array[$i] & "\geometry", "")
-
-						Next
-
-				EndSwitch
+					Next
 
 			Case $settings_window_exit_button
 				ExitLoop
