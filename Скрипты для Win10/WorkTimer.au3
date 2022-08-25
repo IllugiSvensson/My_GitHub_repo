@@ -33,20 +33,28 @@ Local $start_window = GUICreate("Таймер Задач", 500, 750, -1, -1, $WS
 	GUICtrlCreatePic($path_to_script & "\Start.jpg", 0, 0, 500, 750)
 	GUICtrlSetState(-1, $GUI_DISABLE)
 
-	Local $start_window_label = GUICtrlCreateLabel("Начнем работу?", 75, 225, 350, 50, $SS_CENTER)
+	Local $start_window_label = GUICtrlCreateLabel("Начнем работу?", 75, 215, 350, 50, $SS_CENTER)
 		GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 		GUICtrlSetFont(-1, 25, 1000)
-	Local $start_button = GUICtrlCreateButton("Начнем", 162, 285, 175, 50)
+	Local $start_button = GUICtrlCreateButton("Начнем", 162, 290, 175, 40)
 		GUICtrlSetFont(-1, 20, 1000)
-	Local $continue_button = GUICtrlCreateButton("Продолжить", 162, 335, 175, 50)
+	Local $continue_button = GUICtrlCreateButton("Продолжить", 162, 330, 175, 40)
 		GUICtrlSetFont(-1, 20, 1000)
-	Local $settings_button = GUICtrlCreateButton("Настройки", 162, 385, 175, 50)
+	Local $settings_button = GUICtrlCreateButton("Настройки", 162, 370, 175, 40)
 		GUICtrlSetFont(-1, 20, 1000)
-	Local $exit_button = GUICtrlCreateButton("Выход", 162, 435, 175, 50)
+	Local $info_button = GUICtrlCreateButton("Справка", 162, 410, 175, 40)
+		GUICtrlSetFont(-1, 20, 1000)
+	Local $exit_button = GUICtrlCreateButton("Выход", 162, 450, 175, 40)
 		GUICtrlSetFont(-1, 20, 1000)
 	Local $profile_combo = GUICtrlCreateCombo("", 162, 680, 175, 50, $CBS_DROPDOWNLIST + $WS_VSCROLL)
 		GUICtrlSetFont(-1, 20, 1000)
 		Dim $Array
+		If FileExists($path_to_script & "\_profiles") == 0 Then
+
+			FileWrite($path_to_script & "\_profiles", "default")
+			ProfileCreate($path_to_profiles & "\default")
+
+		EndIf
 		_FileReadToArray($path_to_script & "\_profiles", $Array)
 		For $i = 1 To $Array[0]
 
@@ -67,11 +75,15 @@ While true
 			ExitLoop
 
 		Case $continue_button
+			If FileExists($path_to_script & "\time") == 0 Then FileWrite($path_to_script & "\time", "2022/08/24 10:00:00")
 			Global $start_time = FileRead($path_to_script & "\time")
 			ExitLoop
 
 		Case $settings_button
 			Settings($start_window, $profile_path & "\" & GUICtrlRead($profile_combo))
+
+		Case $info_button
+			Info($start_window)
 
 		Case $exit_button
 			Exit 0
@@ -99,7 +111,7 @@ Global $position_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path
 
 
 ;СТАРТ ИНТЕРВАЛОВ ВРЕМЕНИ
-Global $continue_time = _DateDiff("n", $start_time, _NowCalc())
+Global $continue_time = _DateDiff("s", $start_time, _NowCalc())
 Global $sum_intervals = 0
 Local $file = FileRead($profile_path & "\intervals")
 Local $lines = StringSplit($file, @CRLF, 1)
@@ -110,31 +122,40 @@ Local $lines = StringSplit($file, @CRLF, 1)
 		$sum_intervals = $sum_intervals + $number
 
 	Next
+Global $remain = TimeCalc(StringRight(StringTrimRight($start_time, 3), 5), $sum_intervals, 0)
 For $i = 1 To $lines[0]
 
 	
 	Local $number = StringRegExp($lines[$i], "#[0-9]{1,3}", 3)
 	$duration = StringTrimLeft($number[0], 1)
 	$name = StringReplace($lines[$i], $number[0], "")
-	IntervalGUI($past, $name, $duration, $path_to_sound & "\" & $i & ".mp3", $profile_path)
+	IntervalGUI($past, $name, $duration * 60, $path_to_sound & "\" & $i & ".mp3", $profile_path, $i)
 	$past = $past + $duration
 
 Next
+MsgBox(64, "Таймер Задач", "Интервалы окончены :)", 10)
 
 
 
 
 
-Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path)
+Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 
 	If $continue_time < $s_duration Then
 
-		Local $continue = $continue_time
-		$continue_time = 0
 		Local $interval_window = GUICreate("Таймер Задач", $resolution_x, $resolution_y, $coordinate_x, $coordinate_y, $WS_DLGFRAME + $WS_MINIMIZEBOX)
-			Local $pic_count = DirGetSize($path_to_background, 1)
-			GUICtrlCreatePic($path_to_background & "\" & Random(1, $pic_count[1], 1) & ".jpg", 0, 0, $resolution_x, $resolution_y)
-			GUICtrlSetState(-1, $GUI_DISABLE)
+			If FileExists($path_to_background & "\1.jpg") == 0 Then FileWrite($path_to_background & "\1.jpg", "")
+			If StringTrimLeft(FileReader($s_profile_path & "\other", "Ресурсы"), 8) == "#1" Then
+
+				Local $pic_count = _FileListToArray($path_to_background, "*.jpg", 1)
+				GUICtrlCreatePic($path_to_background & "\" & Random(1, $pic_count[0], 1) & ".jpg", 0, 0, $resolution_x, $resolution_y)
+
+			Else
+
+				GUICtrlCreatePic($path_to_background & "\" & $nb & ".jpg", 0, 0, $resolution_x, $resolution_y)
+
+			EndIf
+				GUICtrlSetState(-1, $GUI_DISABLE)
 
 			Local $interval_window_time_label = GUICtrlCreateLabel(_NowTime(), $position_x, $position_y, 350, 55)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
@@ -143,7 +164,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path)
 			Local $interval_window_name_label = GUICtrlCreateLabel($s_name, $position_x, $position_y + 70, 350, 55)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 32, 1000)
-			Local $interval_window_remain_label = GUICtrlCreateLabel("0 из " & $s_duration & " минут", $position_x, $position_y + 145, 350, 40, $SS_LEFT)
+			Local $interval_window_remain_label = GUICtrlCreateLabel("0 из " & $s_duration / 60 & " минут", $position_x, $position_y + 145, 350, 40, $SS_LEFT)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 26, 1000)
 			Local $interval_window_local_progress = GUICtrlCreateProgress($position_x, $position_y + 115, 365, 30, $PBS_SMOOTH)
@@ -159,9 +180,11 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path)
 			SoundPlay("")
 			SoundPlay($s_sound)
 			BotMsg("✅ Интервал начался" & @CRLF & "   ➡️" & $s_name, $tele_bot_key, $tele_chat_id)
-			Local $go_time = _NowCalc(), $cnt = 0
+			Local $continue = $continue_time
+			$continue_time = 0
+			Local $go_time = _NowCalc(), $cnt = 0, $stm = 0, $gtm = 0
 			Dim $Array
-			While true
+			While _DateDiff("s", $go_time, _NowCalc()) + $continue < $s_duration
 
 				Switch GUIGetMsg()
 
@@ -172,26 +195,30 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path)
 						Tasks($interval_window, $s_profile_path)
 
 					Case Else
-						If $cnt == 30 Then
+						If $cnt == 20 Then
 
-							Local $stm = _DateDiff("n", $start_time, _NowCalc())
-							Local $gtm = _DateDiff("n", $go_time, _NowCalc())
-							Local $task = TimeCalc(_NowTime(4), 10, 0)
-							Local $st = FileReader($s_profile_path & "\tasks", $task)
+							$stm = _DateDiff("n", $start_time, _NowCalc())
+							$gtm = _DateDiff("s", $go_time, _NowCalc()) + $continue
 							GUICtrlSetData($interval_window_common_progress, (100 / $sum_intervals) * $stm)
-							GUICtrlSetData($interval_window_time_label, _NowTime() & "   " & abs($sum_intervals - $gtm - $s_past - $continue) & "   " & TimeCalc(_NowTime(4), abs($sum_intervals - $gtm - $s_past - $continue), 0))
-							GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm + $continue * (100 / $s_duration))
-							GUICtrlSetData($interval_window_remain_label, $gtm + $continue & " из " & $s_duration & " минут")
-								If  $st <> 0 Then
+							GUICtrlSetData($interval_window_time_label, _NowTime() & "   " & $sum_intervals - Int($gtm / 60) - $s_past & "   " & $remain)
+							GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm)
+							GUICtrlSetData($interval_window_remain_label, Int($gtm / 60) & " из " & Int($s_duration / 60) & " минут")
+								For $k = 10 To 2 Step -2
 
-									BotMsg("⚠️➡️" & "Событие через 10 минут!" & @CRLF & $st, $tele_bot_key, $tele_chat_id)
-									SoundPlay("")
-									SoundPlay($s_sound)
-									MsgBox(48 + 262144, "Таймер Задач", "Событие через 10 минут!" & @CRLF & $st, 3)
-									Tasks($interval_window, $s_profile_path)
+									Local $task = TimeCalc(_NowTime(4), $k, 0)
+									Local $st = FileReader($s_profile_path & "\tasks", $task)
+									If  StringLen($st) > 1 Then
 
-								EndIf
-								If $gtm + $continue >= $s_duration Then ExitLoop
+										BotMsg("⚠️➡️" & "Событие через " & $k & " минут(ы)!" & @CRLF & $st, $tele_bot_key, $tele_chat_id)
+										SoundPlay("")
+										SoundPlay($s_sound)
+										MsgBox(48 + 262144, "Таймер Задач", "Событие через " & $k & " минут(ы)!" & @CRLF & $st, 3)
+										Tasks($interval_window, $s_profile_path)
+										ExitLoop
+
+									EndIf
+
+								Next
 								$cnt = 0
 
 						EndIf
@@ -201,7 +228,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path)
 				EndSwitch
 
 			WEnd
-
+			$continue_time = _DateDiff("s", $go_time, _NowCalc()) + $continue - $s_duration
 		GUIDelete($interval_window)
 
 	Else
@@ -252,6 +279,8 @@ Func Settings($s_start_window, $s_profile_path)
 		Local $settings_window_accept_button = GUICtrlCreateButton("Сохранить", 10, 260, 125, 40)
 			GUICtrlSetFont(-1, 14)
 		Local $settings_window_exit_button = GUICtrlCreateButton("Выход", 215, 260, 125, 40)
+			GUICtrlSetFont(-1, 14)
+		Local $settings_window_resources_button = GUICtrlCreateButton("📂", 155, 260, 40, 40)
 			GUICtrlSetFont(-1, 14)
 
 		Local $settings_tab = GUICtrlCreateTab(5, 5, 340, 250)
@@ -319,20 +348,91 @@ Func Settings($s_start_window, $s_profile_path)
 						DirCreate($path_to_profiles & "\" & $Array[$i])
 						DirCreate($path_to_profiles & "\" & $Array[$i] & "\background")
 						DirCreate($path_to_profiles & "\" & $Array[$i] & "\sound")
-						FileWrite($path_to_profiles & "\" & $Array[$i] & "\tasks", "")
-						FileWrite($path_to_profiles & "\" & $Array[$i] & "\other", "")
-						FileWrite($path_to_profiles & "\" & $Array[$i] & "\intervals", "")
-						FileWrite($path_to_profiles & "\" & $Array[$i] & "\geometry", "")
+						If FileExists($path_to_profiles & "\" & $Array[$i] & "\tasks") == 0 Then
+
+							FileWrite($path_to_profiles & "\" & $Array[$i] & "\tasks", "Настроить профиль" & @CRLF & "10:00 Начало работы")
+
+						Else 
+
+							FileWrite($path_to_profiles & "\" & $Array[$i] & "\tasks", "")
+
+						EndIf
+						If FileExists($path_to_profiles & "\" & $Array[$i] & "\other") == 0 Then
+
+							FileWrite($path_to_profiles & "\" & $Array[$i] & "\other", "Бот " & @CRLF & "Чат " & @CRLF & "Ресурсы #1")
+
+						Else
+
+							FileWrite($path_to_profiles & "\" & $Array[$i] & "\other", "")
+
+						EndIf
+						If FileExists($path_to_profiles & "\" & $Array[$i] & "\intervals") == 0 Then
+
+							FileWrite($path_to_profiles & "\" & $Array[$i] & "\intervals", "Интервал I #5" & @CRLF & "Интервал II #10")
+
+						Else
+
+							FileWrite($path_to_profiles & "\" & $Array[$i] & "\intervals", "")
+
+						EndIf
+						If FileExists($path_to_profiles & "\" & $Array[$i] & "\geometry") == 0 Then
+
+							FileWrite($path_to_profiles & "\" & $Array[$i] & "\geometry", "Разрешение 405#720" & @CRLF & "Координаты 20#235" & @CRLF & "Позиция 20#460")
+
+						Else
+
+							FileWrite($path_to_profiles & "\" & $Array[$i] & "\geometry", "")
+
+						EndIf
 
 					Next
 
 			Case $settings_window_exit_button
 				ExitLoop
 
+			Case $settings_window_resources_button
+				ShellExecute($path_to_profiles & "\" & GUICtrlRead($profile_combo))
+
 		EndSwitch
 
 	WEnd
 	GUIDelete($settings_window)
+
+EndFunc
+
+Func ProfileCreate($path)
+
+	DirCreate($path & "\background")
+	DirCreate($path & "\sound")
+	FileWrite($path & "\geometry", "Разрешение 405#720" & @CRLF & "Координаты 20#235" & @CRLF & "Позиция 20#460")
+	FileWrite($path & "\intervals", "Интервал I #5" & @CRLF & "Интервал II #10")
+	FileWrite($path & "\other", "Бот " & @CRLF & "Чат " & @CRLF & "Ресурсы #1")
+	FileWrite($path & "\tasks", "Настроить профиль" & @CRLF & "10:00 Начало работы")
+
+EndFunc
+
+Func Info($window)
+
+	Local $info = "Для работы программы нужно создать свой профиль. Профилей может быть несколько, каждый со своими настройками. Для создания профиля перейти в Настройки->Профили. Написать имя профиля. Профиль в первой строке будет выбран по умолчанию при старте программы." & @CRLF & "Перезапустим настройки, выбрав профиль из выпадающего списка. Отредактируем параметры:" & @CRLF & "Прочие - Настройки телеграмм бота и ресурсов" & @CRLF & " - Бот пробел айди" & @CRLF & " - Чат пробел айди" & @CRLF & " - Ресурсы #1(об этом ниже)" & @CRLF & @CRLF & "Геометрия - задает вид окна, размер и положение надписей" & @CRLF & " - Здесь параметры задаются в пикселях в формате X#Y" & @CRLF & @CRLF & "Интервалы - интервалы времени по которым работает программа" & @CRLF & " - задается списком: Название #Время в минутах" & @CRLF & @CRLF & "Вкладки Время и Задачи можно не редактировать. Во Время записывается время старта программы, в Задачи можно написать свои задачи и напоминания. Если в задаче указать время, например 12:00, то за 10 минут до этого придет оповещение." & @CRLF & "Для старта программы нужно нажать Начнем, чтобы начать с текущего времени или можно Продолжить с ранее начатого момента" & @CRLF & @CRLF & "Программа поддерживает картинки и звуки. Стартовый фон, картинку Start.jpg положить в корень программы. Фон интервалов и звуки пронумеровать 1.jpg 1.mp3 и тд и положить в соответсвующие папки в своем профиле. Если в настройках Ресурсы #1, то картинки будут показываться в случайном порядке, если #0, то в упорядоченном."
+	
+	Local $info_window = GUICreate("Таймер Задач", 500, 750, -1, -1, $WS_DLGFRAME, -1, $window)
+		Local $info_window_label = GUICtrlCreateLabel($info, 10, 10, 480, 650, $SS_SUNKEN)
+			GUICtrlSetFont(-1, 12)
+		Local $info_window_exit_button = GUICtrlCreateButton("Выход", 187, 670, 125, 40)
+			GUICtrlSetFont(-1, 14)
+
+	GUISetState()
+	While true
+
+		Switch GUIGetMsg()
+
+			Case $info_window_exit_button
+				ExitLoop
+
+		EndSwitch
+
+	WEnd
+	GUIDelete($info_window)
 
 EndFunc
 
