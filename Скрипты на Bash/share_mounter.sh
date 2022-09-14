@@ -14,4 +14,4 @@ else
     mount -t cifs //main/GetStand $1 -o username=$2,password=$3,uid=1000,domain=NITA
     echo "Success"
 
-fi
+fi 
