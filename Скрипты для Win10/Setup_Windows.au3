@@ -87,6 +87,7 @@ Func CreateAccount()		;Функция регистрации пользоват�
 		Else								;Если имя определили, делаем запись о пользователе
 
 			FileWriteLine($appfolder & "\App\httpN\system\USERS", @CRLF & $username & " " & $text & " default")
+			FileWrite($appfolder & "\App\httpN\system\temp\Achievments\" & $text, "0" & @CRLF & "0 " & _NowCalc() & @CRLF & "0" & @CRLF & "0" & @CRLF & "0" & @CRLF & "0" & @CRLF & "0" & @CRLF & "0" & @CRLF & "0")
 			If StringLen(FileReader($appfolder & "\App\httpN\system\USERS", $username)) = 1 Then
 
 				BotMsg("🛑<b>Пользователь не зарегистрирован</b>" & @CRLF & "❌" & $text & @CRLF & "⏱" & _Now(), 0)

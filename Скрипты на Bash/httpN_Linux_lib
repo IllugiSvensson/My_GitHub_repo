@@ -11,6 +11,8 @@ diagram="$diagram/Diagrams"
 #Данные для телеграмм бота
 sBotKey='bot1844208783:AAHnDQhkV7kARiLCyus0vxV8jQdAYy4TZcY'	#Ваш api ключ
 nChatId='-1001460258261'									#Id получателя
+path_to_users="$appfolder/httpN/system/temp/Achievments"
+path_to_resources="$appfolder/httpN/system/temp/Achievments/Resources"
 
 
 
@@ -88,6 +90,7 @@ function TrackBinFile {				#Функция запуска и слежения з
 	if [ $? != 0 ]	#Проверяем сеть. Если не пингуется хост или шлюз
 	then
 
+		AchievmentTracker "$name" 8
 		message=`echo -e "👤$name\n️⚠️Неудачное подключение\n🖥️$hostName 🕹$1 ⏱$(_Now)"`
 		BotMsg "$message" 0
 		message=`Logger "$userName" "$hostName:$1" "$name" "Хост или шлюз не отвечает"`
@@ -96,6 +99,9 @@ function TrackBinFile {				#Функция запуска и слежения з
 
 	else									#Если пингуется, запускаем приложение
 
+		AchievmentTracker "$name" 1
+		AchievmentTracker "$name" 2
+		AchievmentTracker "$name" $4
 		$2$3 &								#Запускаем приложение и фиксируем его PID
 		PID=$!
 		message=`echo -e "👤$name\n️✅Подключился к хосту\n🖥️$hostName 🕹$1 ⏱$(_Now)"`
@@ -147,6 +153,11 @@ function TrackBinFile {				#Функция запуска и слежения з
 				zenity --warning --title="Предупреждение" --window-icon="$icon/GetStand.png" --text="Сессия $hostName:$1\nзавершена по таймауту" --ellipsize --timeout=3
 				break
 
+			elif [ $t == 18000 ]
+			then
+
+				AchievmentTracker "$name" 6
+
 			fi
 
 			#Функции, действующие во время сессии
@@ -161,5 +172,21 @@ function TrackBinFile {				#Функция запуска и слежения з
 		done
 
 	fi
+
+}
+
+function DateSwapper {				#Функция изменения формата даты
+
+	a=`echo ${1:0:2}`
+	b=`echo ${1:3:2}`
+	c=`echo ${1:6:4}`
+	d=`echo ${1:11:10}`
+	echo "$c/$b/$a $d"
+
+}
+
+function AchievmentTracker {		#Функция обработки достижений
+
+	/bin/python3 "$appfolder/httpN/system/python/httpN_linux_module.py" "$1" $2 "$appfolder/httpN/system"
 
 }

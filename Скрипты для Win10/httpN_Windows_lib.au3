@@ -190,16 +190,20 @@ Func Validator($textstring, $pat)						;Функция проверки стро
 Return 0
 EndFunc
 
-Func TrackExeFile($EXE, $exeFile, $CONFIG)				;Функция запуска и слежения за приложением
+Func TrackExeFile($EXE, $exeFile, $CONFIG, $typ)		;Функция запуска и слежения за приложением
 
 	If (Ping($address)) = 0 Then		;Проверяем сеть. Если не пингуется хост или шлюз
 
+		AchievmentTracker($name[0], 8)
 		BotMsg("👤" & $name[0] & @CRLF & "⚠️Неудачное подключение" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
 		Logger($name[0], $username, "Хост или шлюз не отвечает", $hostName[0] & ":" & $EXE, 1)
 		MsgBox(16, "Ошибка", "Не удается подключиться к хосту" & @CRLF & "Обратитесь в Отдел Тестирования", 3)
 
 	Else								;Если пингуется, запускаем приложение
 
+		AchievmentTracker($name[0], 1)
+		AchievmentTracker($name[0], 2)
+		AchievmentTracker($name[0], $typ)
 		Local $PID = Run($exeFile & $CONFIG)			;Запускаем приложение и фиксируем его PID
 		BotMsg("👤" & $name[0] & @CRLF & "✅Подключился к хосту" & @CRLF & "🖥️" & $hostName[0] & " 🕹" & $EXE & " ⏱" & _Now(), 1)
 		Logger($name[0], $username, "Успешное подключение", $hostName[0] & ":" & $EXE, 1)
@@ -239,6 +243,10 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG)				;Функция запуска и 
 				MsgBox(48, "Предупреждение", "Сессия " & $hostName[0] & ": " & $EXE & @CRLF & "завершена по таймауту", 3)
 				ExitLoop
 
+			ElseIf $t = 18000 Then
+
+				AchievmentTracker($name[0], 6)
+
 			EndIf
 
 			;Функции, действующие во время сессии
@@ -253,5 +261,157 @@ Func TrackExeFile($EXE, $exeFile, $CONFIG)				;Функция запуска и 
 		WEnd
 
 	EndIf
+
+EndFunc
+
+Func ShowSplash($jpg, $user, $type)						;Функция демонстрации ачива
+
+	$Array_achiev[$type] += 1
+	$File_achiev = FileOpen($path_to_users & $user, 2)	;Файл под запись новых данных
+	_FileWriteFromArray($File_achiev, $Array_achiev, 1, 9)
+	FileClose($File_achiev)
+	SoundPlay($path_to_resources & "AchievmentEarned.wav", 0)
+	SplashImageOn("", $path_to_resources & $jpg, 592, 98, -1, -1, 1)
+	Sleep(5000)
+	SplashOff()
+
+EndFunc
+
+Func AchievmentTracker($user, $type)					;Функция обработки достижений
+
+	Global $path_to_users = @ScriptDir & "\system\temp\Achievments\"
+	Global $path_to_resources = @ScriptDir & "\system\temp\Achievments\Resources\"
+	Global $Array_achiev, $File_achiev
+	_FileReadToArray($path_to_users & $user, $Array_achiev)	;Массив с данными
+		Switch $type
+
+			Case "1"	;row1 - Регистрация/первое подключение 0-1
+				If $Array_achiev[1] == 0 Then
+
+					ShowSplash("1.jpg", $user, $type)
+
+				EndIf
+
+			Case "2"	;row2 - Подключения подряд 5 дней 0-4
+				If StringLeft($Array_achiev[2], 1) == 4 Then
+
+					ShowSplash("2.jpg", $user, $type)
+
+				ElseIf StringLeft($Array_achiev[2], 1) < 5 Then
+
+					If _DateDiff('D', StringTrimLeft($Array_achiev[2], 2), _NowCalc()) == 1 Then
+
+						$Array_achiev[2] = (StringLeft($Array_achiev[2], 1) + 1) & " " & _NowCalc()
+						_FileWriteFromArray($path_to_users & $user, $Array_achiev, 1, 9)
+
+					ElseIf _DateDiff('D', StringTrimLeft($Array_achiev[2], 2), _NowCalc()) > 1 Then
+
+						$Array_achiev[2] = "1 " & _NowCalc()
+						_FileWriteFromArray($path_to_users & $user, $Array_achiev, 1, 9)
+
+					EndIf
+
+				EndIf
+
+			Case "3"	;row3 - Подключения по внс 0-999
+
+				If $Array_achiev[3] == 0 Then
+
+					ShowSplash("3.jpg", $user, $type)
+
+				ElseIf $Array_achiev[3] == 99 Then
+
+					ShowSplash("4.jpg", $user, $type)
+
+				ElseIf $Array_achiev[3] == 999 Then
+
+					ShowSplash("5.jpg", $user, $type)
+
+				ElseIf $Array_achiev[3] <= 1000 Then
+
+					$Array_achiev[3] += 1
+					_FileWriteFromArray($path_to_users & $user, $Array_achiev, 1, 9)
+
+				EndIf
+
+			Case "4"	;row4 - Подключения по консоли 0-999
+
+				If $Array_achiev[4] == 0 Then
+
+					ShowSplash("6.jpg", $user, $type)
+
+				ElseIf $Array_achiev[4] == 99 Then
+
+					ShowSplash("7.jpg", $user, $type)
+
+				ElseIf $Array_achiev[4] == 999 Then
+
+					ShowSplash("8.jpg", $user, $type)
+
+				ElseIf $Array_achiev[4] <= 1000 Then
+
+					$Array_achiev[4] += 1
+					_FileWriteFromArray($path_to_users & $user, $Array_achiev, 1, 9)
+
+				EndIf
+
+			Case "5"	;row5 - Подключения по фтп 0-999
+				If $Array_achiev[5] == 0 Then
+
+					ShowSplash("9.jpg", $user, $type)
+
+				ElseIf $Array_achiev[5] == 99 Then
+
+					ShowSplash("10.jpg", $user, $type)
+
+				ElseIf $Array_achiev[5] == 999 Then
+
+					ShowSplash("11.jpg", $user, $type)
+
+				ElseIf $Array_achiev[5] <= 1000 Then
+
+					$Array_achiev[5] += 1
+					_FileWriteFromArray($path_to_users & $user, $Array_achiev, 1, 9)
+
+				EndIf
+
+			Case "6"	;row6 - Полная сессия 0-1
+				If $Array_achiev[6] == 0 Then
+
+					ShowSplash("12.jpg", $user, $type)
+
+				EndIf
+
+			Case "7"	;row7 - Количество сообщений 0-9
+
+				If $Array_achiev[7] == 0 Then
+
+					ShowSplash("13.jpg", $user, $type)
+
+				ElseIf $Array_achiev[7] == 9 Then
+
+					ShowSplash("14.jpg", $user, $type)
+
+				ElseIf $Array_achiev[7] <= 10 Then
+
+					$Array_achiev[7] += 1
+					_FileWriteFromArray($path_to_users & $user, $Array_achiev, 1, 9)
+
+				EndIf
+
+			Case "8"	;row8 - Неудачное подключение 0-1
+				If $Array_achiev[8] == 0 Then
+
+					ShowSplash("15.jpg", $user, $type)
+
+				EndIf
+			Case "9"	;row9 - Подключиться к запретному компу 0-1
+				If $Array_achiev[9] == 0 Then
+
+					ShowSplash("16.jpg", $user, $type)
+
+				EndIf
+
+		EndSwitch
 
 EndFunc

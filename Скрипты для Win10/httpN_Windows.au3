@@ -50,6 +50,7 @@ ChangesM()	;Проверяем наличие сообщений
 
 		Local $stend = StringTrimRight(StringTrimLeft($cmdLine[1], 14), 1)
 		Local $feedback = EntryWindow(2, 1)
+		AchievmentTracker($name[0], 7)
 		BotMsg("@IllugiSven" & @CRLF & "👤" & $name[0] & @CRLF & "⚠️Новый вопрос или предложение" & @CRLF & "🖥️Стенд: " & $stend & " ⏱" & _Now(), 0)
 		Logger($name[0] & ". Новый вопрос или предложение по стенду: " & $stend & ". " & $feedback, "", "", "", 2)
 		MsgBox(64, "Информация", "Ваше сообщение передано" & @CRLF & "разработчику", 3)
@@ -59,6 +60,7 @@ ChangesM()	;Проверяем наличие сообщений
 ;Проверим права на подключение. Если в строке не найдем имя компьютера или ADMIN, то выдаем ошибку.
 	If (StringInStr($autorizedUser, $hostName[0]) = 0) And (StringInStr($autorizedUser, "ADMIN") = 0) Then
 
+		AchievmentTracker($name[0], 9)
 		MsgBox(48, "Предупреждение", "Недостаточно пользовательских прав" & @CRLF & "на подключение к " & $hostName[0], 4)
 		Exit
 
@@ -113,19 +115,19 @@ Switch $exeFile					;Запускаем приложение с нужными �
 	Case "VNC"
 		$exeFile = $appfolder & "\vnc\VNC.exe"
 		$Config = " -config " & $appfolder & "\vnc\config\" & $hostName[0] & ".vnc"
-		TrackExeFile("VNC", $exeFile, $Config)
+		TrackExeFile("VNC", $exeFile, $Config, 3)
 
 	Case "KIT"
 		$exeFile = $appfolder & "\kitty\kitty.exe"
 		If $port <> 22 Then $port = $port - 1
 		$Config = " -ssh root@" & $address & " -P " & $port & " -pw " & $pass
-		TrackExeFile("Kitty", $exeFile, $Config)
+		TrackExeFile("Kitty", $exeFile, $Config, 4)
 
 	Case "SCP"
 		$exeFile = $appfolder & "\winscp\WinSCP.exe"
 		If $port <> 22 Then $port = $port - 2
 		$Config = " root:" & $pass & "@" & $address & ":" & $port
-		TrackExeFile("WinSCP", $exeFile, $Config)
+		TrackExeFile("WinSCP", $exeFile, $Config, 5)
 
 	Case Else
 		BotMsg("🛑<b>Ошибка конфигурации</b>" & @CRLF & "❌Ошибка ссылки на схеме" & @CRLF & "🖥️" & $hostName[0] & " ⏱" & _Now(), 0)

@@ -68,6 +68,7 @@ ChangesM	#Проверяем наличие сообщений
 		stend=`echo ${stend#${stend:0:12}}`
 		feedback=$(zenity --entry --title="Обратная связь" --window-icon="$icon/GetStand.png" --width=256 --height=200 --text="Все вопросы и предложения можете \nнаписать разработчику в этой форме\nРазработчик: Смирнов А.Д. ОТ" --entry-text="Введите ваше сообщение" --ok-label="Отправить" --cancel-label="Выход")
 		[ $? == 0 ] || { exit; }
+		AchievmentTracker "$name" 7
 		message=`echo -e "@IllugiSven\n👤$name\n️⚠️Новый вопрос или предложение\n🖥️Стенд: $stend ⏱$(_Now)"`
 		BotMsg "$message" 0
 		message=`printf "%-19s" "$(_Now) | $name. Новый вопрос или предложение по стенду: $stend. $feedback"`
@@ -80,6 +81,7 @@ ChangesM	#Проверяем наличие сообщений
 	if [[ -z `echo $autorizedUser | grep "$hostName"` && -z `echo $autorizedUser | grep "ADMIN"` ]]
 	then
 
+		AchievmentTracker "$name" 9
 		zenity --warning --title="Предупреждение" --window-icon="$icon/GetStand.png" --text="Недостаточно пользовательских прав\nна подключение к $hostName" --ellipsize --timeout=3
 		exit
 
@@ -138,19 +140,19 @@ case $binFile in
 	"VNC")
 		binFile="$appfolder/vnc/vncviewer"
 		config=" -config $appfolder/vnc/config/$hostName.vnc"
-		TrackBinFile "VNC" "$binFile" "$config"
+		TrackBinFile "VNC" "$binFile" "$config" 3
 		;;
 	"KIT")
 		binFile="$appfolder/kitty/putty"
 		[ $port != 22 ] && { port=$(($port - 1)); }
 		config=" root@$address -P $port -pw $pass"
-		TrackBinFile "Putty" "$binFile" "$config"
+		TrackBinFile "Putty" "$binFile" "$config" 4
 		;;
 	"SCP")
 		binFile="$appfolder/winscp/filezilla"
 		[ $port != 22 ] && { port=$(($port - 2)); }
 		config=" sftp://root:$pass@$address:$port"
-		TrackBinFile "FileZilla" "$binFile" "$config"
+		TrackBinFile "FileZilla" "$binFile" "$config" 5
 		;;
 	*)
 		message=`echo -e "🛑<b>Ошибка конфигурации</b>\n️❌Ошибка в ссылке на схеме\n🖥️$hostName ⏱$(_Now)"`

@@ -26,6 +26,7 @@ Local $iScheme = TrayCreateMenu("Схема")					;GetStand схема в дву
 Local $iCatalog = TrayCreateMenu("Каталоги")				;Основные рабочие каталоги
 	Local $iGS = TrayCreateItem("Каталог GetStand", $iCatalog)
 	Local $iHN = TrayCreateItem("Каталог httpN", $iCatalog)
+	Local $iAC = TrayCreateItem("Каталог Достижений", $iCatalog)
 Local $iBackup = TrayCreateItem("Сделать Backup")			;Зарезервировать файлы
 Global $iUpdate = TrayCreateItem("Обновить систему")		;Предупреждение об обновлении
 TrayCreateItem("")
@@ -86,6 +87,9 @@ While True
 
 		Case $iHN 						;Открыть каталог httpN
 			ShellExecute("\\main\GetStand\App\httpN\system")
+
+		Case $iAC 						;Открыть каталог Достижений
+			ShellExecute("\\main\GetStand\App\httpN\system\temp\Achievments")
 
 		Case $iBackup					;Зарезервировать файлы приложений и конфигураций
 			Backup()

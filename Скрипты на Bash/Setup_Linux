@@ -3,7 +3,7 @@
 
 
 #ПРОВЕРКА УТИЛИТ
-for i in realpath zenity whoami date curl base64 pkexec xdg-mime xdg-open
+for i in realpath zenity whoami date curl base64 pkexec xdg-mime xdg-open python3
 do
 
 	$i --help >/dev/null 2>&1
@@ -76,6 +76,8 @@ function CreateAccount {					#Функция создания аккаунта
 		#Делаем запись о пользователе и проверяем
 		sed -i "s/End_of_List@/$userName $input default/" "$appfolder/httpN/system/USERS"
 		echo -e "\nEnd_of_List@\n" >> "$appfolder/httpN/system/USERS"
+		z=`DateSwapper "$(_Now)"`
+		echo -e "0\n0 $z\n0\n0\n0\n0\n0\n0\n0" > "$appfolder/httpN/system/temp/Achievments/$input"
 		stringlen=`cat $appfolder/httpN/system/USERS | grep "$input"`
 		[ -z "$stringlen" ] && {
 
