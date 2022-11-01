@@ -48,7 +48,7 @@ autorizedUser="`FileReader $appfolder/httpN/system/USERS $userName`"	#Ищем �
 #Захватим название выбранного пользователем компьютера в виде кода стойки-стенда.
 hostName=`echo $cmdLine | sed "s/%20/ /"`
 hostName=`echo ${hostName#${hostName:0:12}}`					#Выбираем имя компьютера
-binFile=`echo $cmdLine | grep -Eo "VNC|KIT|SCP|FBC"`
+binFile=`echo $cmdLine | grep -Eo "VNC|KIT|SCP|FBC|ACH"`
 	[ `echo ${#autorizedUser}` == 0 ] && {	#Если имя пользователя отсутствует в списке, заканчиваем работу
 
 		message=`echo -e "👤<b>Неизвестный Пользователь</b>\n️⚠️Пытался подключиться к хосту\n🖥️$hostName 🕹$eks ⏱$(_Now)"`
@@ -77,6 +77,14 @@ ChangesM	#Проверяем наличие сообщений
 		exit
 
 	}
+	[ `echo $cmdLine | egrep -o "ACH"` == "ACH" ] && {		#Окошко для ачивов
+
+		AchievmentTracker "$name" 1
+		AchievmentTracker "$name" "show"
+		exit
+
+	}
+
 #Проверим права на подключение. Если в строке не найдем имя компьютера или ADMIN, то выдаем ошибку.
 	if [[ -z `echo $autorizedUser | grep "$hostName"` && -z `echo $autorizedUser | grep "ADMIN"` ]]
 	then

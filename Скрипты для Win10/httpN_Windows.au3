@@ -57,6 +57,14 @@ ChangesM()	;Проверяем наличие сообщений
 		Exit
 
 	EndIf
+	If $exeFile == "ACH" Then
+
+		AchievmentTracker($name[0], 1)
+		AchievmentTracker($name[0], "show")
+		Exit
+
+	EndIf
+
 ;Проверим права на подключение. Если в строке не найдем имя компьютера или ADMIN, то выдаем ошибку.
 	If (StringInStr($autorizedUser, $hostName[0]) = 0) And (StringInStr($autorizedUser, "ADMIN") = 0) Then
 

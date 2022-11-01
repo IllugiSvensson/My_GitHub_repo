@@ -267,13 +267,21 @@ EndFunc
 Func ShowSplash($jpg, $user, $type)						;Функция демонстрации ачива
 
 	$Array_achiev[$type] += 1
+	Local $time = 0
 	$File_achiev = FileOpen($path_to_users & $user, 2)	;Файл под запись новых данных
 	_FileWriteFromArray($File_achiev, $Array_achiev, 1, 9)
 	FileClose($File_achiev)
 	SoundPlay($path_to_resources & "AchievmentEarned.wav", 0)
-	SplashImageOn("", $path_to_resources & $jpg, 592, 98, -1, -1, 1)
-	Sleep(5000)
-	SplashOff()
+	Local $mainwindow = GUICreate("", 592, 98, 700, 600, $WS_POPUP, $WS_EX_TOPMOST)
+	GUICtrlCreatePic($path_to_resources & $jpg, 0, 0, 592, 98, -1, $GUI_WS_EX_PARENTDRAG)
+	GUISetState()
+	While $time <> 4000
+
+		Sleep(50)
+		$time = $time + 50
+
+	WEnd
+	GUIDelete($mainwindow)
 
 EndFunc
 
@@ -411,7 +419,207 @@ Func AchievmentTracker($user, $type)					;Функция обработки до
 					ShowSplash("16.jpg", $user, $type)
 
 				EndIf
+			Case "show"	;Демонстрация полученных ачивов
+				Global $achievments[1]
+				Global $cnt = 0
+				Global $cur = 0
+				For $i = 0 To 8
+
+					If ($i == 0) And ($Array_achiev[$i + 1] >= 1) Then
+
+						$achievments[0] = 1
+						$cnt = $cnt + 10
+
+					ElseIf ($i == 1) And (StringLeft($Array_achiev[$i + 1], 1) >= 4) Then
+
+						_ArrayAdd($achievments, 2)
+						$cnt = $cnt + 50
+
+					ElseIf ($i == 2) Then
+
+						If $Array_achiev[$i + 1] >= 999 Then
+
+							_ArrayAdd($achievments, 3)
+							_ArrayAdd($achievments, 4)
+							_ArrayAdd($achievments, 5)
+							$cnt = $cnt + 85
+
+						ElseIf $Array_achiev[$i + 1] >= 99 Then
+
+							_ArrayAdd($achievments, 3)
+							_ArrayAdd($achievments, 4)
+							$cnt = $cnt + 35
+
+						ElseIf $Array_achiev[$i + 1] >= 1 Then
+
+							_ArrayAdd($achievments, 3)
+							$cnt = $cnt + 10
+
+						EndIf
+
+					ElseIf ($i == 3) Then
+
+						If $Array_achiev[$i + 1] >= 999 Then
+
+							_ArrayAdd($achievments, 6)
+							_ArrayAdd($achievments, 7)
+							_ArrayAdd($achievments, 8)
+							$cnt = $cnt + 85
+
+						ElseIf $Array_achiev[$i + 1] >= 99 Then
+
+							_ArrayAdd($achievments, 6)
+							_ArrayAdd($achievments, 7)
+							$cnt = $cnt + 35
+
+						ElseIf $Array_achiev[$i + 1] >= 1 Then
+
+							_ArrayAdd($achievments, 6)
+							$cnt = $cnt + 10
+
+						EndIf
+
+					ElseIf ($i == 4) Then
+
+						If $Array_achiev[$i + 1] >= 999 Then
+
+							_ArrayAdd($achievments, 9)
+							_ArrayAdd($achievments, 10)
+							_ArrayAdd($achievments, 11)
+							$cnt = $cnt + 85
+
+						ElseIf $Array_achiev[$i + 1] >= 99 Then
+
+							_ArrayAdd($achievments, 9)
+							_ArrayAdd($achievments, 10)
+							$cnt = $cnt + 35
+
+						ElseIf $Array_achiev[$i + 1] >= 1 Then
+
+							_ArrayAdd($achievments, 9)
+							$cnt = $cnt + 10
+
+						EndIf
+
+					ElseIf ($i == 5) And ($Array_achiev[$i + 1] >= 1) Then
+
+						_ArrayAdd($achievments, 12)
+						$cnt = $cnt + 10
+
+					ElseIf ($i == 6) Then
+
+						If $Array_achiev[$i + 1] >= 9 Then
+
+							_ArrayAdd($achievments, 13)
+							_ArrayAdd($achievments, 14)
+							$cnt = $cnt + 60
+
+						ElseIf $Array_achiev[$i + 1] >= 1 Then
+
+							_ArrayAdd($achievments, 13)
+							$cnt = $cnt + 10
+
+						EndIf
+
+					ElseIf ($i == 7) And ($Array_achiev[$i + 1] >= 1) Then
+
+						_ArrayAdd($achievments, 15)
+						$cnt = $cnt + 10
+
+					ElseIf ($i == 8) And ($Array_achiev[$i + 1] >= 1) Then
+
+						_ArrayAdd($achievments, 16)
+						$cnt = $cnt + 10
+
+					EndIf
+
+				Next
+
+				_ArrayAdd($achievments, "end")
+				Local $mainwindow = GUICreate("", 937, 378, 700, 600, $WS_POPUP, $WS_EX_TOPMOST)
+				GUICtrlCreatePic($path_to_resources & "interface\background.jpg", 0, 0, 937, 378)
+				GUICtrlSetState(-1, $GUI_DISABLE)
+
+				Global $cur_Achiev = GUICtrlCreatePic($path_to_resources & "1.jpg", 294, 105, 592, 98, -1, $GUI_WS_EX_PARENTDRAG)
+
+				Local $cnt_label = GUICtrlCreateLabel($cnt, 485, 46, -1, 15)
+				GUICtrlSetFont($cnt_label, 11, 550, -1, "Friz Quadrate TT")
+				GUICtrlSetColor($cnt_label, "0xffffff")
+				GUICtrlSetBkColor($cnt_label, $GUI_BKCOLOR_TRANSPARENT)
+
+				Local $p_bar = GUICtrlCreateProgress(292, 234, 595, 20)
+				DllCall("UxTheme.dll", "int", "SetWindowTheme", "hwnd", GUICtrlGetHandle($p_bar), "wstr", 0, "wstr", 0)
+				GUICtrlSetData($p_bar, (UBound($achievments) - 1) * 6.25)
+				GUICtrlSetColor($p_bar, "0x035d03")
+				GUICtrlSetBkColor($p_bar, "0x2c200a")
+
+				Local $p_label = GUICtrlCreateLabel((UBound($achievments) - 1) & "/16", 840, 235, 40, 20)
+				GUICtrlSetFont($p_label, 11, 550, -1, "Friz Quadrate TT")
+				GUICtrlSetColor($p_label, "0xffffff")
+				GUICtrlSetBkColor($p_label, $GUI_BKCOLOR_TRANSPARENT)
+
+				Local $exit_button = GUICtrlCreateButton("", 912, 52, 23, 22, $BS_BITMAP)
+				GUICtrlSetImage($exit_button, $path_to_resources & "interface\exit.bmp")
+
+				Global $next_button = GUICtrlCreateButton("", 704, 87, 15, 16, $BS_BITMAP + $BS_FLAT)
+				GUICtrlSetImage($next_button, $path_to_resources & "interface\next.bmp")
+
+				Global $prev_button = GUICtrlCreateButton("", 461, 87, 15, 16, $BS_BITMAP + $BS_FLAT)
+				GUICtrlSetImage($prev_button, $path_to_resources & "interface\prev.bmp")
+				GUICtrlSetState($prev_button, $GUI_DISABLE)
+
+				GUISetState()
+				Opt("GUIOnEventMode", 1)
+
+				GUICtrlSetOnEvent($exit_button, "exit_pressed")
+				GUICtrlSetOnEvent($next_button, "next_pressed")
+				GUICtrlSetOnEvent($prev_button, "prev_pressed")
+				While True
+
+					sleep(10)
+
+				WEnd
 
 		EndSwitch
+
+EndFunc
+
+Func exit_pressed()
+
+	Exit
+
+EndFunc
+
+Func next_pressed()
+
+	If $cur <> UBound($achievments) - 1 Then
+
+		$cur = $cur + 1
+		GUICtrlSetImage($cur_Achiev, $path_to_resources & $achievments[$cur] & ".jpg")
+		GUICtrlSetState($prev_button, $GUI_ENABLE)
+
+	EndIf
+	If $cur == UBound($achievments) - 2 Then
+
+		GUICtrlSetState($next_button, $GUI_DISABLE)
+
+	EndIf
+
+EndFunc
+
+Func prev_pressed ()
+
+	If $cur <> 0 Then
+
+		$cur = $cur - 1
+		GUICtrlSetImage($cur_Achiev, $path_to_resources & $achievments[$cur] & ".jpg")
+		GUICtrlSetState($next_button, $GUI_ENABLE)
+
+	EndIf
+	If $cur == 0 Then
+
+		GUICtrlSetState($prev_button, $GUI_DISABLE)
+
+	EndIf
 
 EndFunc

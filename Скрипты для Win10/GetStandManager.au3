@@ -803,12 +803,12 @@ Func Backup()										;Функция резервирования прилож
 	DirCreate("D:\Бекап_GetStand\Backup_" & _NowDate())
 	Local $dirPath = "D:\Бекап_GetStand\Backup_" & _NowDate()
 	Run(@ComSpec & " /c " & 'xcopy D:\NitaGit\httpN ' & $dirPath & "\Sources /e /i /h /y", "", @SW_HIDE)
-	Run(@ComSpec & " /c " & 'xcopy U:\Install ' & $dirPath & "\Install /e /i /h /y", "", @SW_HIDE)
-	Run(@ComSpec & " /c " & 'xcopy U:\Diagrams ' & $dirPath & "\Diagrams /e /i /h /y", "", @SW_HIDE)
-	Run(@ComSpec & " /c " & 'xcopy U:\App\httpN ' & $dirPath & "\App\httpN /e /i /h /y", "", @SW_HIDE)
-	Run(@ComSpec & " /c " & 'xcopy U:\App\kitty ' & $dirPath & "\App\kitty /e /i /h /y", "", @SW_HIDE)
-	Run(@ComSpec & " /c " & 'xcopy U:\App\vnc ' & $dirPath & "\App\vnc /e /i /h /y", "", @SW_HIDE)
-	Run(@ComSpec & " /c " & 'xcopy U:\App\winscp ' & $dirPath & "\App\winscp /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy \\main\GetStand\Install ' & $dirPath & "\Install /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy \\main\GetStand\Diagrams ' & $dirPath & "\Diagrams /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy \\main\GetStand\App\httpN ' & $dirPath & "\App\httpN /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy \\main\GetStand\App\kitty ' & $dirPath & "\App\kitty /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy \\main\GetStand\App\vnc ' & $dirPath & "\App\vnc /e /i /h /y", "", @SW_HIDE)
+	Run(@ComSpec & " /c " & 'xcopy \\main\GetStand\App\winscp ' & $dirPath & "\App\winscp /e /i /h /y", "", @SW_HIDE)
 	MsgBox(64, "GetStand", "Файлы зарезервированы", 3)
 
 EndFunc
