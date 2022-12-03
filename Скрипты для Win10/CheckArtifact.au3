@@ -3,12 +3,6 @@
 #include <ScrollBarConstants.au3>
 #include <GuiEdit.au3>
 
-;#include <StaticConstants.au3>
-;#include <ButtonConstants.au3>
-;#include <EditConstants.au3>
-;#include <Array.au3>
-;#include <File.au3>
-
 
 
 ;НАСТРОЙКИ ПРОГРАММЫ
@@ -21,7 +15,7 @@ Global $Stats[10] = [1794, 34.8, 114, 34.8, 138, 43.8, 138, 39, 23.4, 46.8]
 
 Local $MainWindow = GUICreate("Оценка качества артефакта", 730, 530, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST)
 
-	GUICtrlCreateLabel("Приоритет            Х  1  2  3", 10, 10, 480, 40)
+	GUICtrlCreateLabel("Приоритет            Х   1   2   3", 10, 10, 480, 40)
 		GUICtrlSetFont(-1, 20, 1000)
 
 	Local $hp_label = GUICtrlCreateLabel("ХП", 10, 50, 100, 40)
@@ -78,68 +72,37 @@ Local $MainWindow = GUICreate("Оценка качества артефакта"
 		GUICtrlSetState(-1, $GUI_DISABLE)
 	Global $input_array[10] = [$hp_input, $hpp_input, $atk_input, $atkp_input, $def_input, $defp_input, $em_input, $re_input, $cr_input, $cd_input]
 
-	GUIStartGroup()
-		Global $hp_radio_no = GUICtrlCreateRadio("", 230, 55, 30, 30)
-		Global $hp_radio_1 = GUICtrlCreateRadio("", 260, 55, 30, 30)
-		Global $hp_radio_2 = GUICtrlCreateRadio("", 290, 55, 30, 30)
-		Global $hp_radio_3 = GUICtrlCreateRadio("", 320, 55, 30, 30)
-	GUIStartGroup()
-		Global $hpp_radio_no = GUICtrlCreateRadio("", 230, 95, 30, 30)
-		Global $hpp_radio_1 = GUICtrlCreateRadio("", 260, 95, 30, 30)
-		Global $hpp_radio_2 = GUICtrlCreateRadio("", 290, 95, 30, 30)
-		Global $hpp_radio_3 = GUICtrlCreateRadio("", 320, 95, 30, 30)
-	GUIStartGroup()
-		Global $atk_radio_no = GUICtrlCreateRadio("", 230, 135, 30, 30)
-		Global $atk_radio_1 = GUICtrlCreateRadio("", 260, 135, 30, 30)
-		Global $atk_radio_2 = GUICtrlCreateRadio("", 290, 135, 30, 30)
-		Global $atk_radio_3 = GUICtrlCreateRadio("", 320, 135, 30, 30)
-	GUIStartGroup()
-		Global $atkp_radio_no = GUICtrlCreateRadio("", 230, 175, 30, 30)
-		Global $atkp_radio_1 = GUICtrlCreateRadio("", 260, 175, 30, 30)
-		Global $atkp_radio_2 = GUICtrlCreateRadio("", 290, 175, 30, 30)
-		Global $atkp_radio_3 = GUICtrlCreateRadio("", 320, 175, 30, 30)
-	GUIStartGroup()
-		Global $def_radio_no = GUICtrlCreateRadio("", 230, 215, 30, 30)
-		Global $def_radio_1 = GUICtrlCreateRadio("", 260, 215, 30, 30)
-		Global $def_radio_2 = GUICtrlCreateRadio("", 290, 215, 30, 30)
-		Global $def_radio_3 = GUICtrlCreateRadio("", 320, 215, 30, 30)
-	GUIStartGroup()
-		Global $defp_radio_no = GUICtrlCreateRadio("", 230, 255, 30, 30)
-		Global $defp_radio_1 = GUICtrlCreateRadio("", 260, 255, 30, 30)
-		Global $defp_radio_2 = GUICtrlCreateRadio("", 290, 255, 30, 30)
-		Global $defp_radio_3 = GUICtrlCreateRadio("", 320, 255, 30, 30)
-	GUIStartGroup()
-		Global $em_radio_no = GUICtrlCreateRadio("", 230, 295, 30, 30)
-		Global $em_radio_1 = GUICtrlCreateRadio("", 260, 295, 30, 30)
-		Global $em_radio_2 = GUICtrlCreateRadio("", 290, 295, 30, 30)
-		Global $em_radio_3 = GUICtrlCreateRadio("", 320, 295, 30, 30)	
-	GUIStartGroup()
-		Global $re_radio_no = GUICtrlCreateRadio("", 230, 335, 30, 30)
-		Global $re_radio_1 = GUICtrlCreateRadio("", 260, 335, 30, 30)
-		Global $re_radio_2 = GUICtrlCreateRadio("", 290, 335, 30, 30)
-		Global $re_radio_3 = GUICtrlCreateRadio("", 320, 335, 30, 30)	
-	GUIStartGroup()
-		Global $cr_radio_no = GUICtrlCreateRadio("", 230, 375, 30, 30)
-		Global $cr_radio_1 = GUICtrlCreateRadio("", 260, 375, 30, 30)
-		Global $cr_radio_2 = GUICtrlCreateRadio("", 290, 375, 30, 30)
-		Global $cr_radio_3 = GUICtrlCreateRadio("", 320, 375, 30, 30)	
-	GUIStartGroup()
-		Global $cd_radio_no = GUICtrlCreateRadio("", 230, 415, 30, 30)
-		Global $cd_radio_1 = GUICtrlCreateRadio("", 260, 415, 30, 30)
-		Global $cd_radio_2 = GUICtrlCreateRadio("", 290, 415, 30, 30)
-		Global $cd_radio_3 = GUICtrlCreateRadio("", 320, 415, 30, 30)	
-
-	Global $radio_array[10] = [$hp_radio_no, $hpp_radio_no, $atk_radio_no, $atkp_radio_no, $def_radio_no, $defp_radio_no, $em_radio_no, $re_radio_no, $cr_radio_no, $cd_radio_no]
-		GUICtrlSetState($hp_radio_no, $GUI_CHECKED)
-		GUICtrlSetState($hpp_radio_no, $GUI_CHECKED)
-		GUICtrlSetState($atk_radio_no, $GUI_CHECKED)
-		GUICtrlSetState($atkp_radio_no, $GUI_CHECKED)
-		GUICtrlSetState($def_radio_no, $GUI_CHECKED)
-		GUICtrlSetState($defp_radio_no, $GUI_CHECKED)
-		GUICtrlSetState($em_radio_no, $GUI_CHECKED)
-		GUICtrlSetState($re_radio_no, $GUI_CHECKED)
-		GUICtrlSetState($cr_radio_no, $GUI_CHECKED)
-		GUICtrlSetState($cd_radio_no, $GUI_CHECKED)
+	Global $hp_slider = GUICtrlCreateSlider(220, 55, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($hp_slider, 0)
+	Global $hpp_slider = GUICtrlCreateSlider(220, 95, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($hpp_slider, 0)
+	Global $atk_slider = GUICtrlCreateSlider(220, 135, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($atk_slider, 0)
+	Global $atkp_slider = GUICtrlCreateSlider(220, 175, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($atkp_slider, 0)
+	Global $def_slider = GUICtrlCreateSlider(220, 215, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($def_slider, 0)
+	Global $defp_slider = GUICtrlCreateSlider(220, 255, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($defp_slider, 0)
+	Global $em_slider = GUICtrlCreateSlider(220, 295, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($em_slider, 0)
+	Global $re_slider = GUICtrlCreateSlider(220, 335, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($re_slider, 0)
+	Global $cr_slider = GUICtrlCreateSlider(220, 375, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($cr_slider, 0)
+	Global $cd_slider = GUICtrlCreateSlider(220, 415, 140, 30)
+		GUICtrlSetLimit(-1, 3, 0)
+		GUICtrlSetData($cd_slider, 0)
+	Global $slider_array[10] = [$hp_slider, $hpp_slider, $atk_slider, $atkp_slider, $def_slider, $defp_slider, $em_slider, $re_slider, $cr_slider, $cd_slider]
 
 	Local $log_list = GUICtrlCreateEdit("", 370, 10, 350, 405, $ES_MULTILINE + $WS_VSCROLL + $ES_WANTRETURN)
 		GUICtrlSetFont(-1, 12, 1000)
@@ -162,205 +125,52 @@ Local $MainWindow = GUICreate("Оценка качества артефакта"
 
 	Global $hp_mult, $hpp_mult, $atk_mult, $atkp_mult, $def_mult, $defp_mult, $em_mult, $re_mult, $cr_mult, $cd_mult
 
+GUICtrlSetState($exit_button, $GUI_FOCUS)
 GUISetState()
 	While true
 
 		Switch GUIGetMsg()
 
-			Case $hp_radio_no
-				CheckRadio()
-				GUICtrlSetState($hp_input, $GUI_DISABLE)
-			Case $hp_radio_1
-				CheckRadio()
-				GUICtrlSetState($hp_input, $GUI_ENABLE)
-				$hp_mult = 1
-			Case $hp_radio_2
-				CheckRadio()
-				GUICtrlSetState($hp_input, $GUI_ENABLE)
-				$hp_mult = $priority2
-			Case $hp_radio_3
-				CheckRadio()
-				GUICtrlSetState($hp_input, $GUI_ENABLE)
-				$hp_mult =$priority3
+			Case $hp_slider
+				$hp_mult = CheckSlider($hp_slider, $hp_input)
 
-			Case $hpp_radio_no
-				CheckRadio()
-				GUICtrlSetState($hpp_input, $GUI_DISABLE)
-			Case $hpp_radio_1
-				CheckRadio()
-				GUICtrlSetState($hpp_input, $GUI_ENABLE)
-				$hpp_mult = 1
-			Case $hpp_radio_2
-				CheckRadio()
-				GUICtrlSetState($hpp_input, $GUI_ENABLE)
-				$hpp_mult = $priority2
-			Case $hpp_radio_3
-				CheckRadio()
-				GUICtrlSetState($hpp_input, $GUI_ENABLE)
-				$hpp_mult = $priority3
+			Case $hpp_slider
+				$hpp_mult = CheckSlider($hpp_slider, $hpp_input)
 
-			Case $atk_radio_no
-				CheckRadio()
-				GUICtrlSetState($atk_input, $GUI_DISABLE)
-			Case $atk_radio_1
-				CheckRadio()
-				GUICtrlSetState($atk_input, $GUI_ENABLE)
-				$atk_mult = 1
-			Case $atk_radio_2
-				CheckRadio()
-				GUICtrlSetState($atk_input, $GUI_ENABLE)
-				$atk_mult = $priority2
-			Case $atk_radio_3
-				CheckRadio()
-				GUICtrlSetState($atk_input, $GUI_ENABLE)
-				$atk_mult = $priority3
+			Case $atk_slider
+				$atk_mult = CheckSlider($atk_slider, $atk_input)
 
-			Case $atkp_radio_no
-				CheckRadio()
-				GUICtrlSetState($atkp_input, $GUI_DISABLE)
-			Case $atkp_radio_1
-				CheckRadio()
-				GUICtrlSetState($atkp_input, $GUI_ENABLE)
-				$atkp_mult = 1
-			Case $atkp_radio_2
-				CheckRadio()
-				GUICtrlSetState($atkp_input, $GUI_ENABLE)
-				$atkp_mult = $priority2
-			Case $atkp_radio_3
-				CheckRadio()
-				GUICtrlSetState($atkp_input, $GUI_ENABLE)
-				$atkp_mult = $priority3
+			Case $atkp_slider
+				$atkp_mult = CheckSlider($atkp_slider, $atkp_input)
 
-			Case $def_radio_no
-				CheckRadio()
-				GUICtrlSetState($def_input, $GUI_DISABLE)
-			Case $def_radio_1
-				CheckRadio()
-				GUICtrlSetState($def_input, $GUI_ENABLE)
-				$def_mult = 1
-			Case $def_radio_2
-				CheckRadio()
-				GUICtrlSetState($def_input, $GUI_ENABLE)
-				$def_mult = $priority2
-			Case $def_radio_3
-				CheckRadio()
-				GUICtrlSetState($def_input, $GUI_ENABLE)
-				$def_mult = $priority3
+			Case $def_slider
+				$def_mult = CheckSlider($def_slider, $def_input)
 
-			Case $defp_radio_no
-				CheckRadio()
-				GUICtrlSetState($defp_input, $GUI_DISABLE)
-			Case $defp_radio_1
-				CheckRadio()
-				GUICtrlSetState($defp_input, $GUI_ENABLE)
-				$defp_mult = 1
-			Case $defp_radio_2
-				CheckRadio()
-				GUICtrlSetState($defp_input, $GUI_ENABLE)
-				$defp_mult = $priority2
-			Case $defp_radio_3
-				CheckRadio()
-				GUICtrlSetState($defp_input, $GUI_ENABLE)
-				$defp_mult = $priority3
+			Case $defp_slider
+				$defp_mult = CheckSlider($defp_slider, $defp_input)
 
-			Case $em_radio_no
-				CheckRadio()
-				GUICtrlSetState($em_input, $GUI_DISABLE)
-			Case $em_radio_1
-				CheckRadio()
-				GUICtrlSetState($em_input, $GUI_ENABLE)
-				$em_mult = 1
-			Case $em_radio_2
-				CheckRadio()
-				GUICtrlSetState($em_input, $GUI_ENABLE)
-				$em_mult = $priority2
-			Case $em_radio_3
-				CheckRadio()
-				GUICtrlSetState($em_input, $GUI_ENABLE)
-				$em_mult = $priority3
+			Case $em_slider
+				$em_mult = CheckSlider($em_slider, $em_input)
 
-			Case $re_radio_no
-				CheckRadio()
-				GUICtrlSetState($re_input, $GUI_DISABLE)
-			Case $re_radio_1
-				CheckRadio()
-				GUICtrlSetState($re_input, $GUI_ENABLE)
-				$re_mult = 1
-			Case $re_radio_2
-				CheckRadio()
-				GUICtrlSetState($re_input, $GUI_ENABLE)
-				$re_mult = $priority2
-			Case $re_radio_3
-				CheckRadio()
-				GUICtrlSetState($re_input, $GUI_ENABLE)
-				$re_mult = $priority3
+			Case $re_slider
+				$re_mult = CheckSlider($re_slider, $re_input)
 
-			Case $cr_radio_no
-				CheckRadio()
-				GUICtrlSetState($cr_input, $GUI_DISABLE)
-			Case $cr_radio_1
-				CheckRadio()
-				GUICtrlSetState($cr_input, $GUI_ENABLE)
-				$cr_mult = 1
-			Case $cr_radio_2
-				CheckRadio()
-				GUICtrlSetState($cr_input, $GUI_ENABLE)
-				$cr_mult = $priority2
-			Case $cr_radio_3
-				CheckRadio()
-				GUICtrlSetState($cr_input, $GUI_ENABLE)
-				$cr_mult = $priority3
+			Case $cr_slider
+				$cr_mult = CheckSlider($cr_slider, $cr_input)
 
-			Case $cd_radio_no
-				CheckRadio()
-				GUICtrlSetState($cd_input, $GUI_DISABLE)
-			Case $cd_radio_1
-				CheckRadio()
-				GUICtrlSetState($cd_input, $GUI_ENABLE)
-				$cd_mult = 1
-			Case $cd_radio_2
-				CheckRadio()
-				GUICtrlSetState($cd_input, $GUI_ENABLE)
-				$cd_mult = $priority2
-			Case $cd_radio_3
-				CheckRadio()
-				GUICtrlSetState($cd_input, $GUI_ENABLE)
-				$cd_mult = $priority3
+			Case $cd_slider
+				$cd_mult = CheckSlider($cd_slider, $cd_input)
 
 			Case $check_button
 				Check()
 
 			Case $clear_button
-				GUICtrlSetData($hp_input, "")
-				GUICtrlSetData($hpp_input, "")
-				GUICtrlSetData($atk_input, "")
-				GUICtrlSetData($atkp_input, "")
-				GUICtrlSetData($def_input, "")
-				GUICtrlSetData($defp_input, "")
-				GUICtrlSetData($em_input, "")
-				GUICtrlSetData($re_input, "")
-				GUICtrlSetData($cr_input, "")
-				GUICtrlSetData($cd_input, "")
-				GUICtrlSetState($hp_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($hpp_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($atk_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($atkp_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($def_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($defp_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($em_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($re_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($cr_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($cd_radio_no, $GUI_CHECKED)
-				GUICtrlSetState($hp_input, $GUI_DISABLE)
-				GUICtrlSetState($hpp_input, $GUI_DISABLE)
-				GUICtrlSetState($atk_input, $GUI_DISABLE)
-				GUICtrlSetState($atkp_input, $GUI_DISABLE)
-				GUICtrlSetState($def_input, $GUI_DISABLE)
-				GUICtrlSetState($defp_input, $GUI_DISABLE)
-				GUICtrlSetState($em_input, $GUI_DISABLE)
-				GUICtrlSetState($re_input, $GUI_DISABLE)
-				GUICtrlSetState($cr_input, $GUI_DISABLE)
-				GUICtrlSetState($cd_input, $GUI_DISABLE)
+				For $i = 0 To 9
+					GUICtrlSetData($input_array[$i], "")
+					GUICtrlSetState($input_array[$i], $GUI_DISABLE)
+					GUICtrlSetData($slider_array[$i], 0)
+					GUICtrlSetState($slider_array[$i], $GUI_ENABLE)
+				Next
 				GUICtrlSetState($check_button, $GUI_DISABLE)
 				GUICtrlSetBkColor($output_label, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetData($output_label, "")
@@ -385,7 +195,7 @@ Func Check()
 	Local $flag = 0
 	For $i = 0 To 9
 
-		If GUICtrlRead($radio_array[$i]) == 4 Then
+		If GUICtrlRead($slider_array[$i]) <> 0 Then
 
 			If StringRegExp(GUICtrlRead($input_array[$i]), "^([0-9]{1,4})$|^([0-9]{1,2}\.[0-9]{1})$", 0) == 0 Then
 				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Неправильный символ в: " & GUICtrlRead($label_array[$i]) & @CRLF)
@@ -411,16 +221,20 @@ Func Check()
 
 		For $i = 0 To 9
 
-			If GUICtrlRead($radio_array[$i]) == 4 Then
+			If GUICtrlRead($slider_array[$i]) <> 0 Then
 
 				$current = GUICtrlRead($input_array[$i]) * (100 / $Stats[$i]) * $mult_array[$i]
 				$summary += $current
-				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & GUICtrlRead($label_array[$i]) & ": " & Round($current / 1.5, 2))
+				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & GUICtrlRead($label_array[$i]) & ": " & GUICtrlRead($input_array[$i]) & " - " & Round($current / 1.5, 2) & "%")
 
 			EndIf
 
 		Next
-		GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Итого: " & Round($summary / 1.5, 2) & @CRLF)
+		If Round($summary / 1.5, 2) > 100 Then
+			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Итого: Ошибка в величине статов" & @CRLF)
+		Else
+			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Итого: " & Round($summary / 1.5, 2) & @CRLF)
+		EndIf
 		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 		Quality(Round($summary / 1.5))
 
@@ -428,30 +242,48 @@ Func Check()
 
 EndFunc
 
-Func CheckRadio()
+Func CheckSlider($slider, $input)
 
 	Local $cnt_checked = 0
 	For $i = 0 To 9
 
-		If GUICtrlRead($radio_array[$i]) == 1 Then $cnt_checked += 1 
+		If GUICtrlRead($slider_array[$i]) == 0 Then $cnt_checked += 1
 
 	Next
+
 	If $cnt_checked < 6 Then
-		GUICtrlSetState($check_button, $GUI_DISABLE)
-		Local $text = GUICtrlRead($log_list)
-		GUICtrlSetData($log_list, $text & @CRLF & @CRLF & "Недопустимое количество статов. Не более 4х")
-		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
-	ElseIf $cnt_checked > 9 Then
-		GUICtrlSetState($check_button, $GUI_DISABLE)
+		GUICtrlSetState($slider, $GUI_DISABLE)
+		GUICtrlSetData($slider, 0)
+			For $i = 0 To 9
+				If GUICtrlRead($slider_array[$i]) == 0 Then GUICtrlSetState($slider_array[$i], $GUI_DISABLE)
+			Next
 	Else
 		GUICtrlSetState($check_button, $GUI_ENABLE)
+		GUICtrlSetState($input, $GUI_ENABLE)
+		GUICtrlSetState($slider, $GUI_ENABLE)
+			For $i = 0 To 9
+				If GUICtrlRead($slider_array[$i]) == 0 Then GUICtrlSetState($slider_array[$i], $GUI_ENABLE)
+			Next
+	EndIf
+
+	If GUICtrlRead($slider) == 0 Then
+		GUICtrlSetState($input, $GUI_DISABLE)
+	ElseIf GUICtrlRead($slider) == 1 Then
+		Return 1
+	ElseIf GUICtrlRead($slider) == 2 Then
+		Return $priority2
+	ElseIf GUICtrlRead($slider) == 3 Then
+		Return $priority3
 	EndIf
 
 EndFunc
 
 Func Quality($value)
 
-	If $value >= 90 Then
+	If $value > 100 Then
+		GUICtrlSetData($output_label, "Ошибка в величине статов!")
+		GUICtrlSetBkColor ($output_label, 0xFF0000)
+	ElseIf $value >= 90 Then
 		GUICtrlSetData($output_label, "Качество: " & $value & "% Превосходное!")
 		GUICtrlSetBkColor ($output_label, 0x00FF00)
 	ElseIf $value >= 70 Then
