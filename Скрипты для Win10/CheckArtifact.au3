@@ -8,7 +8,7 @@
 ;НАСТРОЙКИ ПРОГРАММЫ
 AutoItSetOption("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2)
-Local $priority2 = 0.85, $priority3 = 0.7
+Local $priority2 = 0.75, $priority3 = 0.5
 Global $Stats[10] = [1794, 34.8, 114, 34.8, 138, 43.8, 138, 39, 23.4, 46.8]
 
 
@@ -105,8 +105,8 @@ Local $MainWindow = GUICreate("Оценка качества артефакта"
 	Global $slider_array[10] = [$hp_slider, $hpp_slider, $atk_slider, $atkp_slider, $def_slider, $defp_slider, $em_slider, $re_slider, $cr_slider, $cd_slider]
 
 	Local $log_list = GUICtrlCreateEdit("", 370, 10, 350, 405, $ES_MULTILINE + $WS_VSCROLL + $ES_WANTRETURN)
-		GUICtrlSetFont(-1, 12, 1000)
-		GUICtrlSetData($log_list, "Оцениваем артефакты!" & @CRLF & "Смотрим на статы в артефакте, кликаем на галочки приоритетов: Х - стат не нужен, 1 - очень нужен и тд. В открытом поле вводим значение стата числом (для дроби через точку) и жмем 'Оценить'. Для удобства игру лучше открыть в оконном режиме" & @CRLF & @CRLF)
+		GUICtrlSetFont(-1, 11, 1000)
+		GUICtrlSetData($log_list, "Оцениваем артефакты!" & @CRLF & "Для удобства открываем игру в оконном режиме." & @CRLF & @CRLF & "Берем артефакт 20го уровня и смотрим на доп статы. Открываем программу, выставляем приоритеты и величину статов. Кликаем 'Оценить' и получаем качественную оценку данного артефакта." & @CRLF & @CRLF & "Приоритет - субъективная оценка стата в артефакте. Имеющиеся доп. статы в артефакте выставляем по степени нужности: 1 - очень нужен, 3 - не очень нужен. Ненужные статы оставляем в 'Х'." & @CRLF & @CRLF & "Выставить на оценку можно до четырёх статов. Значения вводятся цифрами без знака '%' и через точку (для дробных значений)." & @CRLF & @CRLF & "Все оценки выводятся в это текстовое поле. Записи можно править и сохранить на рабочий стол.")
 
 	Local $output_label = GUICtrlCreateLabel("", 370, 415, 350, 35, $SS_CENTER, $SS_CENTERIMAGE)
 		GUICtrlSetFont(-1, 17, 1000)
@@ -183,6 +183,7 @@ GUISetState()
 
 			Case $save_button
 				FileWrite(@DesktopDir & "\ArtifactQualityChecker.log", GUICtrlRead($log_list))
+				MsgBox(64, "Оценщик артефактов", "Отчет сохранен на рабочий стол", 3000, $MainWindow)
 
 		EndSwitch
 
@@ -198,12 +199,12 @@ Func Check()
 		If GUICtrlRead($slider_array[$i]) <> 0 Then
 
 			If StringRegExp(GUICtrlRead($input_array[$i]), "^([0-9]{1,4})$|^([0-9]{1,2}\.[0-9]{1})$", 0) == 0 Then
-				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Неправильный символ в: " & GUICtrlRead($label_array[$i]) & @CRLF)
+				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Неправильный символ: " & GUICtrlRead($label_array[$i]) & @CRLF)
 				_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 				$flag = 0
 				ExitLoop
 			ElseIf $Stats[$i] < GUICtrlRead($input_array[$i]) Then
-				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Превышение значения в: " & GUICtrlRead($label_array[$i]) & @CRLF)
+				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Превышение значения: " & GUICtrlRead($label_array[$i]) & @CRLF)
 				_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 				$flag = 0
 				ExitLoop
@@ -215,7 +216,8 @@ Func Check()
 
 	Next
 
-	Local $summary = 0, $current = 0
+	Local $summary = 0, $current = 0, $cnt = 0
+	Local $res = 1
 	Local $mult_array[10] = [$hp_mult, $hpp_mult, $atk_mult, $atkp_mult, $def_mult, $defp_mult, $em_mult, $re_mult, $cr_mult, $cd_mult]
 	If $flag == 1 Then
 
@@ -225,18 +227,22 @@ Func Check()
 
 				$current = GUICtrlRead($input_array[$i]) * (100 / $Stats[$i]) * $mult_array[$i]
 				$summary += $current
-				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & GUICtrlRead($label_array[$i]) & ": " & GUICtrlRead($input_array[$i]) & " - " & Round($current / 1.5, 2) & "%")
+				$cnt += 1
+				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & GUICtrlRead($label_array[$i]) & ": " & GUICtrlRead($input_array[$i]) & " - " & Round($current / $res, 2) & "%")
 
 			EndIf
 
 		Next
-		If Round($summary / 1.5, 2) > 100 Then
+		If $cnt == 4 Then $res = 1.5
+		If $cnt == 3 Then $res = 1.3334
+		If $cnt == 2 Then $res = 1.1667
+		If Round($summary / $res, 2) > 100 Then
 			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Итого: Ошибка в величине статов" & @CRLF)
 		Else
-			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Итого: " & Round($summary / 1.5, 2) & @CRLF)
+			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Итого: " & Round($summary / $res, 2) & @CRLF)
 		EndIf
 		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
-		Quality(Round($summary / 1.5))
+		Quality(Round($summary / $res))
 
 	EndIf
 
