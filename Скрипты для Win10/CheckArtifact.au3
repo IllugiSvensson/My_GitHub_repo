@@ -10,6 +10,7 @@ AutoItSetOption("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2)
 Local $priority2 = 0.75, $priority3 = 0.5
 Global $Stats[10] = [1794, 34.8, 114, 34.8, 138, 43.8, 138, 39, 23.4, 46.8]
+Global $count_art = 0, $checked_art = 0, $check = 0
 
 
 
@@ -118,12 +119,17 @@ Local $MainWindow = GUICreate("Оценка качества артефакта"
 		GUICtrlSetFont(-1, 18, 1000)
 	Local $exit_button = GUICtrlCreateButton("Выход", 242, 460, 116, 35)
 		GUICtrlSetFont(-1, 18, 1000)
-	Local $log_button = GUICtrlCreateButton("Очистить", 400, 460, 135, 35)
+	Local $log_button = GUICtrlCreateButton("Очистить", 450, 460, 135, 35)
 		GUICtrlSetFont(-1, 18, 1000)
-	Local $save_button = GUICtrlCreateButton("Сохранить", 555, 460, 135, 35)
+	Local $save_button = GUICtrlCreateButton("Сохранить", 585, 460, 135, 35)
 		GUICtrlSetFont(-1, 18, 1000)
 
 	Global $hp_mult, $hpp_mult, $atk_mult, $atkp_mult, $def_mult, $defp_mult, $em_mult, $re_mult, $cr_mult, $cd_mult
+
+	Global $result_button = GUICtrlCreateButton("✅", 370, 460, 35, 35)
+	GUICtrlSetFont(-1, 18, 1000)
+	Global $clean_result = GUICtrlCreateButton("❌", 410, 460, 35, 35)
+	GUICtrlSetFont(-1, 18, 1000)
 
 GUICtrlSetState($exit_button, $GUI_FOCUS)
 GUISetState()
@@ -177,6 +183,16 @@ GUISetState()
 
 			Case $exit_button
 				Exit 0
+
+			Case $result_button
+				Result()
+
+			Case $clean_result
+				$count_art = 0
+				$checked_art = 0
+				$check = 0
+				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Учет сброшен!" & @CRLF)
+				_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 
 			Case $log_button
 				GUICtrlSetData($log_list, "")
@@ -243,6 +259,7 @@ Func Check()
 		EndIf
 		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 		Quality(Round($summary / $res))
+		$checked_art = Round($summary / $res)
 
 	EndIf
 
@@ -304,6 +321,32 @@ Func Quality($value)
 	Else
 		GUICtrlSetData($output_label, "Качество: " & $value & "% Ужасное")
 		GUICtrlSetBkColor ($output_label, 0xFF0000)
+	EndIf
+
+EndFunc
+
+Func Result()
+
+	If $count_art < 5 And $checked_art <> 0 Then
+
+		$count_art += 1
+		$check = $check + $checked_art
+		$checked_art = 0
+		GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Артефакт учтён, количество: " & $count_art & @CRLF & "Сумма: " & $check & @CRLF)
+		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
+			If $count_art == 5 Then
+
+				Quality($check / 5)
+				$check = 0
+				$count_art = 0
+
+			EndIf
+
+	Else
+
+		GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Оцените артефакт!" & @CRLF)
+		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
+
 	EndIf
 
 EndFunc
