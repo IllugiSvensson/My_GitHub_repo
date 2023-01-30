@@ -29,7 +29,7 @@ Global $duration = 60
 
 
 ;СТАРТ ОКНО И ВЫХОД К ДРУГИМ ОКНАМ
-Local $start_window = GUICreate("Таймер Задач", 500, 750, -1, -1, $WS_DLGFRAME)
+Local $start_window = GUICreate("Таймер Задач", 500, 750, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST)
 	GUICtrlCreatePic($path_to_script & "\Start.jpg", 0, 0, 500, 750)
 	GUICtrlSetState(-1, $GUI_DISABLE)
 
@@ -115,9 +115,11 @@ Global $continue_time = _DateDiff("s", $start_time, _NowCalc())
 Global $sum_intervals = 0
 Local $file = FileRead($profile_path & "\intervals")
 Local $lines = StringSplit($file, @CRLF, 1)
+Local $number
 	For $i = 1 To $lines[0]
 
-		Local $number = StringRegExp($lines[$i], "#[0-9]{1,3}", 3)
+		$number = StringRegExp($lines[$i], "#[0-9]{1,3}", 3)
+		If IsArray($number) == 0 Then ContinueLoop
 		$number = StringTrimLeft($number[0], 1)
 		$sum_intervals = $sum_intervals + $number
 
@@ -126,14 +128,23 @@ Global $remain = TimeCalc(StringRight(StringTrimRight($start_time, 3), 5), $sum_
 For $i = 1 To $lines[0]
 
 	
-	Local $number = StringRegExp($lines[$i], "#[0-9]{1,3}", 3)
+	$number = StringRegExp($lines[$i], "#[0-9]{1,3}", 3)
+	If IsArray($number) == 0 Then ContinueLoop
 	$duration = StringTrimLeft($number[0], 1)
 	$name = StringReplace($lines[$i], $number[0], "")
 	IntervalGUI($past, $name, $duration * 60, $path_to_sound & "\" & $i & ".mp3", $profile_path, $i)
 	$past = $past + $duration
 
 Next
-MsgBox(64, "Таймер Задач", "Интервалы окончены :)", 10)
+SoundPlay("")
+Local $sound
+If FileExists($path_to_sound & "\" & "End.mp3") Then
+	$sound = "End.mp3"
+Else
+	$sound = $i & ".mp3"
+EndIf
+SoundPlay($path_to_sound & "\" & $sound)
+MsgBox(64 + 4096, "Таймер Задач", "Интервалы окончены :)", 10)
 
 
 
@@ -143,21 +154,18 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 
 	If $continue_time < $s_duration Then
 
-		Local $interval_window = GUICreate("Таймер Задач", $resolution_x, $resolution_y, $coordinate_x, $coordinate_y, $WS_DLGFRAME + $WS_MINIMIZEBOX)
+		Local $pic, $pic_count
+		Local $interval_window = GUICreate("Таймер Задач", $resolution_x, $resolution_y, $coordinate_x, $coordinate_y, $WS_DLGFRAME + $WS_MINIMIZEBOX, $WS_EX_TOPMOST)
 			If FileExists($path_to_background & "\1.jpg") == 0 Then FileWrite($path_to_background & "\1.jpg", "")
 			If StringTrimLeft(FileReader($s_profile_path & "\other", "Ресурсы"), 8) == "#1" Then
-
-				Local $pic_count = _FileListToArray($path_to_background, "*.jpg", 1)
-				GUICtrlCreatePic($path_to_background & "\" & Random(1, $pic_count[0], 1) & ".jpg", 0, 0, $resolution_x, $resolution_y)
-
+				$pic_count = _FileListToArray($path_to_background, "*.jpg", 1)
+				$pic = GUICtrlCreatePic($path_to_background & "\" & Random(1, $pic_count[0], 1) & ".jpg", 0, 0, $resolution_x, $resolution_y)
 			Else
-
-				GUICtrlCreatePic($path_to_background & "\" & $nb & ".jpg", 0, 0, $resolution_x, $resolution_y)
-
+				$pic = GUICtrlCreatePic($path_to_background & "\" & $nb & ".jpg", 0, 0, $resolution_x, $resolution_y)
 			EndIf
 				GUICtrlSetState(-1, $GUI_DISABLE)
 
-			Local $interval_window_time_label = GUICtrlCreateLabel(_NowTime(), $position_x, $position_y, 350, 55)
+			Local $interval_window_time_label = GUICtrlCreateLabel(_NowTime(), $position_x, $position_y, 350, 35)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 26, 1000)
 			Local $interval_window_common_progress = GUICtrlCreateProgress($position_x, $position_y + 40, 365, 30, $PBS_SMOOTH)
@@ -174,6 +182,11 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 			Local $interval_window_task_button = GUICtrlCreateButton("Задачи", $position_x + 255, $position_y + 190, 110, 30, $BS_CENTER)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 14, 1000)
+			Local $interval_window_pause_button = GUICtrlCreateButton("⏯", $position_x + 140, $position_y + 190, 30, 30, $BS_CENTER)
+				GUICtrlSetFont(-1, 16, 1000)
+			Local $interval_window_change_button = GUICtrlCreateButton("🔄", $position_x + 195, $position_y + 190, 30, 30, $BS_CENTER)
+				GUICtrlSetFont(-1, 16, 1000)
+			If StringTrimLeft(FileReader($s_profile_path & "\other", "Ресурсы"), 8) == "#0" Then GUICtrlSetState($interval_window_change_button, $GUI_DISABLE)
 
 		GUISetState()
 
@@ -191,10 +204,35 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 					Case $interval_window_exit_button
 						Exit 0
 
+					Case $interval_window_change_button
+						GUICtrlDelete($pic)
+						$pic = GUICtrlCreatePic($path_to_background & "\" & Random(1, $pic_count[0], 1) & ".jpg", 0, 0, $resolution_x, $resolution_y)
+						GUICtrlSetState($interval_window, $GUI_DISABLE)
+						GUICtrlSetState($interval_window_time_label, $GUI_ONTOP)
+						GUICtrlSetState($interval_window_remain_label, $GUI_ONTOP)
+
+					Case $interval_window_pause_button
+						If GUICtrlRead($interval_window_pause_button) == "⏯" Then
+
+							GUICtrlSetData($interval_window_pause_button, "▶️")
+
+						ElseIf GUICtrlRead($interval_window_pause_button) == "▶️" Then
+
+							GUICtrlSetData($interval_window_pause_button, "⏯")
+
+						EndIf
+
 					Case $interval_window_task_button
 						Tasks($interval_window, $s_profile_path)
 
 					Case Else
+						;If GUICtrlRead($interval_window_pause_button) == "▶️" Then
+						;	$p_count = _DateDiff("n", $p_cnt, _NowCalc())
+						;	$g_count = _DateDiff("s", $go_time, _NowCalc()) + $continue
+						;Else
+						;	$p_count = 0
+						;	$g_count = 0
+						;EndIf
 						If $cnt == 20 Then
 
 							$stm = _DateDiff("n", $start_time, _NowCalc())
@@ -222,7 +260,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 								$cnt = 0
 
 						EndIf
-						$cnt = $cnt + 1
+						$cnt += 1
 						sleep(25)
 
 				EndSwitch
@@ -339,12 +377,10 @@ Func Settings($s_start_window, $s_profile_path)
 				FileWrite($file, GUICtrlRead($settings_window_edit_profiles))
 				FileClose($file)
 					MsgBox(64, "Таймер Задач", "Сохранено", 3, $settings_window)
-					GUICtrlSetData($profile_combo, "")
 					Dim $Array
 					_FileReadToArray($path_to_script & "\_profiles", $Array)
 					For $i = 1 To $Array[0]
 
-						GUICtrlSetData($profile_combo, $Array[$i], $Array[1])
 						DirCreate($path_to_profiles & "\" & $Array[$i])
 						DirCreate($path_to_profiles & "\" & $Array[$i] & "\background")
 						DirCreate($path_to_profiles & "\" & $Array[$i] & "\sound")
@@ -503,9 +539,19 @@ Func TimeCalc($now, $num, $op)
 		EndIf
 
 	EndIf
+	If $Hnum >= 24 Then
+
+		$Hnum -= 24
+
+	ElseIf $Hnum <= 0 Then
+
+		$Hnum += 24
+
+	EndIf
 	Return $Hnum & ":" & $Mnum
 
 EndFunc
+
 
 Func _URIEncode($sData)
 
