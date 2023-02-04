@@ -22,7 +22,7 @@ Const $path_to_profiles = $path_to_script & "\Profiles"
 Global $profile_path = $path_to_profiles
 Global $path_to_background = @ScriptDir & "\background"
 Global $path_to_sound = @ScriptDir & "\sound"
-Global $past = 0
+Global $past = 0, $file
 Global $name = "Таймер"
 Global $duration = 60
 
@@ -68,15 +68,20 @@ While true
 	Switch GUIGetMsg()
 
 		Case $start_button
-			Local $file = FileOpen($path_to_script & "\time", 2)
+			$file = FileOpen($path_to_script & "\time", 2)
 			FileWrite($file, _NowCalc())
 			FileClose($file)
 			Global $start_time = _NowCalc()
+			$file = FileOpen($path_to_script & "\pause", 2)
+			FileWrite($path_to_script & "\pause", 0)
+			FileClose($file)
+			Global $p_count = FileRead($path_to_script & "\pause")
 			ExitLoop
 
 		Case $continue_button
 			If FileExists($path_to_script & "\time") == 0 Then FileWrite($path_to_script & "\time", "2022/08/24 10:00:00")
 			Global $start_time = FileRead($path_to_script & "\time")
+			Global $p_count = FileRead($path_to_script & "\pause")
 			ExitLoop
 
 		Case $settings_button
@@ -113,7 +118,7 @@ Global $position_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path
 ;СТАРТ ИНТЕРВАЛОВ ВРЕМЕНИ
 Global $continue_time = _DateDiff("s", $start_time, _NowCalc())
 Global $sum_intervals = 0
-Local $file = FileRead($profile_path & "\intervals")
+$file = FileRead($profile_path & "\intervals")
 Local $lines = StringSplit($file, @CRLF, 1)
 Local $number
 	For $i = 1 To $lines[0]
@@ -152,7 +157,7 @@ MsgBox(64 + 4096, "Таймер Задач", "Интервалы окончен�
 
 Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 
-	If $continue_time < $s_duration Then
+	If $continue_time - $p_count < $s_duration Then
 
 		Local $pic, $pic_count
 		Local $interval_window = GUICreate("Таймер Задач", $resolution_x, $resolution_y, $coordinate_x, $coordinate_y, $WS_DLGFRAME + $WS_MINIMIZEBOX, $WS_EX_TOPMOST)
@@ -165,7 +170,10 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 			EndIf
 				GUICtrlSetState(-1, $GUI_DISABLE)
 
-			Local $interval_window_time_label = GUICtrlCreateLabel(_NowTime(), $position_x, $position_y, 350, 35)
+			Local $interval_window_t_label = GUICtrlCreatelabel(_NowTime(), $position_x, $position_y, 150, 35)
+				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+				GUICtrlSetFont(-1, 26, 1000)
+			Local $interval_window_time_label = GUICtrlCreateLabel("", $position_x + 180, $position_y, 175, 35)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 26, 1000)
 			Local $interval_window_common_progress = GUICtrlCreateProgress($position_x, $position_y + 40, 365, 30, $PBS_SMOOTH)
@@ -182,9 +190,11 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 			Local $interval_window_task_button = GUICtrlCreateButton("Задачи", $position_x + 255, $position_y + 190, 110, 30, $BS_CENTER)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 14, 1000)
-			Local $interval_window_pause_button = GUICtrlCreateButton("⏯", $position_x + 140, $position_y + 190, 30, 30, $BS_CENTER)
+			Local $interval_window_pause_button = GUICtrlCreateButton("⏯", $position_x + 120, $position_y + 190, 55, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
-			Local $interval_window_change_button = GUICtrlCreateButton("🔄", $position_x + 195, $position_y + 190, 30, 30, $BS_CENTER)
+			Local $interval_window_change_button = GUICtrlCreateButton("🔄", $position_x + 180, $position_y + 190, 30, 30, $BS_CENTER)
+				GUICtrlSetFont(-1, 16, 1000)
+			Local $interval_window_hide_button = GUICtrlCreateButton("_", $position_x + 215, $position_y + 190, 30, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
 			If StringTrimLeft(FileReader($s_profile_path & "\other", "Ресурсы"), 8) == "#0" Then GUICtrlSetState($interval_window_change_button, $GUI_DISABLE)
 
@@ -196,51 +206,67 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 			Local $continue = $continue_time
 			$continue_time = 0
 			Local $go_time = _NowCalc(), $cnt = 0, $stm = 0, $gtm = 0
+			Global $s_count = 0, $p
 			Dim $Array
-			While _DateDiff("s", $go_time, _NowCalc()) + $continue < $s_duration
+			While _DateDiff("s", $go_time, _NowCalc()) + $continue - $p_count < $s_duration
 
 				Switch GUIGetMsg()
 
 					Case $interval_window_exit_button
+						$file = FileOpen($path_to_script & "\pause", 2)
+						FileWrite($file, $p_count)
+						FileClose($file)
 						Exit 0
 
 					Case $interval_window_change_button
-						GUICtrlDelete($pic)
-						$pic = GUICtrlCreatePic($path_to_background & "\" & Random(1, $pic_count[0], 1) & ".jpg", 0, 0, $resolution_x, $resolution_y)
-						GUICtrlSetState($interval_window, $GUI_DISABLE)
-						GUICtrlSetState($interval_window_time_label, $GUI_ONTOP)
-						GUICtrlSetState($interval_window_remain_label, $GUI_ONTOP)
+						GUICtrlSetImage($pic, $path_to_background & "\" & Random(1, $pic_count[0], 1) & ".jpg")
 
 					Case $interval_window_pause_button
 						If GUICtrlRead($interval_window_pause_button) == "⏯" Then
 
 							GUICtrlSetData($interval_window_pause_button, "▶️")
+							GUICtrlSetData($interval_window_name_label, "ПАУЗА")
+							GUICtrlSetColor($interval_window_name_label, 0xFF0000)
+							$s_count = _NowCalc()
+							$p = FileRead($path_to_script & "\pause")
 
 						ElseIf GUICtrlRead($interval_window_pause_button) == "▶️" Then
 
 							GUICtrlSetData($interval_window_pause_button, "⏯")
+							GUICtrlSetData($interval_window_name_label, $s_name)
+							GUICtrlSetColor($interval_window_name_label, 0x000000)
+							$file = FileOpen($path_to_script & "\pause", 2)
+							FileWrite($file, $p_count)
+							FileClose($file)
 
 						EndIf
+
+					Case $interval_window_hide_button
+						GUISetState(@SW_MINIMIZE)
 
 					Case $interval_window_task_button
 						Tasks($interval_window, $s_profile_path)
 
 					Case Else
-						;If GUICtrlRead($interval_window_pause_button) == "▶️" Then
-						;	$p_count = _DateDiff("n", $p_cnt, _NowCalc())
-						;	$g_count = _DateDiff("s", $go_time, _NowCalc()) + $continue
-						;Else
-						;	$p_count = 0
-						;	$g_count = 0
-						;EndIf
 						If $cnt == 20 Then
 
-							$stm = _DateDiff("n", $start_time, _NowCalc())
-							$gtm = _DateDiff("s", $go_time, _NowCalc()) + $continue
-							GUICtrlSetData($interval_window_common_progress, (100 / $sum_intervals) * $stm)
-							GUICtrlSetData($interval_window_time_label, _NowTime() & "   " & $sum_intervals - Int($gtm / 60) - $s_past & "   " & $remain)
-							GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm)
-							GUICtrlSetData($interval_window_remain_label, Int($gtm / 60) & " из " & Int($s_duration / 60) & " минут")
+
+							If GUICtrlRead($interval_window_pause_button) == "▶️" Then
+
+								$p_count = _DateDiff("s", $s_count, _NowCalc()) + $p
+								GUICtrlSetData($interval_window_name_label, "ПАУЗА    " & Int($p_count / 60) & ":" & Mod($p_count, 60))
+
+							Else
+
+								$stm = _DateDiff("s", $start_time, _NowCalc()) - $p_count
+								$gtm = _DateDiff("s", $go_time, _NowCalc()) + $continue - $p_count
+								GUICtrlSetData($interval_window_common_progress, (100 / $sum_intervals) * ($stm / 60))
+								GUICtrlSetData($interval_window_time_label, $sum_intervals - Int($gtm / 60) - $s_past & "     " & $remain)
+								GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm)
+								GUICtrlSetData($interval_window_remain_label, Int($gtm / 60) & " из " & Int($s_duration / 60) & " минут")
+
+							EndIf
+							GUICtrlSetData($interval_window_t_label, _NowTime())
 								For $k = 10 To 2 Step -2
 
 									Local $task = TimeCalc(_NowTime(4), $k, 0)
@@ -551,7 +577,6 @@ Func TimeCalc($now, $num, $op)
 	Return $Hnum & ":" & $Mnum
 
 EndFunc
-
 
 Func _URIEncode($sData)
 
