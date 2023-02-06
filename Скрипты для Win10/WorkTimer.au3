@@ -173,7 +173,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 			Local $interval_window_t_label = GUICtrlCreatelabel(_NowTime(), $position_x, $position_y, 150, 35)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 26, 1000)
-			Local $interval_window_time_label = GUICtrlCreateLabel("", $position_x + 180, $position_y, 175, 35)
+			Local $interval_window_time_label = GUICtrlCreateLabel("", $position_x + 155, $position_y, 190, 35)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 26, 1000)
 			Local $interval_window_common_progress = GUICtrlCreateProgress($position_x, $position_y + 40, 365, 30, $PBS_SMOOTH)
@@ -261,7 +261,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 								$stm = _DateDiff("s", $start_time, _NowCalc()) - $p_count
 								$gtm = _DateDiff("s", $go_time, _NowCalc()) + $continue - $p_count
 								GUICtrlSetData($interval_window_common_progress, (100 / $sum_intervals) * ($stm / 60))
-								GUICtrlSetData($interval_window_time_label, $sum_intervals - Int($gtm / 60) - $s_past & "     " & $remain)
+								GUICtrlSetData($interval_window_time_label, $sum_intervals - Int($gtm / 60) - $s_past & "    " & $remain)
 								GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm)
 								GUICtrlSetData($interval_window_remain_label, Int($gtm / 60) & " из " & Int($s_duration / 60) & " минут")
 
