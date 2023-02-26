@@ -76,17 +76,12 @@ While true
 			FileWrite($path_to_script & "\pause", 0)
 			FileClose($file)
 			Global $p_count = 0
-			;$file = FileOpen($path_to_script & "\skip", 2)
-			;FileWrite($path_to_script & "\skip", 0)
-			;FileClose($file)
-			;Global $p_skip = 0
 			ExitLoop
 
 		Case $continue_button
 			If FileExists($path_to_script & "\time") == 0 Then FileWrite($path_to_script & "\time", "2022/08/24 10:00:00")
 			Global $start_time = FileRead($path_to_script & "\time")
 			Global $p_count = FileRead($path_to_script & "\pause")
-			;Global $p_skip = FileRead($path_to_script & "\skip")
 			ExitLoop
 
 		Case $settings_button
@@ -211,7 +206,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 			Local $continue = $continue_time
 			$continue_time = 0
 			Local $go_time = _NowCalc(), $cnt = 0, $stm = 0, $gtm = 0
-			Global $s_count = 0, $p, $f
+			Global $s_count = 0, $p, $p_time
 			Dim $Array
 			While _DateDiff("s", $go_time, _NowCalc()) + $continue - $p_count < $s_duration
 
@@ -221,9 +216,6 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 						$file = FileOpen($path_to_script & "\pause", 2)
 						FileWrite($file, $p_count)
 						FileClose($file)
-						;$file = FileOpen($path_to_script & "\skip", 2)
-						;FileWrite($file, $p_skip)
-						;FileClose($file)
 						Exit 0
 
 					Case $interval_window_change_button
@@ -237,6 +229,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 							GUICtrlSetData($interval_window_name_label, "ПАУЗА")
 							GUICtrlSetColor($interval_window_name_label, 0xFF0000)
 							$s_count = _NowCalc()
+							$p_time = _NowCalc()
 							$p = FileRead($path_to_script & "\pause")
 
 						ElseIf GUICtrlRead($interval_window_pause_button) == "▶️" Then
@@ -252,17 +245,10 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 						EndIf
 
 					Case $interval_skip_button
-;						$p_skip = $s_duration - _DateDiff("s", $go_time, _NowCalc()) - $continue
-;						$p_count = 0
-;						$f = FileRead($path_to_script & "\skip")
-;						$file = FileOpen($path_to_script & "\skip", 2)
-;						FileWrite($file, $p_skip + $f)
-;						FileClose($file)
-;						$file = FileOpen($path_to_script & "\pause", 2)
-;						FileWrite($file, 0)
-;						FileClose($file)
-;						$p_skip = FileRead($path_to_script & "\skip")
-;						ExitLoop
+						$p_count = _DateDiff("s", $go_time, _NowCalc()) + $continue - $s_duration
+						$file = FileOpen($path_to_script & "\pause", 2)
+						FileWrite($file, $p_count)
+						FileClose($file)
 
 					Case $interval_window_hide_button
 						GUISetState(@SW_MINIMIZE)
@@ -277,14 +263,14 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 							If GUICtrlRead($interval_window_pause_button) == "▶️" Then
 
 								$p_count = _DateDiff("s", $s_count, _NowCalc()) + $p
-								GUICtrlSetData($interval_window_name_label, "ПАУЗА    " & Int($p_count / 60) & ":" & Mod($p_count, 60))
+								GUICtrlSetData($interval_window_name_label, "ПАУЗА    " & _DateDiff("n", $p_time, _NowCalc()) & ":" & Mod(_DateDiff("s", $p_time, _NowCalc()), 60))
 
 							Else
 
 								$stm = _DateDiff("s", $start_time, _NowCalc()) - $p_count
 								$gtm = _DateDiff("s", $go_time, _NowCalc()) + $continue - $p_count
 								GUICtrlSetData($interval_window_common_progress, (100 / $sum_intervals) * ($stm / 60))
-								GUICtrlSetData($interval_window_time_label, $sum_intervals - Int($gtm / 60) - $s_past & "    " & TimeCalc($remain, Int($p_count / 60), 0))
+								GUICtrlSetData($interval_window_time_label, $sum_intervals - Int($gtm / 60) - $s_past & "   " & TimeCalc($remain, Int($p_count / 60), 0))
 								GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm)
 								GUICtrlSetData($interval_window_remain_label, Int($gtm / 60) & " из " & Int($s_duration / 60) & " минут")
 
@@ -523,6 +509,10 @@ EndFunc
 
 Func TimeCalc($now, $num, $op)
 
+	If $num < 0 Then
+		$op = 1
+		$num = -1 * $num
+	EndIf
 	Local $hours = StringLeft($now, 2)
 	Local $minutes = StringRight($now, 2)
 	Local $Hnum = Int($num / 60)
