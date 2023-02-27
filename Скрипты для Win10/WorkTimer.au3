@@ -32,10 +32,12 @@ Global $duration = 60
 Local $start_window = GUICreate("Таймер Задач", 500, 750, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST)
 	GUICtrlCreatePic($path_to_script & "\Start.jpg", 0, 0, 500, 750)
 	GUICtrlSetState(-1, $GUI_DISABLE)
-
 	Local $start_window_label = GUICtrlCreateLabel("Начнем работу?", 75, 215, 350, 50, $SS_CENTER)
 		GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 		GUICtrlSetFont(-1, 25, 1000)
+	Local $time_label = GUICtrlCreateLabel(_NowTime(), 162, 255, 175, 30, $SS_CENTER)
+		GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+		GUICtrlSetFont(-1, 20, 1000)	
 	Local $start_button = GUICtrlCreateButton("Начнем", 162, 290, 175, 40)
 		GUICtrlSetFont(-1, 20, 1000)
 	Local $continue_button = GUICtrlCreateButton("Продолжить", 162, 330, 175, 40)
@@ -63,8 +65,13 @@ Local $start_window = GUICreate("Таймер Задач", 500, 750, -1, -1, $WS
 		Next
 
 GUISetState()
+Local $c = 0
 While true
 
+	If $c == 20 Then
+		GUICtrlSetData($time_label, _NowTime())
+		$c = 0
+	EndIf
 	Switch GUIGetMsg()
 
 		Case $start_button
@@ -94,6 +101,8 @@ While true
 			Exit 0
 
 	EndSwitch
+	$c += 1
+	Sleep(25)
 
 WEnd
 $profile_path = $profile_path & "\" & GUICtrlRead($profile_combo)
@@ -190,12 +199,16 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 				GUICtrlSetFont(-1, 14, 1000)
 			Local $interval_window_pause_button = GUICtrlCreateButton("⏯", $position_x + 107, $position_y + 190, 30, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
+				GUICtrlSetTip(-1, "Остановить интервал", "", 2, 3)
 			Local $interval_skip_button = GUICtrlCreateButton("⏭️", $position_x + 147, $position_y + 190, 30, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
+				GUICtrlSetTip(-1, "Пропустить интервал", "", 2, 3)
 			Local $interval_window_change_button = GUICtrlCreateButton("🔄", $position_x + 187, $position_y + 190, 30, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
+				GUICtrlSetTip(-1, "Сменить фон", "", 2, 3)
 			Local $interval_window_hide_button = GUICtrlCreateButton("_", $position_x + 227, $position_y + 190, 30, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
+				GUICtrlSetTip(-1, "Свернуть", "", 2, 3)
 			If StringTrimLeft(FileReader($s_profile_path & "\other", "Ресурсы"), 8) == "#0" Then GUICtrlSetState($interval_window_change_button, $GUI_DISABLE)
 
 		GUISetState()
@@ -272,7 +285,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 								GUICtrlSetData($interval_window_common_progress, (100 / $sum_intervals) * ($stm / 60))
 								GUICtrlSetData($interval_window_time_label, $sum_intervals - Int($gtm / 60) - $s_past & "   " & TimeCalc($remain, Int($p_count / 60), 0))
 								GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm)
-								GUICtrlSetData($interval_window_remain_label, Int($gtm / 60) & " из " & Int($s_duration / 60) & " минут")
+								GUICtrlSetData($interval_window_remain_label, Int($gtm / 60) & " из " & Int($s_duration / 60) & " мин.  " &  Int($gtm / 60) + $s_past)
 
 							EndIf
 							GUICtrlSetData($interval_window_t_label, _NowTime())
