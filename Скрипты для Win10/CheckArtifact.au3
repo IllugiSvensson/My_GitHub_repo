@@ -262,6 +262,12 @@ Func Check()
 		$checked_art = Round($summary / $res)
 
 	EndIf
+	For $i = 0 To 9
+
+		GUICtrlSetData($slider_array[$i], 0)
+		GUICtrlSetState($input_array[$i], $GUI_DISABLE)
+
+	Next
 
 EndFunc
 
