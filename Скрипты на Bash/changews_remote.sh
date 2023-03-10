@@ -91,7 +91,7 @@ fi
 function MakeDialogWindow {		#Создание диалогового окна
 
 	#Собираем окно из отдельных элементов
-	ListItem="zenity --title=\"Смена роли рабочего места\" --height=350 --width=350 --list --text=\"$1\" $2 --ok-label=\"Применить\" --cancel-label=\"Выход\"" 2>/dev/null
+	ListItem="zenity --title=\"Смена роли рабочего места\" --height=505 --width=455 --list --text=\"$1\" $2 --ok-label=\"Применить\" --cancel-label=\"Выход\"" 2>/dev/null
 	for item in $3				#Добавляем в список соответствующие элементы
 	do
 
@@ -396,8 +396,24 @@ Xml=`echo $Xml ZIP.xml | sed 's/.xml//g'`	#Список доступных пр�
 		echo `cat $DATA/CWR_offline.txt` >$DATA/CWR_offline.txt	#Транспонируем таблицу в список
 		HostsOffline=`cat $DATA/CWR_offline.txt`				#Cохраняем списки хостов
 		#Окно имеет смысл, только для разворачивания локального компьютера вручную
-		MakeDialogWindow "Задайте роль для этого компьютера." "--column=\"Роль\" --column=\"Описание\"" "$HostsOffline" $DATA/CWR_offline.txt
+		MakeDialogWindow "Задайте роль для этого компьютера." "--column=\"Роль\" --column=\"Описание\"" "$HostsOffline" $DATA/CWR_offline.txt --extra-button="Выключение"
 		ROLE=`cat $DATA/CWR_offline.txt`
+		if [ $ROLE == "Выключение" ]
+		then
+
+			zenity --question --width=200 --title="Смена роли рабочего места" --text="Выключить компьютер ZIP?" --ok-label="Выключить" --cancel-label="Отмена"  2>/dev/null
+			if [ $? == 0 ]
+			then
+
+				poweroff
+
+			else
+
+				ROLE=""
+
+			fi
+
+		fi
 		CancelButtonClicked $ROLE
 		[ -z "$ROLE" ] || {			#Если роль выбрана спрашиваем, применить или нет
 
@@ -452,8 +468,34 @@ do
 		echo `cat $DATA/CWR_online.txt` >$DATA/CWR_online.txt
 		HostsOnline=`cat $DATA/CWR_online.txt`
 		#Выбираем хост
-		MakeDialogWindow "Выберите доступный компьютер." "--column=\"Имя\" --column=\"Описание\"" "$HostsOnline" $DATA/CWR_online.txt --extra-button="Назад"
+		if [ $PRODUCT == ZIP -a ZIP == `echo $HostsOnline | egrep -o ZIP` ]
+		then
+
+			MakeDialogWindow "Выберите доступный компьютер." "--column=\"Имя\" --column=\"Описание\"" "$HostsOnline" $DATA/CWR_online.txt "--extra-button=Назад --extra-button=Выключение"
+
+		else
+
+			MakeDialogWindow "Выберите доступный компьютер." "--column=\"Имя\" --column=\"Описание\"" "$HostsOnline" $DATA/CWR_online.txt --extra-button=Назад
+
+		fi
 		HOST=`cat $DATA/CWR_online.txt`
+			if [ $HOST == "Выключение" ]
+			then
+
+				zenity --question --width=200 --title="Смена роли рабочего места" --text="Выключить компьютер ZIP?" --ok-label="Выключить" --cancel-label="Отмена"  2>/dev/null
+				if [ $? == 0 ]
+				then
+
+					ssh $XMLaddr poweroff
+					HOST="Назад"
+
+				else
+
+					HOST="Назад"
+
+				fi
+
+			fi
 		CancelButtonClicked $HOST
 		[ $HOST == "Назад" ] && { continue; }		#Возвращаемся назад в пункт меню
 		break
@@ -568,8 +610,19 @@ do
 						if [ "$ok" == 0 ]		#Если пинганули, настраиваем оборудование
 						then
 
-							zenity --info --title="Успех" --ellipsize --text="Компьютер $HOSTtext принял роль $ROLE." --timeout=3 2>/dev/null
-							break
+							if [ $ROLE == ZIP ]
+							then
+
+								zenity --question --title="Успех" --width=200 --text="Компьютер $HOSTtext принял роль $ROLE.\nВыключить удаленный компьютер?" --ok-label="Выключить" --cancel-label="Отмена"  --ellipsize 2>/dev/null
+								[ $? == 0 ] && { ssh $o poweroff; }
+								break
+
+							else
+
+								zenity --info --title="Успех" --ellipsize --text="Компьютер $HOSTtext принял роль $ROLE." --timeout=3 2>/dev/null
+								break
+
+							fi
 
 						elif [ $TIME -gt 300 ]
 						then
