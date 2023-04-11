@@ -1,1 +1,3 @@
-/home/sad/Рабочий стол/Проекты на С++/categorizer/build/CMakeFiles/categorizer.dir
+/home/sad/Desktop/Projects/Cpp_Prj/categorizer/build/CMakeFiles/rebuild_cache.dir
+/home/sad/Desktop/Projects/Cpp_Prj/categorizer/build/CMakeFiles/edit_cache.dir
+/home/sad/Desktop/Projects/Cpp_Prj/categorizer/build/CMakeFiles/categorizer.dir

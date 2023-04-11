@@ -1,1 +1,1 @@
-/usr/bin/c++       CMakeFiles/categorizer.dir/src/categorizer.cpp.o  -o categorizer -rdynamic 
+/usr/bin/c++    -rdynamic CMakeFiles/categorizer.dir/src/categorizer.cpp.o  -o categorizer 
