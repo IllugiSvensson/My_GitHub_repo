@@ -285,7 +285,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 								GUICtrlSetData($interval_window_common_progress, (100 / $sum_intervals) * ($stm / 60))
 								GUICtrlSetData($interval_window_time_label, $sum_intervals - Int($gtm / 60) - $s_past & "   " & TimeCalc($remain, Int($p_count / 60), 0))
 								GUICtrlSetData($interval_window_local_progress, (100 / $s_duration) * $gtm)
-								GUICtrlSetData($interval_window_remain_label, Int($gtm / 60) & " из " & Int($s_duration / 60) & " " &  Int($gtm / 60) + $s_past & "/" & Int($gtm / 60) + $s_past - Int($p_count / 60))
+								GUICtrlSetData($interval_window_remain_label, Int($gtm / 60) & " из " & Int($s_duration / 60) & "м " &  Int($gtm / 60) + $s_past & "/" & Int((_DateDiff("s", $start_time, _NowCalc())) / 60))
 
 							EndIf
 							GUICtrlSetData($interval_window_t_label, _NowTime())
