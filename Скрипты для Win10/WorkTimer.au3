@@ -9,11 +9,9 @@
 #include <Date.au3>
 
 
-
 ;НАСТРОЙКИ ПРОГРАММЫ
 AutoItSetOption("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2)
-
 
 
 ;ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И КОНСТАНТЫ
@@ -128,7 +126,7 @@ Global $position_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path
 Global $continue_time = _DateDiff("s", $start_time, _NowCalc())
 Global $sum_intervals = 0
 $file = FileRead($profile_path & "\intervals")
-Local $lines = StringSplit($file, @CRLF, 1)
+Global $lines = StringSplit($file, @CRLF, 1)
 Local $number
 	For $i = 1 To $lines[0]
 
@@ -267,7 +265,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 						GUISetState(@SW_MINIMIZE)
 
 					Case $interval_window_task_button
-						Tasks($interval_window, $s_profile_path)
+						Tasks($interval_window, $s_profile_path, Int($gtm / 60) + $s_past)
 
 					Case Else
 						If $cnt == 20 Then
@@ -325,7 +323,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 
 EndFunc
 
-Func Tasks($s_interval_window, $ss_profile_path)
+Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 
 	Local $task_window = GUICreate("Таймер Задач", 300, 550, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST, $s_interval_window)
 	
@@ -335,6 +333,8 @@ Func Tasks($s_interval_window, $ss_profile_path)
 		Local $task_window_accept_button = GUICtrlCreateButton("Сохранить", 10, 485, 110, 30)
 			GUICtrlSetFont(-1, 14, 1000)
 		Local $task_window_exit_button = GUICtrlCreateButton("Отмена", 180, 485, 110, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+		Local $task_window_remain_time = GUICtrlCreateButton("⏱", 135, 485, 30, 30)
 			GUICtrlSetFont(-1, 14, 1000)
 
 	GUISetState()
@@ -347,6 +347,30 @@ Func Tasks($s_interval_window, $ss_profile_path)
 				FileWrite($file, GUICtrlRead($task_window_edit))
 				FileClose($file)
 				ExitLoop
+
+			Case $task_window_remain_time
+				Local $name = "", $time = 0, $text = "", $com = $s_com
+				For $i = 1 To $lines[0]
+
+					$name = StringRegExpReplace($lines[$i], "#[0-9]{1,3}", "")
+					$time = StringRegExp($lines[$i], "[0-9]{1,3}", 3)
+					If $time[0] < $com Then
+
+						$com = $com - $time[0]
+
+					ElseIf $time[0] > $com Then
+
+						$text = $text & $name & " " & $time[0] - $com & @CRLF
+						$com = 0
+
+					Else
+
+						$text = $text & $name & " " & $time[0] & @CRLF
+
+					EndIf
+
+				Next
+				MsgBox(64, "Остаток времени", $text, 0, $task_window)
 
 			Case $task_window_exit_button
 				ExitLoop
