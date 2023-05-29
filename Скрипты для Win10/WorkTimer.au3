@@ -297,7 +297,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 										SoundPlay("")
 										SoundPlay($s_sound)
 										MsgBox(48 + 262144, "Таймер Задач", "Событие через " & $k & " минут(ы)!" & @CRLF & $st, 3)
-										Tasks($interval_window, $s_profile_path)
+										Tasks($interval_window, $s_profile_path, Int($gtm / 60) + $s_past)
 										ExitLoop
 
 									EndIf
