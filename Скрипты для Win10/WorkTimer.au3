@@ -318,9 +318,9 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 								$cnt = 0
 
 						EndIf
+						$cnt += 1
 
 				EndSelect
-				$cnt += 1
 				$cc += 1
 				Sleep(25)
 				$msg = GUIGetMsg()
@@ -671,7 +671,7 @@ EndFunc
 Func BotMsg($_TXT, $BotKey, $ChatId)
 
 	Local $sText = _URIEncode($_TXT)
-	ConsoleWrite(InetRead('https://api.telegram.org/' & $BotKey & '/sendMessage?chat_id=' & $ChatId & '&text=' & $sText, 0))
+	ConsoleWrite(InetRead('https://api.telegram.org/' & $BotKey & '/sendMessage?chat_id=' & $ChatId & '&text=' & $sText, 17))
 
 EndFunc
 
@@ -688,15 +688,6 @@ Func FileReader($pathToFile, $sSearchText)
 			EndIf
 
 		Next
-
-EndFunc
-
-Func GetUpdates($BotKey, $ChatId)
-
-	local $website = 'https://api.telegram.org/' & $BotKey & '/getUpdates?chat_id=' & $ChatId & '&limit=1&offset=-1'
-	local $lstmsg = BinaryToString(InetRead($website, 17), 4)
-	Local $msg = StringRegExp($lstmsg, 'date\":\d{1,},\"text\":\"\w{1,}[:]{0,}\w{0,}', 3)
-	Return $msg[0]
 
 EndFunc
 
