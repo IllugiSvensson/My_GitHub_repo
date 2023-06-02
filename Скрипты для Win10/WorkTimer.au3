@@ -4,6 +4,7 @@
 #include <ButtonConstants.au3>
 #include <EditConstants.au3>
 #include <GUIConstants.au3>
+#include <GuiComboBox.au3>
 #include <Array.au3>
 #include <File.au3>
 #include <Date.au3>
@@ -23,7 +24,6 @@ Global $path_to_sound = @ScriptDir & "\sound"
 Global $past = 0, $file
 Global $name = "Таймер"
 Global $duration = 60
-
 
 
 ;СТАРТ ОКНО И ВЫХОД К ДРУГИМ ОКНАМ
@@ -46,7 +46,7 @@ Local $start_window = GUICreate("Таймер Задач", 500, 750, -1, -1, $WS
 		GUICtrlSetFont(-1, 20, 1000)
 	Local $exit_button = GUICtrlCreateButton("Выход", 162, 450, 175, 40)
 		GUICtrlSetFont(-1, 20, 1000)
-	Local $profile_combo = GUICtrlCreateCombo("", 162, 680, 175, 50, $CBS_DROPDOWNLIST + $WS_VSCROLL)
+	Global $profile_combo = GUICtrlCreateCombo("", 162, 680, 175, 50, $CBS_DROPDOWNLIST + $WS_VSCROLL)
 		GUICtrlSetFont(-1, 20, 1000)
 		Dim $Array
 		If FileExists($path_to_script & "\_profiles") == 0 Then
@@ -63,16 +63,24 @@ Local $start_window = GUICreate("Таймер Задач", 500, 750, -1, -1, $WS
 		Next
 
 GUISetState()
-Local $c = 0
+	If FileExists($path_to_script & "\command") == 0 Then
+		FileWrite($path_to_script & "\command", 'date":1685611930,"text":"Profile:Work')
+	EndIf
+Local $c = 0, $msg = GUIGetMsg(), $cc = 0
+Global $tele_bot_key = StringTrimLeft(FileReader($profile_path & "\" & GUICtrlRead($profile_combo) & "\other", "Бот"), 4)
+Global $tele_chat_id = StringTrimLeft(FileReader($profile_path & "\" & GUICtrlRead($profile_combo) & "\other", "Чат"), 4)
 While true
 
 	If $c == 20 Then
 		GUICtrlSetData($time_label, _NowTime())
 		$c = 0
 	EndIf
-	Switch GUIGetMsg()
-
-		Case $start_button
+	If $cc == 80 Then
+		$msg = Commands(FileRead($path_to_script & "\command"), $tele_bot_key, $tele_chat_id)
+		$cc = 0
+	EndIf
+	Select
+		Case $msg = $start_button
 			$file = FileOpen($path_to_script & "\time", 2)
 			FileWrite($file, _NowCalc())
 			FileClose($file)
@@ -83,24 +91,25 @@ While true
 			Global $p_count = 0
 			ExitLoop
 
-		Case $continue_button
+		Case $msg = $continue_button
 			If FileExists($path_to_script & "\time") == 0 Then FileWrite($path_to_script & "\time", "2022/08/24 10:00:00")
 			Global $start_time = FileRead($path_to_script & "\time")
 			Global $p_count = FileRead($path_to_script & "\pause")
 			ExitLoop
 
-		Case $settings_button
+		Case $msg = $settings_button
 			Settings($start_window, $profile_path & "\" & GUICtrlRead($profile_combo))
 
-		Case $info_button
+		Case $msg = $info_button
 			Info($start_window)
 
-		Case $exit_button
+		Case $msg = $exit_button
 			Exit 0
-
-	EndSwitch
+	EndSelect
 	$c += 1
+	$cc += 1
 	Sleep(25)
+	$msg = GUIGetMsg()
 
 WEnd
 $profile_path = $profile_path & "\" & GUICtrlRead($profile_combo)
@@ -111,8 +120,8 @@ GUIDelete($start_window)
 
 
 ;ЗАЧИТЫВАНИЕ НАСТРОЕК
-Global $tele_bot_key = StringTrimLeft(FileReader($profile_path & "\other", "Бот"), 4)
-Global $tele_chat_id = StringTrimLeft(FileReader($profile_path & "\other", "Чат"), 4)
+$tele_bot_key = StringTrimLeft(FileReader($profile_path & "\other", "Бот"), 4)
+$tele_chat_id = StringTrimLeft(FileReader($profile_path & "\other", "Чат"), 4)
 Global $resolution_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "#[0-9]{1,4}", "")
 Global $resolution_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "[0-9]{1,4}#", "")
 Global $coordinate_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "#[0-9]{1,4}", "")
@@ -216,23 +225,27 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 			BotMsg("✅ Интервал начался" & @CRLF & "   ➡️" & $s_name, $tele_bot_key, $tele_chat_id)
 			Local $continue = $continue_time
 			$continue_time = 0
-			Local $go_time = _NowCalc(), $cnt = 0, $stm = 0, $gtm = 0
+			Local $go_time = _NowCalc(), $cnt = 0, $stm = 0, $gtm = 0, $msg = GUIGetMsg(), $cc = 0
 			Global $s_count = 0, $p, $p_time
 			Dim $Array
 			While _DateDiff("s", $go_time, _NowCalc()) + $continue - $p_count < $s_duration
 
-				Switch GUIGetMsg()
+				If $cc == 80 Then
+					$msg = Commands(FileRead($path_to_script & "\command"), $tele_bot_key, $tele_chat_id)
+					$cc = 0
+				EndIf
+				Select
 
-					Case $interval_window_exit_button
+					Case $msg = $interval_window_exit_button
 						$file = FileOpen($path_to_script & "\pause", 2)
 						FileWrite($file, $p_count)
 						FileClose($file)
 						Exit 0
 
-					Case $interval_window_change_button
+					Case $msg = $interval_window_change_button
 						GUICtrlSetImage($pic, $path_to_background & "\" & Random(1, $pic_count[0], 1) & ".jpg")
 
-					Case $interval_window_pause_button
+					Case $msg = $interval_window_pause_button
 						If GUICtrlRead($interval_window_pause_button) == "⏯" Then
 
 							GUICtrlSetState($interval_skip_button, $GUI_DISABLE)
@@ -255,21 +268,20 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 
 						EndIf
 
-					Case $interval_skip_button
+					Case $msg = $interval_skip_button
 						$p_count = _DateDiff("s", $go_time, _NowCalc()) + $continue - $s_duration
 						$file = FileOpen($path_to_script & "\pause", 2)
 						FileWrite($file, $p_count)
 						FileClose($file)
 
-					Case $interval_window_hide_button
+					Case $msg = $interval_window_hide_button
 						GUISetState(@SW_MINIMIZE)
 
-					Case $interval_window_task_button
+					Case $msg = $interval_window_task_button
 						Tasks($interval_window, $s_profile_path, Int($gtm / 60) + $s_past)
 
 					Case Else
 						If $cnt == 20 Then
-
 
 							If GUICtrlRead($interval_window_pause_button) == "▶️" Then
 
@@ -306,10 +318,12 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 								$cnt = 0
 
 						EndIf
-						$cnt += 1
-						sleep(25)
 
-				EndSwitch
+				EndSelect
+				$cnt += 1
+				$cc += 1
+				Sleep(25)
+				$msg = GUIGetMsg()
 
 			WEnd
 			$continue_time = _DateDiff("s", $go_time, _NowCalc()) + $continue - $s_duration
@@ -674,5 +688,66 @@ Func FileReader($pathToFile, $sSearchText)
 			EndIf
 
 		Next
+
+EndFunc
+
+Func GetUpdates($BotKey, $ChatId)
+
+	local $website = 'https://api.telegram.org/' & $BotKey & '/getUpdates?chat_id=' & $ChatId & '&limit=1&offset=-1'
+	local $lstmsg = BinaryToString(InetRead($website, 17), 4)
+	Local $msg = StringRegExp($lstmsg, 'date\":\d{1,},\"text\":\"\w{1,}[:]{0,}\w{0,}', 3)
+	Return $msg[0]
+
+EndFunc
+
+Func Commands($Update, $BotKey, $ChatId)
+
+	local $website = 'https://api.telegram.org/' & $BotKey & '/getUpdates?chat_id=' & $ChatId & '&limit=1&offset=-1'
+	local $lstmsg = BinaryToString(InetRead($website, 17), 4)
+	Local $msg = StringRegExp($lstmsg, 'date\":\d{1,},\"text\":\"\w{1,}[:]{0,}\w{0,}', 3)
+	Local $return = 0
+	If $Update <> $msg[0] Then
+		Local $message = StringRegExp(StringRegExpReplace($msg[0], 'date\":\d{1,},\"text\":\"', ""), "\w{1,}", 3)
+		Switch $message[0]
+			Case "Start"
+				$return = 6
+
+			Case "Continue"
+				$return = 7
+
+			Case "Exit"
+				$return = 10
+
+			Case "Profile"
+				If StringInStr(_GUICtrlComboBox_GetList($profile_combo), $message[1]) Then
+					GUICtrlSetData($profile_combo, $message[1])
+					BotMsg("✅ Выбран профиль:" & @CRLF & "   ➡️" & $message[1], $BotKey, $ChatId)
+				Else
+					BotMsg("❌ Профиль не найден!" , $BotKey, $ChatId)
+				EndIf
+
+			Case "End"
+				$return = 10
+
+			Case "Pause"
+				$return = 12
+				BotMsg("🤚 Интервал на паузе!", $BotKey, $ChatId)
+
+			Case "Cpause"
+				$return = 12
+				BotMsg("➡️ Интервал возобновлен!", $BotKey, $ChatId)
+
+			Case "Next"
+				$return = 13
+
+		EndSwitch
+		FileClose(FileWrite(FileOpen($path_to_script & "\command", 2), $msg[0]))
+		Return $return
+
+	Else
+
+		Return GUIGetMsg()
+
+	EndIf
 
 EndFunc
