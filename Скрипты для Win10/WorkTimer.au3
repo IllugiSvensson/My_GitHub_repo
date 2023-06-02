@@ -69,6 +69,8 @@ GUISetState()
 Local $c = 0, $msg = GUIGetMsg(), $cc = 0
 Global $tele_bot_key = StringTrimLeft(FileReader($profile_path & "\" & GUICtrlRead($profile_combo) & "\other", "Бот"), 4)
 Global $tele_chat_id = StringTrimLeft(FileReader($profile_path & "\" & GUICtrlRead($profile_combo) & "\other", "Чат"), 4)
+Global $control = StringTrimLeft(FileReader($profile_path & "\" & GUICtrlRead($profile_combo) & "\other", "Контроль"), 9)
+
 While true
 
 	If $c == 20 Then
@@ -76,7 +78,11 @@ While true
 		$c = 0
 	EndIf
 	If $cc == 80 Then
-		$msg = Commands(FileRead($path_to_script & "\command"), $tele_bot_key, $tele_chat_id)
+		If $control == "#1" Then 
+			$msg = Commands(FileRead($path_to_script & "\command"), $tele_bot_key, $tele_chat_id)
+		Else
+			$msg = GUIGetMsg()
+		EndIf
 		$cc = 0
 	EndIf
 	Select
@@ -122,6 +128,7 @@ GUIDelete($start_window)
 ;ЗАЧИТЫВАНИЕ НАСТРОЕК
 $tele_bot_key = StringTrimLeft(FileReader($profile_path & "\other", "Бот"), 4)
 $tele_chat_id = StringTrimLeft(FileReader($profile_path & "\other", "Чат"), 4)
+$control = StringTrimLeft(FileReader($profile_path & "\other", "Контроль"), 9)
 Global $resolution_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "#[0-9]{1,4}", "")
 Global $resolution_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "[0-9]{1,4}#", "")
 Global $coordinate_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "#[0-9]{1,4}", "")
@@ -231,7 +238,11 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 			While _DateDiff("s", $go_time, _NowCalc()) + $continue - $p_count < $s_duration
 
 				If $cc == 80 Then
-					$msg = Commands(FileRead($path_to_script & "\command"), $tele_bot_key, $tele_chat_id)
+					If $control == "#1" Then 
+						$msg = Commands(FileRead($path_to_script & "\command"), $tele_bot_key, $tele_chat_id)
+					Else
+						$msg = GUIGetMsg()
+					EndIf
 					$cc = 0
 				EndIf
 				Select
@@ -528,14 +539,14 @@ Func ProfileCreate($path)
 	DirCreate($path & "\sound")
 	FileWrite($path & "\geometry", "Разрешение 405#720" & @CRLF & "Координаты 20#235" & @CRLF & "Позиция 20#460")
 	FileWrite($path & "\intervals", "Интервал I #5" & @CRLF & "Интервал II #10")
-	FileWrite($path & "\other", "Бот " & @CRLF & "Чат " & @CRLF & "Ресурсы #1")
+	FileWrite($path & "\other", "Бот " & @CRLF & "Чат " & @CRLF & "Ресурсы #1" & @CRLF & "Контроль #0")
 	FileWrite($path & "\tasks", "Настроить профиль" & @CRLF & "10:00 Начало работы")
 
 EndFunc
 
 Func Info($window)
 
-	Local $info = "Для работы программы нужно создать свой профиль. Профилей может быть несколько, каждый со своими настройками. Для создания профиля перейти в Настройки->Профили. Написать имя профиля. Профиль в первой строке будет выбран по умолчанию при старте программы." & @CRLF & "Перезапустим настройки, выбрав профиль из выпадающего списка. Отредактируем параметры:" & @CRLF & "Прочие - Настройки телеграмм бота и ресурсов" & @CRLF & " - Бот пробел айди" & @CRLF & " - Чат пробел айди" & @CRLF & " - Ресурсы #1(об этом ниже)" & @CRLF & @CRLF & "Геометрия - задает вид окна, размер и положение надписей" & @CRLF & " - Здесь параметры задаются в пикселях в формате X#Y" & @CRLF & @CRLF & "Интервалы - интервалы времени по которым работает программа" & @CRLF & " - задается списком: Название #Время в минутах" & @CRLF & @CRLF & "Вкладки Время и Задачи можно не редактировать. Во Время записывается время старта программы, в Задачи можно написать свои задачи и напоминания. Если в задаче указать время, например 12:00, то за 10 минут до этого придет оповещение." & @CRLF & "Для старта программы нужно нажать Начнем, чтобы начать с текущего времени или можно Продолжить с ранее начатого момента" & @CRLF & @CRLF & "Программа поддерживает картинки и звуки. Стартовый фон, картинку Start.jpg положить в корень программы. Фон интервалов и звуки пронумеровать 1.jpg 1.mp3 и тд и положить в соответсвующие папки в своем профиле. Если в настройках Ресурсы #1, то картинки будут показываться в случайном порядке, если #0, то в упорядоченном."
+	Local $info = "Для работы программы нужно создать свой профиль. Профилей может быть несколько, каждый со своими настройками. Для создания профиля перейти в Настройки->Профили. Написать имя профиля. Профиль в первой строке будет выбран по умолчанию при старте программы." & @CRLF & "Перезапустим настройки, выбрав профиль из выпадающего списка. Отредактируем параметры:" & @CRLF & "Прочие - Настройки телеграмм бота и ресурсов" & @CRLF & " - Бот пробел айди" & @CRLF & " - Чат пробел айди" & @CRLF & " - Ресурсы #1(об этом ниже)" & @CRLF & " - Контроль #1(управление через бота). Команды боту:" & @CRLF & "Start, Continue, Exit, Profile:X, End, Next, Pause, Cpause" & @CRLF & @CRLF & "Геометрия - задает вид окна, размер и положение надписей" & @CRLF & " - Здесь параметры задаются в пикселях в формате X#Y" & @CRLF & @CRLF & "Интервалы - интервалы времени по которым работает программа" & @CRLF & " - задается списком: Название #Время в минутах" & @CRLF & @CRLF & "Вкладки Время и Задачи можно не редактировать. Во Время записывается время старта программы, в Задачи можно написать свои задачи и напоминания. Если в задаче указать время, например 12:00, то за 10 минут до этого придет оповещение." & @CRLF & "Для старта программы нужно нажать Начнем, чтобы начать с текущего времени или можно Продолжить с ранее начатого момента" & @CRLF & @CRLF & "Программа поддерживает картинки и звуки. Стартовый фон, картинку Start.jpg положить в корень программы. Фон интервалов и звуки пронумеровать 1.jpg 1.mp3 и тд и положить в соответсвующие папки в своем профиле. Если в настройках Ресурсы #1, то картинки будут показываться в случайном порядке, если #0, то в упорядоченном."
 	
 	Local $info_window = GUICreate("Таймер Задач", 500, 750, -1, -1, $WS_DLGFRAME, -1, $window)
 		Local $info_window_label = GUICtrlCreateLabel($info, 10, 10, 480, 650, $SS_SUNKEN)
@@ -697,6 +708,7 @@ Func Commands($Update, $BotKey, $ChatId)
 	local $lstmsg = BinaryToString(InetRead($website, 17), 4)
 	Local $msg = StringRegExp($lstmsg, 'date\":\d{1,},\"text\":\"\w{1,}[:]{0,}\w{0,}', 3)
 	Local $return = 0
+	If IsArray($msg) == 0 Then Return GUIGetMsg()
 	If $Update <> $msg[0] Then
 		Local $message = StringRegExp(StringRegExpReplace($msg[0], 'date\":\d{1,},\"text\":\"', ""), "\w{1,}", 3)
 		Switch $message[0]
