@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/img">
+        <file>img1.png</file>
+        <file>img2.png</file>
+        <file>img3.png</file>
+    </qresource>
+    <qresource prefix="/tr">
+        <file>QtLanguage_ru.qm</file>
+    </qresource>
+</RCC>
