@@ -2,21 +2,29 @@
 #include <GUIConstants.au3>
 #include <ScrollBarConstants.au3>
 #include <GuiEdit.au3>
-
+#include <Array.au3>
 
 
 ;НАСТРОЙКИ ПРОГРАММЫ
 AutoItSetOption("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2)
-Local $priority2 = 0.75, $priority3 = 0.5
+Local $priority2 = 0.8, $priority3 = 0.6
 Global $Stats[10] = [1794, 34.8, 114, 34.8, 138, 43.8, 138, 39, 23.4, 46.8]
+Global $Hp[5] = [209, 239, 254, 269, 299]
+Global $HppAtkp[5] = [4.1, 4.7, 5.0, 5.3, 5.8]
+Global $Atk[5] = [14, 16, 17, 18, 19]
+Global $DefEm[5] = [16, 19, 20, 21, 23]
+Global $Defp[5] = [5.1, 5.8, 6.2, 6.6, 7.3]
+Global $Re[5] = [4.5, 5.2, 5.5, 5.8, 6.5]
+Global $Cr[5] = [2.7, 3.1, 3.3, 3.5, 3.9]
+Global $Cd[5] = [5.4, 6.2, 6.6, 7.0, 7.8]
 Global $count_art = 0, $checked_art = 0, $check = 0
 
 
 
 Local $MainWindow = GUICreate("Оценка качества артефакта", 730, 530, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST)
 
-	GUICtrlCreateLabel("Приоритет            Х   1   2   3", 10, 10, 480, 40)
+	GUICtrlCreateLabel("Приоритет            Х   1   2   3", 10, 10, 350, 40)
 		GUICtrlSetFont(-1, 20, 1000)
 
 	Local $hp_label = GUICtrlCreateLabel("ХП", 10, 50, 100, 40)
@@ -41,36 +49,46 @@ Local $MainWindow = GUICreate("Оценка качества артефакта"
 		GUICtrlSetFont(-1, 20, 1000)
 	Local $label_array[10] = [$hp_label, $hpp_label, $atk_label, $atkp_label, $def_label, $defp_label, $em_label, $re_label, $cr_label, $cd_label]
 
-	Global $hp_input = GUICtrlCreateInput("", 110, 50, 100, 40)
+	Global $hp_input = GUICtrlCreateCombo(" ", 110, 50, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Global $hpp_input = GUICtrlCreateInput("", 110, 90, 100, 40)
+		GenerateCombo($Hp, $hp_input)
+	Global $hpp_input = GUICtrlCreateCombo(" ", 110, 90, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Global $atk_input = GUICtrlCreateInput("", 110, 130, 100, 40)
+		GenerateCombo($HppAtkp, $hpp_input)
+	Global $atk_input = GUICtrlCreateCombo(" ", 110, 130, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Global $atkp_input = GUICtrlCreateInput("", 110, 170, 100, 40)
+		GenerateCombo($Atk, $atk_input)
+	Global $atkp_input = GUICtrlCreateCombo(" ", 110, 170, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Global $def_input = GUICtrlCreateInput("", 110, 210, 100, 40)
+		GenerateCombo($HppAtkp, $atkp_input)
+	Global $def_input = GUICtrlCreateCombo(" ", 110, 210, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Global $defp_input = GUICtrlCreateInput("", 110, 250, 100, 40)
+		GenerateCombo($DefEm, $def_input)
+	Global $defp_input = GUICtrlCreateCombo(" ", 110, 250, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Global $em_input = GUICtrlCreateInput("", 110, 290, 100, 40)
+		GenerateCombo($Defp, $defp_input)
+	Global $em_input = GUICtrlCreateCombo(" ", 110, 290, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Global $re_input = GUICtrlCreateInput("", 110, 330, 100, 40)
+		GenerateCombo($DefEm, $em_input)
+	Global $re_input = GUICtrlCreateCombo(" ", 110, 330, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Global $cr_input = GUICtrlCreateInput("", 110, 370, 100, 40)
+		GenerateCombo($Re, $re_input)
+	Global $cr_input = GUICtrlCreateCombo(" ", 110, 370, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Global $cd_input	= GUICtrlCreateInput("", 110, 410, 100, 40)
+		GenerateCombo($Cr, $cr_input)
+	Global $cd_input	= GUICtrlCreateCombo(" ", 110, 410, 100, 385, BitOR($GUI_SS_DEFAULT_COMBO, $CBS_NOINTEGRALHEIGHT))
 		GUICtrlSetFont(-1, 20, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
+		GenerateCombo($Cd, $cd_input)
 	Global $input_array[10] = [$hp_input, $hpp_input, $atk_input, $atkp_input, $def_input, $defp_input, $em_input, $re_input, $cr_input, $cd_input]
 
 	Global $hp_slider = GUICtrlCreateSlider(220, 55, 140, 30)
@@ -172,7 +190,7 @@ GUISetState()
 
 			Case $clear_button
 				For $i = 0 To 9
-					GUICtrlSetData($input_array[$i], "")
+					GUICtrlSetData($input_array[$i], " ")
 					GUICtrlSetState($input_array[$i], $GUI_DISABLE)
 					GUICtrlSetData($slider_array[$i], 0)
 					GUICtrlSetState($slider_array[$i], $GUI_ENABLE)
@@ -205,7 +223,30 @@ GUISetState()
 
 	WEnd
 
+Func GenerateCombo($Stat, $Combo)
 
+	Local $List
+	Local $temp
+	For $i = 0 To 4
+		For $j = 1 To 6
+			$List &= $Stat[$i] * $j & ' '
+		Next
+	Next
+	$List = StringSplit($List, ' ', 2)
+	For $i = 0 To 29
+		For $j = 0 To 28
+			If Int($List[$j]) > Int($List[$j + 1]) Then
+				$temp = $List[$j]
+				$List[$j] = $List[$j + 1]
+				$List[$j + 1] = $temp
+			EndIf
+		Next
+	Next
+	_ArrayDelete($List, 2)
+	For $i = 0 To 28
+		GUICtrlSetData($Combo, $List[$i], " ")
+	Next
+EndFunc
 
 Func Check()
 
