@@ -21,7 +21,7 @@ Global $Re[7] = [4.5, 4.8, 5.2, 5.5, 5.8, 6.1, 6.5]
 Global $Cr[7] = [2.7, 2.9, 3.1, 3.3, 3.5, 3.7, 3.9]
 Global $Cd[7] = [5.4, 5.8, 6.2, 6.6, 7.0, 7.4, 7.8]
 Global $count_art = 0, $checked_art = 0, $check = 0
-Global $tmp = 0
+Global $tmp = 0 , $cnt = 0
 
 
 
@@ -211,16 +211,28 @@ GUISetState()
 
 			Case $tmp_button
 				Result(1)
+				GUICtrlSetState($result_button, $GUI_ENABLE)
+				GUICtrlSetState($tmp_button, $GUI_DISABLE)
 
 			Case $result_button
+				$cnt += 1
+				GUICtrlSetData($result_button, $cnt)
+				GUICtrlSetState($result_button, $GUI_DISABLE)
+				GUICtrlSetState($clean_result, $GUI_ENABLE)
 				Result(0)
 
 			Case $clean_result
 				$count_art = 0
 				$checked_art = 0
 				$check = 0
+				$cnt = 0
 				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Учет сброшен!" & @CRLF)
 				_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
+				GUICtrlSetState($clean_result, $GUI_DISABLE)
+				GUICtrlSetStyle($tmp_button, 0)
+				GUICtrlSetState($tmp_button, $GUI_DISABLE)
+				GUICtrlSetData($tmp_button, "💾")
+				GUICtrlSetData($result_button, "✅")
 
 			Case $clear_button
 				For $i = 0 To 9
@@ -293,25 +305,30 @@ Func Check($flg)
 		If GUICtrlRead($slider_array[$i]) <> 0 Then
 
 			If StringRegExp(GUICtrlRead($input_array[$i]), "^([0-9]{1,4})$|^([0-9]{1,2}\.[0-9]{1})$", 0) == 0 Then
+
 				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Неправильный символ: " & GUICtrlRead($label_array[$i]) & @CRLF)
 				_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 				$flag = 0
 				ExitLoop
+
 			ElseIf $Stats[$i] < GUICtrlRead($input_array[$i]) Then
+
 				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Превышение значения: " & GUICtrlRead($label_array[$i]) & @CRLF)
 				_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 				$flag = 0
 				ExitLoop
+
 			Else
+
 				$flag = 1
+
 			EndIf
 
 		EndIf
 
 	Next
 
-	Local $summary = 0, $current = 0, $cnt = 0
-	Local $res = 1
+	Local $summary = 0, $current = 0, $cnt = 0, $res = 1
 	Local $mult_array[10] = [$hp_mult, $hpp_mult, $atk_mult, $atkp_mult, $def_mult, $defp_mult, $em_mult, $re_mult, $cr_mult, $cd_mult]
 	If $flag == 1 Then
 
@@ -338,6 +355,8 @@ Func Check($flg)
 		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 		Quality(Round($summary / $res))
 		$checked_art = Round($summary / $res)
+		GUICtrlSetState($tmp_button, $GUI_ENABLE)
+		GUICtrlSetBkColor($tmp_button, 0xFFFF00)
 
 	EndIf
 	For $i = 0 To 9
@@ -433,16 +452,23 @@ Func Result($flg)
 		If $count_art < 5 And $checked_art <> 0 Then
 
 			$count_art += 1
-			$check = $check + $checked_art
+			$check = $check + $tmp
 			$checked_art = 0
 			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Артефакт учтён, количество: " & $count_art & @CRLF & "Сумма: " & $check & @CRLF)
 			_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
-			GUICtrlSetBkColor($tmp_button, $GUI_BKCOLOR_TRANSPARENT)
 				If $count_art == 5 Then
 
 					Quality($check / 5)
+					GUICtrlSetData($log_list, GUICtrlRead($log_list) & "Учет Завершен!" & @CRLF)
+					_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
+					GUICtrlSetState($clean_result, $GUI_DISABLE)
+					GUICtrlSetStyle($tmp_button, 0)
+					GUICtrlSetState($tmp_button, $GUI_DISABLE)
+					GUICtrlSetData($tmp_button, "💾")
+					GUICtrlSetData($result_button, "✅")
 					$check = 0
 					$count_art = 0
+					$cnt = 0
 
 				EndIf
 
@@ -461,6 +487,7 @@ Func Result($flg)
 			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Артефакт Записан: " & $tmp & @CRLF)
 			_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 			GUICtrlSetBkColor($tmp_button, 0x80FF00)
+			GUICtrlSetData($tmp_button, $tmp)
 
 		Else
 
