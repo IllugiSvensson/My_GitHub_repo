@@ -205,7 +205,7 @@ GUISetState()
 				GUICtrlSetState($predict_button, $GUI_DISABLE)
 
 			Case $predict_button
-				Check(0)
+				Check(1)
 				GUICtrlSetState($check_button, $GUI_DISABLE)
 				GUICtrlSetState($predict_button, $GUI_DISABLE)
 
@@ -328,7 +328,7 @@ Func Check($flg)
 
 	Next
 
-	Local $summary = 0, $current = 0, $cnt = 0, $res = 1
+	Local $summary = 0, $current = 0, $cnt = 0, $res = 1, $str
 	Local $mult_array[10] = [$hp_mult, $hpp_mult, $atk_mult, $atkp_mult, $def_mult, $defp_mult, $em_mult, $re_mult, $cr_mult, $cd_mult]
 	If $flag == 1 Then
 
@@ -336,21 +336,67 @@ Func Check($flg)
 
 			If GUICtrlRead($slider_array[$i]) <> 0 Then
 
-				$current = GUICtrlRead($input_array[$i]) * (100 / $Stats[$i]) * $mult_array[$i]
-				$summary += $current
+				$str &= $i & ' '
 				$cnt += 1
-				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & GUICtrlRead($label_array[$i]) & ": " & GUICtrlRead($input_array[$i]) & " - " & Round($current / $res, 2) & "%")
 
 			EndIf
 
 		Next
+
 		If $cnt == 4 Then $res = 1.5
 		If $cnt == 3 Then $res = 1.3334
 		If $cnt == 2 Then $res = 1.1667
-		If Round($summary / $res, 2) > 100 Then
-			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Итого: Ошибка в величине статов" & @CRLF)
+		$str = StringSplit($str, ' ', 2)
+		_ArrayDelete($str, UBound($str) - 1)
+		If $flg == 1 Then
+
+			Local $max = 0, $predict
+			For $j In $str
+
+				For $i In $str
+
+					If GUICtrlRead($slider_array[$i]) <> 0 Then
+
+						If $j == $i Then $predict = $Stats[$i] / 6						
+						$current = (GUICtrlRead($input_array[$i]) + $predict) * (100 / $Stats[$i]) * $mult_array[$i]
+						$summary += $current
+						GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & GUICtrlRead($label_array[$i]) & ": " & (GUICtrlRead($input_array[$i]) + $predict) & " - " & Round($current / $res, 2) & "%")
+						$predict = 0
+
+					EndIf
+
+				Next
+				If $summary > $max Then $max = $summary
+				$summary = 0
+				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "    Итого: " & Round($max / $res, 2))
+
+			Next
+			$summary = $max
+
 		Else
+
+			For $i In $str
+
+				If GUICtrlRead($slider_array[$i]) <> 0 Then
+
+					$current = GUICtrlRead($input_array[$i]) * (100 / $Stats[$i]) * $mult_array[$i]
+					$summary += $current
+					GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & GUICtrlRead($label_array[$i]) & ": " & GUICtrlRead($input_array[$i]) & " - " & Round($current / $res, 2) & "%")
+
+				EndIf
+
+			Next
+
+		EndIf
+
+		If Round($summary / $res, 2) > 100 Then
+
+			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Итого: Ошибка в величине статов" & @CRLF)
+
+		Else
+
 			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Итого: " & Round($summary / $res, 2) & @CRLF)
+
 		EndIf
 		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 		Quality(Round($summary / $res))
