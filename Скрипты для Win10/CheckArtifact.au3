@@ -5,20 +5,23 @@
 #include <Array.au3>
 
 
+
 ;НАСТРОЙКИ ПРОГРАММЫ
 AutoItSetOption("MustDeclareVars", 1)
 Opt("TrayMenuMode", 1 + 2)
 Local $priority2 = 0.8, $priority3 = 0.6
 Global $Stats[10] = [1794, 34.8, 114, 34.8, 138, 43.8, 138, 39, 23.4, 46.8]
-Global $Hp[5] = [209, 239, 254, 269, 299]
-Global $HppAtkp[5] = [4.1, 4.7, 5.0, 5.3, 5.8]
-Global $Atk[5] = [14, 16, 17, 18, 19]
-Global $DefEm[5] = [16, 19, 20, 21, 23]
-Global $Defp[5] = [5.1, 5.8, 6.2, 6.6, 7.3]
-Global $Re[5] = [4.5, 5.2, 5.5, 5.8, 6.5]
-Global $Cr[5] = [2.7, 3.1, 3.3, 3.5, 3.9]
-Global $Cd[5] = [5.4, 6.2, 6.6, 7.0, 7.8]
+Global $hp_mult, $hpp_mult, $atk_mult, $atkp_mult, $def_mult, $defp_mult, $em_mult, $re_mult, $cr_mult, $cd_mult
+Global $Hp[7] = [209, 224, 239, 254, 269, 284, 299]
+Global $HppAtkp[7] = [4.1, 4.4, 4.7, 5.0, 5.3, 5.5, 5.8]
+Global $Atk[7] = [14, 15, 16, 17, 18, 18, 19]
+Global $DefEm[7] = [16, 17, 19, 20, 21, 22, 23]
+Global $Defp[7] = [5.1, 5.5, 5.8, 6.2, 6.6, 6.9, 7.3]
+Global $Re[7] = [4.5, 4.8, 5.2, 5.5, 5.8, 6.1, 6.5]
+Global $Cr[7] = [2.7, 2.9, 3.1, 3.3, 3.5, 3.7, 3.9]
+Global $Cd[7] = [5.4, 5.8, 6.2, 6.6, 7.0, 7.4, 7.8]
 Global $count_art = 0, $checked_art = 0, $check = 0
+Global $tmp = 0
 
 
 
@@ -26,6 +29,7 @@ Local $MainWindow = GUICreate("Оценка качества артефакта"
 
 	GUICtrlCreateLabel("Приоритет            Х   1   2   3", 10, 10, 350, 40)
 		GUICtrlSetFont(-1, 20, 1000)
+		GUICtrlSetTip(-1, "Степень нужности стата:"  & @CRLF &  "X - не учитывать" & @CRLF & "1 - обязательный (учет 100%)" & @CRLF & "2 - нужный (учет 80%)"  & @CRLF & "3 - пригодится (учет 60%)", "", 1, 1)
 
 	Local $hp_label = GUICtrlCreateLabel("ХП", 10, 50, 100, 40)
 		GUICtrlSetFont(-1, 20, 1000)
@@ -125,29 +129,39 @@ Local $MainWindow = GUICreate("Оценка качества артефакта"
 
 	Local $log_list = GUICtrlCreateEdit("", 370, 10, 350, 405, $ES_MULTILINE + $WS_VSCROLL + $ES_WANTRETURN)
 		GUICtrlSetFont(-1, 11, 1000)
-		GUICtrlSetData($log_list, "Оцениваем артефакты!" & @CRLF & "Для удобства открываем игру в оконном режиме." & @CRLF & @CRLF & "Берем артефакт 20го уровня и смотрим на доп статы. Открываем программу, выставляем приоритеты и величину статов. Кликаем 'Оценить' и получаем качественную оценку данного артефакта." & @CRLF & @CRLF & "Приоритет - субъективная оценка стата в артефакте. Имеющиеся доп. статы в артефакте выставляем по степени нужности: 1 - очень нужен, 3 - не очень нужен. Ненужные статы оставляем в 'Х'." & @CRLF & @CRLF & "Выставить на оценку можно до четырёх статов. Значения вводятся цифрами без знака '%' и через точку (для дробных значений)." & @CRLF & @CRLF & "Все оценки выводятся в это текстовое поле. Записи можно править и сохранить на рабочий стол.")
-
+		GUICtrlSetData($log_list, "Оцениваем артефакты!" & @CRLF & "Для удобства открываем игру в оконном режиме." & @CRLF & @CRLF & "Берем артефакт 20го или 16го уровня и смотрим на доп статы. Выставляем приоритеты и величину статов на артефакте. Кликаем 'Оценка20' или 'Оценка16'(с предсказанием) и получаем качественную оценку выбранного артефакта." & @CRLF & @CRLF & "Приоритет - субъективная оценка стата по степени нужности: 1 - очень нужен, 3 - не очень нужен. Ненужные статы оставляем в 'Х'." & @CRLF & @CRLF & "Выставить на оценку можно до четырёх статов. Значения вводятся цифрами без знака '%' и через точку (для дробных значений) или выбираются из списка." & @CRLF & @CRLF & "Маленькие кнопки позволяют записать и учесть отдельные артефакты и подсчитать общую оценку экипировки.")
 	Local $output_label = GUICtrlCreateLabel("", 370, 415, 350, 35, $SS_CENTER, $SS_CENTERIMAGE)
 		GUICtrlSetFont(-1, 17, 1000)
 
-	Local $check_button = GUICtrlCreateButton("Оценить", 10, 460, 116, 35)
+	Local $check_button = GUICtrlCreateButton("Оценка20", 5, 460, 123, 35)
 		GUICtrlSetFont(-1, 18, 1000)
 		GUICtrlSetState(-1, $GUI_DISABLE)
-	Local $clear_button = GUICtrlCreateButton("Сброс", 126, 460, 116, 35)
+		GUICtrlSetTip(-1, "Оценить артефакт 20го уровня", "", 1, 1)
+	Local $predict_button = GUICtrlCreateButton("Оценка16", 128, 460, 123, 35)
 		GUICtrlSetFont(-1, 18, 1000)
-	Local $exit_button = GUICtrlCreateButton("Выход", 242, 460, 116, 35)
+		GUICtrlSetState(-1, $GUI_DISABLE)
+		GUICtrlSetTip(-1, "Оценить артефакт 16го уровня с предсказанием" & @CRLF & "Будет предсказана самая наилучшая оценка" & @CRLF & "если прокачать артефакт до 20го уровня", "", 1, 1)
+	Local $tmp_button = GUICtrlCreateButton("💾", 251, 460, 35, 35)
 		GUICtrlSetFont(-1, 18, 1000)
-	Local $log_button = GUICtrlCreateButton("Очистить", 450, 460, 135, 35)
+		GUICtrlSetState(-1, $GUI_DISABLE)
+		GUICtrlSetTip(-1, "Записать оценку артефакта для учета", "", 1, 1)
+	Global $result_button = GUICtrlCreateButton("✅", 286, 460, 35, 35)
 		GUICtrlSetFont(-1, 18, 1000)
-	Local $save_button = GUICtrlCreateButton("Сохранить", 585, 460, 135, 35)
+		GUICtrlSetState(-1, $GUI_DISABLE)
+		GUICtrlSetTip(-1, "Учесть артефакт для оценки экипировки" & @CRLF & "Учитывается последовательно 5 артефактов", "", 1, 1)
+	Global $clean_result = GUICtrlCreateButton("❌", 321, 460, 35, 35)
 		GUICtrlSetFont(-1, 18, 1000)
-
-	Global $hp_mult, $hpp_mult, $atk_mult, $atkp_mult, $def_mult, $defp_mult, $em_mult, $re_mult, $cr_mult, $cd_mult
-
-	Global $result_button = GUICtrlCreateButton("✅", 370, 460, 35, 35)
-	GUICtrlSetFont(-1, 18, 1000)
-	Global $clean_result = GUICtrlCreateButton("❌", 410, 460, 35, 35)
-	GUICtrlSetFont(-1, 18, 1000)
+		GUICtrlSetState(-1, $GUI_DISABLE)
+		GUICtrlSetTip(-1, "Сбросить оценку экипировки", "", 1, 1)
+	Local $clear_button = GUICtrlCreateButton("Сброс", 356, 460, 123, 35)
+		GUICtrlSetFont(-1, 18, 1000)
+		GUICtrlSetTip(-1, "Сбросить введенные данные и слайдеры", "", 1, 1)
+	Local $log_button = GUICtrlCreateButton("Очистить", 479, 460, 123, 35)
+		GUICtrlSetFont(-1, 18, 1000)
+		GUICtrlSetTip(-1, "Удалить записи лога безвозвратно", "", 1, 1)
+	Local $exit_button = GUICtrlCreateButton("Выход", 602, 460, 123, 35)
+		GUICtrlSetFont(-1, 18, 1000)
+		GUICtrlSetTip(-1, "Выйти из программы", "", 1, 1)
 
 GUICtrlSetState($exit_button, $GUI_FOCUS)
 GUISetState()
@@ -186,7 +200,27 @@ GUISetState()
 				$cd_mult = CheckSlider($cd_slider, $cd_input)
 
 			Case $check_button
-				Check()
+				Check(0)
+				GUICtrlSetState($check_button, $GUI_DISABLE)
+				GUICtrlSetState($predict_button, $GUI_DISABLE)
+
+			Case $predict_button
+				Check(0)
+				GUICtrlSetState($check_button, $GUI_DISABLE)
+				GUICtrlSetState($predict_button, $GUI_DISABLE)
+
+			Case $tmp_button
+				Result(1)
+
+			Case $result_button
+				Result(0)
+
+			Case $clean_result
+				$count_art = 0
+				$checked_art = 0
+				$check = 0
+				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Учет сброшен!" & @CRLF)
+				_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 
 			Case $clear_button
 				For $i = 0 To 9
@@ -196,28 +230,15 @@ GUISetState()
 					GUICtrlSetState($slider_array[$i], $GUI_ENABLE)
 				Next
 				GUICtrlSetState($check_button, $GUI_DISABLE)
+				GUICtrlSetState($predict_button, $GUI_DISABLE)
 				GUICtrlSetBkColor($output_label, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetData($output_label, "")
-
-			Case $exit_button
-				Exit 0
-
-			Case $result_button
-				Result()
-
-			Case $clean_result
-				$count_art = 0
-				$checked_art = 0
-				$check = 0
-				GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Учет сброшен!" & @CRLF)
-				_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
 
 			Case $log_button
 				GUICtrlSetData($log_list, "")
 
-			Case $save_button
-				FileWrite(@DesktopDir & "\ArtifactQualityChecker.log", GUICtrlRead($log_list))
-				MsgBox(64, "Оценщик артефактов", "Отчет сохранен на рабочий стол", 3000, $MainWindow)
+			Case $exit_button
+				Exit 0
 
 		EndSwitch
 
@@ -225,30 +246,46 @@ GUISetState()
 
 Func GenerateCombo($Stat, $Combo)
 
-	Local $List
-	Local $temp
-	For $i = 0 To 4
+	Local $List, $temp
+	For $i = 0 To 6
+
 		For $j = 1 To 6
+
 			$List &= $Stat[$i] * $j & ' '
+
 		Next
+
 	Next
+
 	$List = StringSplit($List, ' ', 2)
-	For $i = 0 To 29
-		For $j = 0 To 28
+	For $i = 0 To 41
+
+		For $j = 0 To 40
+
 			If Int($List[$j]) > Int($List[$j + 1]) Then
+
 				$temp = $List[$j]
 				$List[$j] = $List[$j + 1]
 				$List[$j + 1] = $temp
+
 			EndIf
+
 		Next
+
 	Next
-	_ArrayDelete($List, 2)
-	For $i = 0 To 28
+
+	_ArrayDelete($List, 5)
+	_ArrayDelete($List, 3)
+	_ArrayDelete($List, 1)
+	For $i = 0 To 38
+
 		GUICtrlSetData($Combo, $List[$i], " ")
+
 	Next
+
 EndFunc
 
-Func Check()
+Func Check($flg)
 
 	Local $flag = 0
 	For $i = 0 To 9
@@ -322,28 +359,45 @@ Func CheckSlider($slider, $input)
 	Next
 
 	If $cnt_checked < 6 Then
+
 		GUICtrlSetState($slider, $GUI_DISABLE)
 		GUICtrlSetData($slider, 0)
-			For $i = 0 To 9
-				If GUICtrlRead($slider_array[$i]) == 0 Then GUICtrlSetState($slider_array[$i], $GUI_DISABLE)
-			Next
+		For $i = 0 To 9
+
+			If GUICtrlRead($slider_array[$i]) == 0 Then GUICtrlSetState($slider_array[$i], $GUI_DISABLE)
+
+		Next
+
 	Else
+
 		GUICtrlSetState($check_button, $GUI_ENABLE)
+		GUICtrlSetState($predict_button, $GUI_ENABLE)
 		GUICtrlSetState($input, $GUI_ENABLE)
 		GUICtrlSetState($slider, $GUI_ENABLE)
-			For $i = 0 To 9
-				If GUICtrlRead($slider_array[$i]) == 0 Then GUICtrlSetState($slider_array[$i], $GUI_ENABLE)
-			Next
+		For $i = 0 To 9
+
+			If GUICtrlRead($slider_array[$i]) == 0 Then GUICtrlSetState($slider_array[$i], $GUI_ENABLE)
+
+		Next
+
 	EndIf
 
 	If GUICtrlRead($slider) == 0 Then
+
 		GUICtrlSetState($input, $GUI_DISABLE)
+
 	ElseIf GUICtrlRead($slider) == 1 Then
+
 		Return 1
+
 	ElseIf GUICtrlRead($slider) == 2 Then
+
 		Return $priority2
+
 	ElseIf GUICtrlRead($slider) == 3 Then
+
 		Return $priority3
+
 	EndIf
 
 EndFunc
@@ -372,27 +426,48 @@ Func Quality($value)
 
 EndFunc
 
-Func Result()
+Func Result($flg)
 
-	If $count_art < 5 And $checked_art <> 0 Then
+	If $flg == 0 Then
 
-		$count_art += 1
-		$check = $check + $checked_art
-		$checked_art = 0
-		GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Артефакт учтён, количество: " & $count_art & @CRLF & "Сумма: " & $check & @CRLF)
-		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
-			If $count_art == 5 Then
+		If $count_art < 5 And $checked_art <> 0 Then
 
-				Quality($check / 5)
-				$check = 0
-				$count_art = 0
+			$count_art += 1
+			$check = $check + $checked_art
+			$checked_art = 0
+			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Артефакт учтён, количество: " & $count_art & @CRLF & "Сумма: " & $check & @CRLF)
+			_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
+			GUICtrlSetBkColor($tmp_button, $GUI_BKCOLOR_TRANSPARENT)
+				If $count_art == 5 Then
 
-			EndIf
+					Quality($check / 5)
+					$check = 0
+					$count_art = 0
 
-	Else
+				EndIf
 
-		GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Оцените артефакт!" & @CRLF)
-		_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
+		Else
+
+			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Оцените артефакт!" & @CRLF)
+			_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
+
+		EndIf
+
+	ElseIf $flg == 1 Then
+
+		If $checked_art <> 0 Then
+
+			$tmp = $checked_art
+			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Артефакт Записан: " & $tmp & @CRLF)
+			_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
+			GUICtrlSetBkColor($tmp_button, 0x80FF00)
+
+		Else
+
+			GUICtrlSetData($log_list, GUICtrlRead($log_list) & @CRLF & "Оцените артефакт!" & @CRLF)
+			_GUICtrlEdit_Scroll($log_list, $SB_BOTTOM)
+
+		EndIf
 
 	EndIf
 
