@@ -12,14 +12,14 @@ Opt("TrayMenuMode", 1 + 2)
 Local $priority2 = 0.8, $priority3 = 0.6
 Global $Stats[10] = [1794, 34.8, 114, 34.8, 138, 43.8, 138, 39, 23.4, 46.8]
 Global $hp_mult, $hpp_mult, $atk_mult, $atkp_mult, $def_mult, $defp_mult, $em_mult, $re_mult, $cr_mult, $cd_mult
-Global $Hp[7] = [209, 224, 239, 254, 269, 284, 299]
-Global $HppAtkp[7] = [4.1, 4.4, 4.7, 5.0, 5.3, 5.5, 5.8]
-Global $Atk[7] = [14, 15, 16, 17, 18, 18, 19]
-Global $DefEm[7] = [16, 17, 19, 20, 21, 22, 23]
-Global $Defp[7] = [5.1, 5.5, 5.8, 6.2, 6.6, 6.9, 7.3]
-Global $Re[7] = [4.5, 4.8, 5.2, 5.5, 5.8, 6.1, 6.5]
-Global $Cr[7] = [2.7, 2.9, 3.1, 3.3, 3.5, 3.7, 3.9]
-Global $Cd[7] = [5.4, 5.8, 6.2, 6.6, 7.0, 7.4, 7.8]
+Global $Hp[4] = [209, 239, 269, 299]
+Global $HppAtkp[4] = [4.1, 4.7, 5.3, 5.8]
+Global $Atk[4] = [14, 16, 18, 19]
+Global $DefEm[4] = [16, 19, 21, 23]
+Global $Defp[4] = [5.1, 5.8, 6.6, 7.3]
+Global $Re[4] = [4.5, 5.2, 5.8, 6.5]
+Global $Cr[4] = [2.7, 3.1, 3.5, 3.9]
+Global $Cd[4] = [5.4, 6.2, 7.0, 7.8]
 Global $count_art = 0, $checked_art = 0, $check = 0
 Global $tmp = 0 , $cnt = 0
 
@@ -258,40 +258,28 @@ GUISetState()
 
 Func GenerateCombo($Stat, $Combo)
 
-	Local $List, $temp
-	For $i = 0 To 6
+	Local $prev = 0, $current = Ubound($Stat), $count = 0
+	For $i = 1 To 5
 
-		For $j = 1 To 6
+		ReDim $Stat[$current + 4 * (Ubound($Stat) - $prev)]
+		For $j = $prev To $current - 1
 
-			$List &= $Stat[$i] * $j & ' '
+			For $k = 0 To 3
 
-		Next
+				$Stat[4 + $count] = $Stat[$k] + $Stat[$j]
+				$count += 1
 
-	Next
-
-	$List = StringSplit($List, ' ', 2)
-	For $i = 0 To 41
-
-		For $j = 0 To 40
-
-			If Int($List[$j]) > Int($List[$j + 1]) Then
-
-				$temp = $List[$j]
-				$List[$j] = $List[$j + 1]
-				$List[$j + 1] = $temp
-
-			EndIf
+			Next
 
 		Next
+		$prev = $current
+		$current = Ubound($Stat)
 
 	Next
+	$Stat = _ArrayUnique($Stat)
+	For $i = 1 To $Stat[0]
 
-	_ArrayDelete($List, 5)
-	_ArrayDelete($List, 3)
-	_ArrayDelete($List, 1)
-	For $i = 0 To 38
-
-		GUICtrlSetData($Combo, $List[$i], " ")
+		GUICtrlSetData($Combo, $Stat[$i], " ")
 
 	Next
 
