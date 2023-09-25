@@ -276,6 +276,8 @@ Func GenerateCombo($Stat, $Combo)
 		$current = Ubound($Stat)
 
 	Next
+	
+	_ArraySort($Stat)
 	$Stat = _ArrayUnique($Stat)
 	For $i = 1 To $Stat[0]
 
