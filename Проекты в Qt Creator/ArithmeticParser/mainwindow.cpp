@@ -20,28 +20,36 @@ void MainWindow::on_plainTextEdit_textChanged() {
 
     QString txt = ui->plainTextEdit->toPlainText();
     qint32 pos = 0;
+    while(1)
+    {
 
-        while(1) {
+        qint32 fnd = txt.indexOf("#@", pos); //IndexOf вернет индекс первого вхождения
+        if (fnd == -1) return;
+        pos = fnd + 1;
+        int r = txt.indexOf("=", fnd);
+        int space = txt.indexOf(" ", fnd);
+        if ((r < space || space == -1) && r != -1) //На случай 5+7 =
+        {
 
-            qint32 fnd = txt.indexOf("#@", pos); //IndexOf вернет индекс первого вхождения
-
-                if (fnd == -1) return;
-
-            pos = fnd + 1;
-            int r = txt.indexOf("=", fnd);
-            int space = txt.indexOf(" ", fnd);
-
-                if ((r < space || space == -1) && r != -1) { //На случай 5+7 =
-
-                    ParseText parseText(txt.mid(fnd + 2, r - fnd - 1)); //5+7=
-                    double answer = parseText.parse();
-
-                        txt.insert(r + 1, QString::number(answer)); //Пример1: #@5+7=12
-                        txt.remove(fnd, 2);                         //Пример1: 5+7=12
-                        ui->plainTextEdit->setPlainText(txt);
-
-                }
+            ParseText parseText(txt.mid(fnd + 2, r - fnd - 1)); //5+7=
+            double answer = parseText.parse();
+            txt.insert(r + 1, QString::number(answer)); //Пример1: #@5+7=12
+            txt.remove(fnd, 2);                         //Пример1: 5+7=12
+            ui->plainTextEdit->setPlainText(txt);
 
         }
+        if (txt.mid(fnd + 5, fnd + 6) == "@")
+        {
+
+            ParseText special(txt.mid(fnd + 2, fnd + 4));
+            QString answer = special.getSpecial();
+            txt.insert(fnd + 6, answer);
+            txt.remove(fnd, 6);
+            ui->plainTextEdit->setPlainText(txt);
+
+
+        }
+
+    }
 
 }

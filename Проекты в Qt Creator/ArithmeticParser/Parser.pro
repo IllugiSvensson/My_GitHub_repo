@@ -18,12 +18,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    parsetext.cpp \
+    parsetext.cpp
 
 
 HEADERS += \
     mainwindow.h \
-    parsetext.h \
+    parsetext.h
 
 
 FORMS += \

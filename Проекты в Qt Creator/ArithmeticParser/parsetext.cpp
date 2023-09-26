@@ -6,6 +6,18 @@ ParseText::ParseText(QString txt) {
 
 }
 
+QString ParseText::getSpecial() {
+
+    QString symbol = "";
+    if (str == "RUB@") return "₽";
+    else if (str == "EUR@") return "€";
+    else if (str == "COP@") return "©";
+    else if (str == "PRO@") return "‰";
+    else if (str == "RIG@") return "®";
+    else return "??";
+
+}
+
 double ParseText::parse() { //Считает выражение в целом
 
     double value = 0;

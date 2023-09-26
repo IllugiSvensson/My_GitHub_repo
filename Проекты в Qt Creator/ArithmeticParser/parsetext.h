@@ -8,6 +8,7 @@ public:
 
     ParseText(QString);
     double parse();
+    QString getSpecial();
 
 private:
 
