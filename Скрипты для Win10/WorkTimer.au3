@@ -114,7 +114,7 @@ While true
 			ExitLoop
 
 		Case $msg = $settings_button
-			Settings($start_window, $profile_path & "\" & GUICtrlRead($profile_combo))
+			Settings($start_window, $profile_path & "\" & GUICtrlRead($profile_combo), GUICtrlRead($profile_combo))
 
 		Case $msg = $info_button
 			Info($start_window)
@@ -487,7 +487,9 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 				MsgBox(64, "Остаток времени", $text, 0, $task_window)
 
 			Case $task_window_settings
-				Settings($task_window, $ss_profile_path)
+				Local $tsk
+				$tsk = stringregexp($ss_profile_path, "[a-zA-Z]{1,}", 3)
+				Settings($task_window, $ss_profile_path, $tsk[UBound($tsk) - 1])
 
 			Case $task_window_exit_button
 				ExitLoop
@@ -499,9 +501,9 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 
 EndFunc
 
-Func Settings($s_start_window, $s_profile_path)
+Func Settings($s_start_window, $s_profile_path, $prof)
 
-	Local $settings_window = GUICreate("Таймер Задач. Профиль: " & GUICtrlRead($profile_combo), 350, 330, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST, $s_start_window)
+	Local $settings_window = GUICreate("Таймер Задач. Профиль: " & $prof, 350, 330, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST, $s_start_window)
 
 		Local $settings_window_accept_button = GUICtrlCreateButton("Сохранить", 10, 260, 125, 40)
 			GUICtrlSetFont(-1, 14)
@@ -584,7 +586,7 @@ Func Settings($s_start_window, $s_profile_path)
 						EndIf
 						If FileExists($path_to_profiles & "\" & $Array[$i] & "\other") == 0 Then
 
-							FileWrite($path_to_profiles & "\" & $Array[$i] & "\other", "Бот " & @CRLF & "Чат " & @CRLF & "Ресурсы #1")
+							FileWrite($path_to_profiles & "\" & $Array[$i] & "\other", "Бот " & @CRLF & "Чат " & @CRLF & "Ресурсы #1" & @CRLF & "Контроль #0")
 
 						Else
 
