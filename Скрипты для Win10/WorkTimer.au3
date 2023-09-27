@@ -79,7 +79,7 @@ While true
 		$c = 0
 	EndIf
 	If $cc == 80 Then
-		If $control == "#1" Then 
+		If $control == "#1" Then  
 			$msg = Commands(FileRead($path_to_script & "\command"), $tele_bot_key, $tele_chat_id)
 		Else
 			$msg = GUIGetMsg()
@@ -87,6 +87,17 @@ While true
 		$cc = 0
 	EndIf
 	Select
+		Case $msg = 555
+			$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
+			FileWrite($file, _NowCalc())
+			FileClose($file)
+			Global $start_time = _NowCalc()
+			$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 2)
+			FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 0)
+			FileClose($file)
+			Global $p_count = 0
+			ExitLoop
+			
 		Case $msg = $start_button
 			SetStartTime($start_window)
 			Global $start_time = FileRead($profile_path & "\" & GUICtrlRead($profile_combo) & "\time")
@@ -723,13 +734,19 @@ Func TimeCalc($now, $num, $op)
 		EndIf
 
 	EndIf
-	If $Hnum >= 24 Then
+	If $Hnum > 24 Then
 
 		$Hnum -= 24
+		If $Hnum < 10 Then $Hnum = "0" & $Hnum
 
-	ElseIf $Hnum <= 0 Then
+	ElseIf $Hnum < 0 Then
 
 		$Hnum += 24
+		If $Hnum < 10 Then $Hnum = "0" & $Hnum
+
+	ElseIf $Hnum == 0 Or $Hnum == 24 Then
+
+		$Hnum = "0"
 
 	EndIf
 	Return $Hnum & ":" & $Mnum
@@ -796,7 +813,7 @@ Func Commands($Update, $BotKey, $ChatId)
 		Local $message = StringRegExp(StringRegExpReplace($msg[0], 'date\":\d{1,},\"text\":\"', ""), "\w{1,}", 3)
 		Switch $message[0]
 			Case "Start"
-				$return = 6
+				$return = 555
 
 			Case "Continue"
 				$return = 7
