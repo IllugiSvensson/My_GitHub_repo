@@ -1,4 +1,5 @@
 #include <ProgressConstants.au3>
+#include <ProgressConstants.au3>
 #include <WindowsConstants.au3>
 #include <StaticConstants.au3>
 #include <ButtonConstants.au3>
@@ -87,20 +88,18 @@ While true
 	EndIf
 	Select
 		Case $msg = $start_button
-			$file = FileOpen($path_to_script & "\time", 2)
-			FileWrite($file, _NowCalc())
-			FileClose($file)
-			Global $start_time = _NowCalc()
-			$file = FileOpen($path_to_script & "\pause", 2)
-			FileWrite($path_to_script & "\pause", 0)
+			SetStartTime($start_window)
+			Global $start_time = FileRead($profile_path & "\" & GUICtrlRead($profile_combo) & "\time")
+			$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 2)
+			FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 0)
 			FileClose($file)
 			Global $p_count = 0
 			ExitLoop
 
 		Case $msg = $continue_button
-			If FileExists($path_to_script & "\time") == 0 Then FileWrite($path_to_script & "\time", "2022/08/24 10:00:00")
-			Global $start_time = FileRead($path_to_script & "\time")
-			Global $p_count = FileRead($path_to_script & "\pause")
+			If FileExists($profile_path & "\" & GUICtrlRead($profile_combo) & "\time") == 0 Then FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", "2022/08/24 10:00:00")
+			Global $start_time = FileRead($profile_path & "\" & GUICtrlRead($profile_combo) & "\time")
+			Global $p_count = FileRead($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause")
 			ExitLoop
 
 		Case $msg = $settings_button
@@ -111,6 +110,7 @@ While true
 
 		Case $msg = $exit_button
 			Exit 0
+
 	EndSelect
 	$c += 1
 	$cc += 1
@@ -176,6 +176,82 @@ MsgBox(64 + 4096, "Таймер Задач", "Интервалы окончен�
 
 
 
+
+Func ZeroTime($time)
+
+	If $time < 10 Then
+
+		Return "0" & $time
+
+	Else
+
+		Return $time
+
+	EndIf
+
+EndFunc
+
+Func SetStartTime($parent)
+
+	If MsgBox(32 + 4 + 256 + 262144, "Установка времени", "Задать время отсчета?") == 6 Then
+
+		Local $time_window = GUICreate("Установка времени", 200, 120, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST, $parent)
+
+			Local $hour_combo = GUICtrlCreateCombo("", 10, 10, 60, 120, $CBS_NOINTEGRALHEIGHT + $CBS_DROPDOWNLIST)
+				GUICtrlSetFont(-1, 20, 1000)
+				Local $h = StringTrimRight(_NowTime(5), 6)
+				For $i = 0 To 23 
+					GUICtrlSetData(-1, $i, $h)
+				Next
+			Local $minute_combo = GUICtrlCreateCombo("", 70, 10, 60, 120, $CBS_NOINTEGRALHEIGHT + $CBS_DROPDOWNLIST)
+				GUICtrlSetFont(-1, 20, 1000)
+				Local $m = StringTrimLeft(StringTrimRight(_NowTime(5), 3), 3)
+				For $i = 0 To 59
+					GUICtrlSetData(-1, $i, $m)
+				Next
+			Local $second_combo = GUICtrlCreateCombo("", 130, 10, 60, 120, $CBS_NOINTEGRALHEIGHT + $CBS_DROPDOWNLIST)
+				GUICtrlSetFont(-1, 20, 1000)
+				Local $s = StringTrimLeft(_NowTime(5), 6)
+				For $i = 0 To 59
+					GUICtrlSetData(-1, $i, $s)
+				Next
+
+			Local $set_button = GUICtrlCreateButton("Установить", 10, 60, 100, 30)
+				GUICtrlSetFont(-1, 12, 1000)
+			Local $exit_button = GUICtrlCreateButton("Отмена", 110, 60, 80, 30)
+				GUICtrlSetFont(-1, 12, 1000)
+
+		GUISetState()
+		While true
+			Select
+				Case $msg = $set_button
+					Local $file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
+					FileWrite($file, _NowCalcDate() & " " & ZeroTime(GUICtrlRead($hour_combo)) & ":" & ZeroTime(GUICtrlRead($minute_combo)) & ":" & ZeroTime(GUICtrlRead($second_combo)))
+					FileClose($file)
+					ExitLoop
+
+				Case $msg = $exit_button
+					Local $file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
+					FileWrite($file, _NowCalc())
+					FileClose($file)
+					ExitLoop
+
+			EndSelect
+			Sleep(25)
+			$msg = GUIGetMsg()
+
+		WEnd
+		GUIDelete()
+
+	Else
+
+		Local $file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
+		FileWrite($file, _NowCalc())
+		FileClose($file)
+
+	EndIf
+
+EndFunc
 
 Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 
@@ -248,7 +324,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 				Select
 
 					Case $msg = $interval_window_exit_button
-						$file = FileOpen($path_to_script & "\pause", 2)
+						$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 2)
 						FileWrite($file, $p_count)
 						FileClose($file)
 						Exit 0
@@ -265,14 +341,14 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 							GUICtrlSetColor($interval_window_name_label, 0xFF0000)
 							$s_count = _NowCalc()
 							$p_time = _NowCalc()
-							$p = FileRead($path_to_script & "\pause")
+							$p = FileRead($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause")
 
 						ElseIf GUICtrlRead($interval_window_pause_button) == "▶️" Then
 
 							GUICtrlSetData($interval_window_pause_button, "⏯")
 							GUICtrlSetData($interval_window_name_label, $s_name)
 							GUICtrlSetColor($interval_window_name_label, 0x000000)
-							$file = FileOpen($path_to_script & "\pause", 2)
+							$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 2)
 							FileWrite($file, $p_count)
 							FileClose($file)
 							GUICtrlSetState($interval_skip_button, $GUI_ENABLE)
@@ -281,7 +357,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 
 					Case $msg = $interval_skip_button
 						$p_count = _DateDiff("s", $go_time, _NowCalc()) + $continue - $s_duration
-						$file = FileOpen($path_to_script & "\pause", 2)
+						$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 2)
 						FileWrite($file, $p_count)
 						FileClose($file)
 
@@ -359,7 +435,9 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 			GUICtrlSetFont(-1, 14, 1000)
 		Local $task_window_exit_button = GUICtrlCreateButton("Отмена", 180, 485, 110, 30)
 			GUICtrlSetFont(-1, 14, 1000)
-		Local $task_window_remain_time = GUICtrlCreateButton("⏱", 135, 485, 30, 30)
+		Local $task_window_remain_time = GUICtrlCreateButton("⏱", 120, 485, 30, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+		Local $task_window_settings = GUICtrlCreateButton("⚙️", 150, 485, 30, 30)
 			GUICtrlSetFont(-1, 14, 1000)
 
 	GUISetState()
@@ -397,6 +475,9 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 				Next
 				MsgBox(64, "Остаток времени", $text, 0, $task_window)
 
+			Case $task_window_settings
+				Settings($task_window, $ss_profile_path)
+
 			Case $task_window_exit_button
 				ExitLoop
 
@@ -420,7 +501,7 @@ Func Settings($s_start_window, $s_profile_path)
 
 		Local $settings_tab = GUICtrlCreateTab(5, 5, 340, 250)
 			Local $settings_tab_1 = GUICtrlCreateTabItem("Время")
-				Local $file_time = FileRead($path_to_script & "\time")
+				Local $file_time = FileRead($s_profile_path & "\time")
 				Local $settings_window_edit_time = GUICtrlCreateEdit($file_time, 10, 30, 330, 220, $ES_MULTILINE + $ES_WANTRETURN + $WS_VSCROLL)
 					GUICtrlSetFont(-1, 14, 1000)
 
@@ -455,7 +536,7 @@ Func Settings($s_start_window, $s_profile_path)
 		Switch GUIGetMsg()
 
 			Case $settings_window_accept_button
-				Local $file = FileOpen($path_to_script & "\time", 2)
+				Local $file = FileOpen($s_profile_path & "\time", 2)
 				FileWrite($file, GUICtrlRead($settings_window_edit_time))
 				FileClose($file)
 				$file = FileOpen($s_profile_path & "\tasks", 2)
@@ -541,6 +622,8 @@ Func ProfileCreate($path)
 	FileWrite($path & "\intervals", "Интервал I #5" & @CRLF & "Интервал II #10")
 	FileWrite($path & "\other", "Бот " & @CRLF & "Чат " & @CRLF & "Ресурсы #1" & @CRLF & "Контроль #0")
 	FileWrite($path & "\tasks", "Настроить профиль" & @CRLF & "10:00 Начало работы")
+	FileWrite($path & "\time", 0)
+	FileWrite($path & "\pause", 0)
 
 EndFunc
 
