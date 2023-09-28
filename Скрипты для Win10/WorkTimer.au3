@@ -211,20 +211,25 @@ Func SetStartTime($parent)
 			Local $hour_combo = GUICtrlCreateCombo("", 10, 10, 60, 120, $CBS_NOINTEGRALHEIGHT + $CBS_DROPDOWNLIST)
 				GUICtrlSetFont(-1, 20, 1000)
 				Local $h = StringTrimRight(_NowTime(5), 6)
-				For $i = 0 To 23 
-					GUICtrlSetData(-1, $i, $h)
-				Next
 			Local $minute_combo = GUICtrlCreateCombo("", 70, 10, 60, 120, $CBS_NOINTEGRALHEIGHT + $CBS_DROPDOWNLIST)
 				GUICtrlSetFont(-1, 20, 1000)
 				Local $m = StringTrimLeft(StringTrimRight(_NowTime(5), 3), 3)
-				For $i = 0 To 59
-					GUICtrlSetData(-1, $i, $m)
-				Next
 			Local $second_combo = GUICtrlCreateCombo("", 130, 10, 60, 120, $CBS_NOINTEGRALHEIGHT + $CBS_DROPDOWNLIST)
 				GUICtrlSetFont(-1, 20, 1000)
 				Local $s = StringTrimLeft(_NowTime(5), 6)
-				For $i = 0 To 59
-					GUICtrlSetData(-1, $i, $s)
+
+				Dim $A[10] = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"]
+				For $i = 0 To 9
+					GUICtrlSetData($hour_combo, $A[$i], $h)
+					GUICtrlSetData($minute_combo, $A[$i], $m)
+					GUICtrlSetData($second_combo, $A[$i], $s)
+				Next
+				For $i = 10 To 23
+					GUICtrlSetData($hour_combo, $i, $h)
+				Next
+				For $i = 10 To 59
+					GUICtrlSetData($minute_combo, $i, $m)
+					GUICtrlSetData($second_combo, $i, $s)
 				Next
 
 			Local $set_button = GUICtrlCreateButton("Установить", 10, 60, 100, 30)
@@ -236,8 +241,14 @@ Func SetStartTime($parent)
 		While true
 			Select
 				Case $msg = $set_button
+					Local $datetime = _NowCalcDate() & " " & GUICtrlRead($hour_combo) & ":" & GUICtrlRead($minute_combo) & ":" & GUICtrlRead($second_combo)
+					If _DateDiff("s", $datetime, _NowCalc()) < 0 Then
+						MsgBox(64, "Установка времени", "Время не может быть в будущем!", 3, $time_window)
+						$msg = 0
+						ContinueLoop
+					EndIf
 					Local $file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
-					FileWrite($file, _NowCalcDate() & " " & ZeroTime(GUICtrlRead($hour_combo)) & ":" & ZeroTime(GUICtrlRead($minute_combo)) & ":" & ZeroTime(GUICtrlRead($second_combo)))
+					FileWrite($file, $datetime)
 					FileClose($file)
 					ExitLoop
 
@@ -335,7 +346,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 				Select
 
 					Case $msg = $interval_window_exit_button
-						$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 2)
+						$file = FileOpen($s_profile_path & "\pause", 2)
 						FileWrite($file, $p_count)
 						FileClose($file)
 						Exit 0
@@ -352,14 +363,14 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 							GUICtrlSetColor($interval_window_name_label, 0xFF0000)
 							$s_count = _NowCalc()
 							$p_time = _NowCalc()
-							$p = FileRead($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause")
+							$p = FileRead($s_profile_path & "\pause")
 
 						ElseIf GUICtrlRead($interval_window_pause_button) == "▶️" Then
 
 							GUICtrlSetData($interval_window_pause_button, "⏯")
 							GUICtrlSetData($interval_window_name_label, $s_name)
 							GUICtrlSetColor($interval_window_name_label, 0x000000)
-							$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 2)
+							$file = FileOpen($s_profile_path & "\pause", 2)
 							FileWrite($file, $p_count)
 							FileClose($file)
 							GUICtrlSetState($interval_skip_button, $GUI_ENABLE)
@@ -368,7 +379,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 
 					Case $msg = $interval_skip_button
 						$p_count = _DateDiff("s", $go_time, _NowCalc()) + $continue - $s_duration
-						$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 2)
+						$file = FileOpen($s_profile_path & "\pause", 2)
 						FileWrite($file, $p_count)
 						FileClose($file)
 
@@ -488,7 +499,7 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 
 			Case $task_window_settings
 				Local $tsk
-				$tsk = stringregexp($ss_profile_path, "[a-zA-Z]{1,}", 3)
+				$tsk = StringRegExp($ss_profile_path, "[a-zA-Z]{1,}", 3)
 				Settings($task_window, $ss_profile_path, $tsk[UBound($tsk) - 1])
 
 			Case $task_window_exit_button
@@ -618,7 +629,7 @@ Func Settings($s_start_window, $s_profile_path, $prof)
 				ExitLoop
 
 			Case $settings_window_resources_button
-				ShellExecute($path_to_profiles & "\" & GUICtrlRead($profile_combo))
+				ShellExecute($path_to_profiles & "\" & $prof)
 
 		EndSwitch
 
