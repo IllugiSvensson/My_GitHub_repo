@@ -54,6 +54,47 @@ MainWindow::MainWindow(QWidget *parent)
 
         ui->tableView->setModel(fileSystemModel);
         ui->tableView->setRootIndex(fileSystemModel->index(QDir::homePath()));
+
+
+
+    QListWidgetItem *itemL = new QListWidgetItem(QIcon("D:/QtCreator/Project/untitled2/C++.png"), QString("C++"));
+    itemL->setFlags(itemL->flags() | Qt::ItemIsEditable);
+    ui->listWidgetHW->addItem(itemL);
+    itemL = new QListWidgetItem(QIcon("D:/QtCreator/Project/untitled2/python.png"), QString("Python"));
+    itemL->setFlags(itemL->flags() | Qt::ItemIsEditable);
+    ui->listWidgetHW->addItem(itemL);
+    itemL = new QListWidgetItem(QIcon("D:/QtCreator/Project/untitled2/java.png"), QString("Java"));
+    itemL->setFlags(itemL->flags() | Qt::ItemIsEditable);
+    ui->listWidgetHW->addItem(itemL);
+    itemL = new QListWidgetItem(QIcon("D:/QtCreator/Project/untitled2/C#.png"), QString("C#"));
+    itemL->setFlags(itemL->flags() | Qt::ItemIsEditable);
+    ui->listWidgetHW->addItem(itemL);
+    itemL = new QListWidgetItem(QIcon("D:/QtCreator/Project/untitled2/PHP.png"), QString("PHP"));
+    itemL->setFlags(itemL->flags() | Qt::ItemIsEditable);
+    ui->listWidgetHW->addItem(itemL);
+    itemL = new QListWidgetItem(QIcon("D:/QtCreator/Project/untitled2/JS.png"), QString("JavaScript"));
+    itemL->setFlags(itemL->flags() | Qt::ItemIsEditable);
+    ui->listWidgetHW->addItem(itemL);
+
+    ui->tableWidget_2->setRowCount(3);
+    ui->tableWidget_2->setColumnCount(4);
+    ui->tableWidget_2->setHorizontalHeaderLabels(QStringList() << "№" << "name" << "IP" << "MAC");
+    Comp comp1("1", "Dell", "192.168.15.16","22:32:f2:3e:1d");
+    Comp comp2("2", "Lenovo", "192.168.15.117","2a:32:a2:3e:6d");
+    Comp comp3("3", "HP", "192.168.15.217","2a:39:a2:3f:6d");
+        ui->tableWidget_2->setItem(0, 0, new QTableWidgetItem(comp1.number));
+        ui->tableWidget_2->setItem(0, 1, new QTableWidgetItem(comp1.name));
+        ui->tableWidget_2->setItem(0, 2, new QTableWidgetItem(comp1.ipaddr));
+        ui->tableWidget_2->setItem(0, 3, new QTableWidgetItem(comp1.mac));
+        ui->tableWidget_2->setItem(1, 0, new QTableWidgetItem(comp2.number));
+        ui->tableWidget_2->setItem(1, 1, new QTableWidgetItem(comp2.name));
+        ui->tableWidget_2->setItem(1, 2, new QTableWidgetItem(comp2.ipaddr));
+        ui->tableWidget_2->setItem(1, 3, new QTableWidgetItem(comp2.mac));
+        ui->tableWidget_2->setItem(2, 0, new QTableWidgetItem(comp3.number));
+        ui->tableWidget_2->setItem(2, 1, new QTableWidgetItem(comp3.name));
+        ui->tableWidget_2->setItem(2, 2, new QTableWidgetItem(comp3.ipaddr));
+        ui->tableWidget_2->setItem(2, 3, new QTableWidgetItem(comp3.mac));
+
 }
 
 MainWindow::~MainWindow() {
@@ -67,5 +108,41 @@ void MainWindow::on_pushButton_clicked() {
     QMessageBox::information(this, "Info", ui->listWidget->currentItem()->text());
     //QMessageBox::information(this, "Info", ui->tableWidget->currentItem()->text());
     //QMessageBox::information(this, "Info", ui->treeWidget->currentItem()->text(1));
+
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    QListWidgetItem *item = new QListWidgetItem(QIcon("D:/QtCreator/Project/untitled2/C.png"), QString("language"));
+    item->setFlags(item->flags() | Qt::ItemIsEditable);
+    ui->listWidgetHW->addItem(item);
+}
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    int row = ui->listWidgetHW->currentRow();
+    delete ui->listWidgetHW->takeItem(row);
+}
+
+void MainWindow::on_checkBox_stateChanged(int arg1)
+{
+    if (ui->checkBox->isChecked() == 1)
+    {
+        ui->listWidgetHW->setViewMode(QListWidget::IconMode);
+        ui->listWidgetHW->setResizeMode(QListView::Adjust);
+    } else
+    {
+        ui->listWidgetHW->setViewMode(QListWidget::ListMode);
+    }
+}
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    QList<QTableWidgetItem *> List = ui->tableWidget_2->selectedItems();
+    foreach (QTableWidgetItem *value, List)
+    {
+        for (int i = 0; i < ui->tableWidget_2->columnCount(); i++)
+            ui->tableWidget_2->item(value->row(), i)->setBackground(Qt::red);
+    }
 
 }
