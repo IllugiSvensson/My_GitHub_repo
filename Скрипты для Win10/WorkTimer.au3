@@ -25,6 +25,7 @@ Global $path_to_sound = @ScriptDir & "\sound"
 Global $past = 0, $file
 Global $name = "Таймер"
 Global $duration = 60
+Global $secundomer = 0, $secStart
 
 
 ;СТАРТ ОКНО И ВЫХОД К ДРУГИМ ОКНАМ
@@ -188,20 +189,6 @@ MsgBox(64 + 4096, "Таймер Задач", "Интервалы окончен�
 
 
 
-Func ZeroTime($time)
-
-	If $time < 10 Then
-
-		Return "0" & $time
-
-	Else
-
-		Return $time
-
-	EndIf
-
-EndFunc
-
 Func SetStartTime($parent)
 
 	If MsgBox(32 + 4 + 256 + 262144, "Установка времени", "Задать время отсчета?") == 6 Then
@@ -303,24 +290,33 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 26, 1000)
 			Local $interval_window_local_progress = GUICtrlCreateProgress($position_x, $position_y + 115, 365, 30, $PBS_SMOOTH)
-			Local $interval_window_exit_button = GUICtrlCreateButton("Выход", $position_x, $position_y + 190, 100, 30, $BS_CENTER)
+
+			Local $interval_window_exit_button = GUICtrlCreateButton("Выход", $position_x, $position_y + 190, 80, 30, $BS_CENTER)
 				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
 				GUICtrlSetFont(-1, 14, 1000)
-			Local $interval_window_task_button = GUICtrlCreateButton("Задачи", $position_x + 265, $position_y + 190, 100, 30, $BS_CENTER)
-				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
-				GUICtrlSetFont(-1, 14, 1000)
-			Local $interval_window_pause_button = GUICtrlCreateButton("⏯", $position_x + 107, $position_y + 190, 30, 30, $BS_CENTER)
+			Local $interval_window_pause_button = GUICtrlCreateButton("⏯", $position_x + 83, $position_y + 190, 30, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
 				GUICtrlSetTip(-1, "Остановить интервал", "", 2, 3)
-			Local $interval_skip_button = GUICtrlCreateButton("⏭️", $position_x + 147, $position_y + 190, 30, 30, $BS_CENTER)
+			Local $interval_skip_button = GUICtrlCreateButton("⏭️", $position_x + 113, $position_y + 190, 30, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
 				GUICtrlSetTip(-1, "Пропустить интервал", "", 2, 3)
-			Local $interval_window_change_button = GUICtrlCreateButton("🔄", $position_x + 187, $position_y + 190, 30, 30, $BS_CENTER)
+			Local $secundomer_button = GUICtrlCreateButton("⏱", $position_x + 145, $position_y + 190, 75, 30, $BS_CENTER)
+				GUICtrlSetFont(-1, 16, 1000)
+				GUICtrlSetTip(-1, "Запустить Секундомер", "", 2, 3)
+				If $secundomer <> 0 Then
+					GUICtrlSetData($secundomer_button, Int($secundomer / 60) & ":" & Mod($secundomer, 60))
+					GUICtrlSetBkColor($secundomer_button, 0x00FF00)
+					GUICtrlSetTip($secundomer_button, "Остановить Секундомер", "", 2, 3)
+				EndIf
+			Local $interval_window_change_button = GUICtrlCreateButton("🔄", $position_x + 222, $position_y + 190, 30, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
 				GUICtrlSetTip(-1, "Сменить фон", "", 2, 3)
-			Local $interval_window_hide_button = GUICtrlCreateButton("_", $position_x + 227, $position_y + 190, 30, 30, $BS_CENTER)
+			Local $interval_window_hide_button = GUICtrlCreateButton("_", $position_x + 252, $position_y + 190, 30, 30, $BS_CENTER)
 				GUICtrlSetFont(-1, 16, 1000)
 				GUICtrlSetTip(-1, "Свернуть", "", 2, 3)
+			Local $interval_window_task_button = GUICtrlCreateButton("Задачи", $position_x + 285, $position_y + 190, 80, 30, $BS_CENTER)
+				GUICtrlSetBkColor(-1, $GUI_BKCOLOR_TRANSPARENT)
+				GUICtrlSetFont(-1, 14, 1000)
 			If StringTrimLeft(FileReader($s_profile_path & "\other", "Ресурсы"), 8) == "#0" Then GUICtrlSetState($interval_window_change_button, $GUI_DISABLE)
 
 		GUISetState()
@@ -389,9 +385,27 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 					Case $msg = $interval_window_task_button
 						Tasks($interval_window, $s_profile_path, Int($gtm / 60) + $s_past)
 
+					Case $msg = $secundomer_button
+						If GUICtrlRead($secundomer_button) == "⏱" Then
+							GUICtrlSetData($secundomer_button, 0)
+							GUICtrlSetBkColor($secundomer_button, 0x00FF00)
+							GUICtrlSetTip($secundomer_button, "Остановить Секундомер", "", 2, 3)
+							$secStart = _NowCalc()
+
+						ElseIf GUICtrlRead($secundomer_button) <> "⏱" Then
+							GUICtrlSetStyle($secundomer_button, 0)
+							GUICtrlSetData($secundomer_button, "⏱")
+							GUICtrlSetTip($secundomer_button, "Запустить Секундомер", "", 2, 3)
+							$secundomer = 0
+
+						EndIf
+
 					Case Else
 						If $cnt == 20 Then
-
+							If GUICtrlRead($secundomer_button) <> "⏱" Then
+								$secundomer = _DateDiff("s", $secStart, _NowCalc())
+								GUICtrlSetData($secundomer_button, Int($secundomer / 60) & ":" & Mod($secundomer, 60))
+							EndIf
 							If GUICtrlRead($interval_window_pause_button) == "▶️" Then
 
 								$p_count = _DateDiff("s", $s_count, _NowCalc()) + $p
