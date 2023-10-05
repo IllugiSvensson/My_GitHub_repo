@@ -44,10 +44,11 @@ function TRACKING { #Функция установки соединения и �
 		if [ "$flag" == "0" ]	#Устанавливаем соединение
 		then
 
+			sleep 2s
 			CLIENTPORT $4 $1 $5
 			CLIENTPORT $4 $2 $6
 			CLIENTPORT $4 $3 $7
-			sleep 3s
+			sleep 5s
 			SERVERPORT $4 $1 $5
 			SERVERPORT $4 $2 $6
 			SERVERPORT $4 $3 $7
@@ -85,9 +86,9 @@ case $1 in
 		STARTSOCAT 192.168.121.52 cnct_nmea.bin 4 5 6 04 05 06
 	;;
 	azn1)
-		STARTSOCAT 192.168.11.71 StartServer.bin 7 8 9 07 08 09
+		STARTSOCAT 192.168.10.71 StartServer.bin 7 8 9 07 08 09
 	;;
 	azn2)
-		STARTSOCAT 192.168.11.73 StartServer.bin 10 11 12 10 11 12
+		STARTSOCAT 192.168.10.73 StartServer.bin 10 11 12 10 11 12
 	;;
 esac

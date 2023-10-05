@@ -8,6 +8,12 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+struct undo_redo
+{
+    QString value;
+    qint32 index = 0;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -16,8 +22,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    QStack<QString> undo;
-    QStack<QString> redo;
+    undo_redo U_R;
+    QStack<undo_redo> undo;
+    QStack<undo_redo> redo;
 
 private slots:
     void on_textEdit_textChanged();

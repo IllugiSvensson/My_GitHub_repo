@@ -29,16 +29,23 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_textEdit_textChanged()
 {
-    //ui->label->setText(ui->textEdit->toPlainText());
-    undo.push(ui->textEdit->toPlainText());
+    QString txt = ui->textEdit->toPlainText();
+    U_R.index = ui->textEdit->textCursor().columnNumber();
+    //U_R.value = txt.at();
+    undo.push(U_R);
 }
 
 void MainWindow::on_undo_button_clicked()
 {
-    QString current;
-    current = undo.top();
-    //while (!undo.isEmpty())
-        ui->label->setText(undo.top());
+    QString txt = ui->textEdit->toPlainText();
+    txt.remove(undo.top().index - 1, 1);
+    undo.pop();
+    //
+//    //ui->label->setText(QString::number(ui->textEdit->textCursor().columnNumber()));
+//    ui->label->clear();
+//    //ui->label->setText(txt);
+    ui->label->setText(undo.top().value + " " + QString::number(undo.top().index));
+ui->textEdit->setPlainText(txt);
 }
 
 void MainWindow::on_redo_button_clicked()
