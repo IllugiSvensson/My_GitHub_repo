@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include <iostream>
 //1. Написать программу "Текстовый редактор", используя виджет QTextEdit,
 //с возможностью отмены изменений. Информацию об изменениях хранить в
 //контейнере (например, в QStack). Постарайтейсь не использовать встроенные
@@ -20,6 +20,10 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    previous_len = 0;
+    previous_txt = "";
+    ui->undo_button->setDisabled(1);
+    ui->redo_button->setDisabled(1);
 }
 
 MainWindow::~MainWindow()
@@ -30,27 +34,51 @@ MainWindow::~MainWindow()
 void MainWindow::on_textEdit_textChanged()
 {
     QString txt = ui->textEdit->toPlainText();
-    U_R.index = ui->textEdit->textCursor().columnNumber();
-    //U_R.value = txt.at();
-    undo.push(U_R);
+    qint32 current_pos = ui->textEdit->textCursor().position();
+    qint32 current_len = txt.length();
+    if (current_pos && (current_len > previous_len))
+    {
+        U_R.index = current_pos - (current_len - previous_len);
+        U_R.value = txt.mid(U_R.index, current_len - previous_len);
+        undo.push(U_R);
+        redo.clear();
+        if (!undo.isEmpty()) ui->undo_button->setDisabled(0);
+        if (!undo.isEmpty()) ui->redo_button->setDisabled(1);
+        //ui->textEdit_2->setText("Undo " + undo.top().value + " " + QString::number(undo.top().index));
+    }
+    else if (current_pos && (current_len < previous_len))
+    {
+        U_R.index = current_pos;
+        U_R.value = previous_txt.mid(U_R.index, previous_txt.length() - current_len);
+        redo.push(U_R);
+        if (!undo.isEmpty()) ui->redo_button->setDisabled(0);
+        //ui->textEdit_2->setText("Redo " + redo.top().value + " " + QString::number(redo.top().index));
+    }
+    previous_len = current_len;
+    previous_txt = txt;
+
 }
 
 void MainWindow::on_undo_button_clicked()
 {
-    QString txt = ui->textEdit->toPlainText();
-    txt.remove(undo.top().index - 1, 1);
-    undo.pop();
-    //
-//    //ui->label->setText(QString::number(ui->textEdit->textCursor().columnNumber()));
-//    ui->label->clear();
-//    //ui->label->setText(txt);
-    ui->label->setText(undo.top().value + " " + QString::number(undo.top().index));
-ui->textEdit->setPlainText(txt);
+    undo_redo tmp = undo.pop();
+    previous_txt.remove(tmp.index, tmp.value.length());
+    ui->textEdit->setText(previous_txt);
+    redo.push(tmp);
+    if (!undo.isEmpty()) ui->redo_button->setDisabled(0);
+//    ui->textEdit->setFocus();
+//    ui->textEdit->textCursor().setPosition(1);
+    ui->textEdit_2->setText(QString::number(tmp.index) + " " + previous_txt + " " + QString::number(ui->textEdit->textCursor().position()));
+    if (undo.isEmpty()) ui->undo_button->setDisabled(1);
 }
 
 void MainWindow::on_redo_button_clicked()
 {
-
+    undo_redo tmp = redo.pop();
+    previous_txt.insert(tmp.index, tmp.value);
+    ui->textEdit->setText(previous_txt);
+    undo.push(tmp);
+    if (redo.isEmpty()) ui->redo_button->setDisabled(1);
 }
 
 void MainWindow::on_open_button_clicked()

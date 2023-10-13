@@ -22,10 +22,6 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    undo_redo U_R;
-    QStack<undo_redo> undo;
-    QStack<undo_redo> redo;
-
 private slots:
     void on_textEdit_textChanged();
     void on_undo_button_clicked();
@@ -36,5 +32,10 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    undo_redo U_R;
+    QStack<undo_redo> undo;
+    QStack<undo_redo> redo;
+    qint32 previous_len;
+    QString previous_txt;
 };
 #endif // MAINWINDOW_H
