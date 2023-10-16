@@ -41,22 +41,36 @@ void MainWindow::on_textEdit_textChanged()
         U_R.index = current_pos - (current_len - previous_len);
         U_R.value = txt.mid(U_R.index, current_len - previous_len);
         undo.push(U_R);
-        redo.clear();
+        if (!redo.isEmpty())
+        {
+            ui->redo_button->setDisabled(1);
+            redo.clear();
+        }
         if (!undo.isEmpty()) ui->undo_button->setDisabled(0);
-        if (!undo.isEmpty()) ui->redo_button->setDisabled(1);
-        //ui->textEdit_2->setText("Undo " + undo.top().value + " " + QString::number(undo.top().index));
     }
     else if (current_pos && (current_len < previous_len))
     {
         U_R.index = current_pos;
         U_R.value = previous_txt.mid(U_R.index, previous_txt.length() - current_len);
         redo.push(U_R);
-        if (!undo.isEmpty()) ui->redo_button->setDisabled(0);
-        //ui->textEdit_2->setText("Redo " + redo.top().value + " " + QString::number(redo.top().index));
+        for (qint32 i = 0; i < U_R.value.length(); i++) undo.pop();
+        if (!redo.isEmpty()) ui->redo_button->setDisabled(0);
+        if (!undo.isEmpty()) ui->undo_button->setDisabled(1);
     }
+//    else if (!current_pos && !current_len)
+//    {
+//        U_R.index = 0;
+//        U_R.value = previous_txt.mid(0, previous_len);
+//        undo.push(U_R);
+//        if (!redo.isEmpty())
+//        {
+//            ui->redo_button->setDisabled(1);
+//            redo.clear();
+//        }
+//        if (!undo.isEmpty()) ui->undo_button->setDisabled(0);
+//    }
     previous_len = current_len;
     previous_txt = txt;
-
 }
 
 void MainWindow::on_undo_button_clicked()
@@ -65,11 +79,8 @@ void MainWindow::on_undo_button_clicked()
     previous_txt.remove(tmp.index, tmp.value.length());
     ui->textEdit->setText(previous_txt);
     redo.push(tmp);
-    if (!undo.isEmpty()) ui->redo_button->setDisabled(0);
-//    ui->textEdit->setFocus();
-//    ui->textEdit->textCursor().setPosition(1);
-    ui->textEdit_2->setText(QString::number(tmp.index) + " " + previous_txt + " " + QString::number(ui->textEdit->textCursor().position()));
     if (undo.isEmpty()) ui->undo_button->setDisabled(1);
+    if (!redo.isEmpty()) ui->redo_button->setDisabled(0);
 }
 
 void MainWindow::on_redo_button_clicked()
@@ -79,6 +90,7 @@ void MainWindow::on_redo_button_clicked()
     ui->textEdit->setText(previous_txt);
     undo.push(tmp);
     if (redo.isEmpty()) ui->redo_button->setDisabled(1);
+    if (!undo.isEmpty()) ui->undo_button->setDisabled(0);
 }
 
 void MainWindow::on_open_button_clicked()
