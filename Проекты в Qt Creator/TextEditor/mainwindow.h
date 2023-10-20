@@ -3,6 +3,11 @@
 
 #include <QMainWindow>
 #include <QStack>
+#include <QFile>
+#include <QTextStream>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QDir>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -11,7 +16,8 @@ QT_END_NAMESPACE
 struct undo_redo
 {
     QString value;
-    qint32 index = 0;
+    qint32 index;
+    bool direct;
 };
 
 class MainWindow : public QMainWindow
@@ -36,6 +42,8 @@ private:
     QStack<undo_redo> undo;
     QStack<undo_redo> redo;
     qint32 previous_len;
+    bool latch;
     QString previous_txt;
+
 };
 #endif // MAINWINDOW_H
