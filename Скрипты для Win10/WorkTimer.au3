@@ -184,6 +184,7 @@ Else
 EndIf
 SoundPlay($path_to_sound & "\" & $sound)
 MsgBox(64 + 4096, "Таймер Задач", "Интервалы окончены :)", 10)
+If $secundomer <> 0 Then MsgBox(64 + 4096, "Таймер Задач", "Таймер остановился в " & _NowTime() & @CRLF & "Секундомер насчитал " & Int($secundomer / 60) & ":" & Mod($secundomer, 60))
 
 
 
