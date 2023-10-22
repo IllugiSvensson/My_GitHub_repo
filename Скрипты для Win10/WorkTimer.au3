@@ -493,6 +493,7 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 
 					$name = StringRegExpReplace($lines[$i], "#[0-9]{1,3}", "")
 					$time = StringRegExp($lines[$i], "[0-9]{1,3}", 3)
+					If IsArray($time) == 0 Then ContinueLoop
 					If $time[0] < $com Then
 
 						$com = $com - $time[0]
