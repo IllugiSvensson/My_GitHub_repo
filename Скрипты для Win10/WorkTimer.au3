@@ -98,11 +98,12 @@ While true
 			FileClose($file)
 			Global $p_count = 0
 			ExitLoop
-			
+
 		Case $msg = $start_button
 			SetStartTime($start_window)
 			Global $start_time = FileRead($profile_path & "\" & GUICtrlRead($profile_combo) & "\time")
 			$file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 2)
+			FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\log", "---Старт Интервалов---" & @CRLF)
 			FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\pause", 0)
 			FileClose($file)
 			Global $p_count = 0
@@ -132,6 +133,9 @@ While true
 WEnd
 $profile_path = $profile_path & "\" & GUICtrlRead($profile_combo)
 $path_to_background = $profile_path & "\background"
+	;Костыль для распознавания ссылок
+	Local $tmp = FileGetShortCut($path_to_background)
+		If isArray($tmp) == 1 Then $path_to_background = $tmp[0]
 $path_to_sound = $profile_path & "\sound"
 GUIDelete($start_window)
 
@@ -182,6 +186,8 @@ If FileExists($path_to_sound & "\" & "End.mp3") Then
 Else
 	$sound = $i & ".mp3"
 EndIf
+BotMsg("⏱ Интервалы Закончились", $tele_bot_key, $tele_chat_id)
+FileWrite($profile_path & "\log", _NowCalc() & " " & $name & @CRLF & "Всего прошло: " & Int((_DateDiff("s", $start_time, _NowCalc())) / 60) & @CRLF & "-----------------------------" & @CRLF)
 SoundPlay($path_to_sound & "\" & $sound)
 MsgBox(64 + 4096, "Таймер Задач", "Интервалы окончены :)", 10)
 If $secundomer <> 0 Then MsgBox(64 + 4096, "Таймер Задач", "Таймер остановился в " & _NowTime() & @CRLF & "Секундомер насчитал " & Int($secundomer / 60) & ":" & Mod($secundomer, 60))
@@ -236,6 +242,7 @@ Func SetStartTime($parent)
 						ContinueLoop
 					EndIf
 					Local $file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
+					FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\log", $datetime & " Отсроченный старт" & @CRLF)
 					FileWrite($file, $datetime)
 					FileClose($file)
 					ExitLoop
@@ -325,6 +332,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 			SoundPlay("")
 			SoundPlay($s_sound)
 			BotMsg("✅ Интервал начался" & @CRLF & "   ➡️" & $s_name, $tele_bot_key, $tele_chat_id)
+			FileWrite($s_profile_path & "\log", _NowCalc() & " " & $s_name & @CRLF)
 			Local $continue = $continue_time
 			$continue_time = 0
 			Local $go_time = _NowCalc(), $cnt = 0, $stm = 0, $gtm = 0, $msg = GUIGetMsg(), $cc = 0
@@ -402,6 +410,10 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 						EndIf
 
 					Case Else
+							;Костыль для распознавания ссылок
+							Local $taskPath = $s_profile_path & "\tasks"
+							Local $tmp = FileGetShortCut($taskPath)
+								If isArray($tmp) == 1 Then $taskPath = $tmp[0]
 						If $cnt == 20 Then
 							If GUICtrlRead($secundomer_button) <> "⏱" Then
 								$secundomer = _DateDiff("s", $secStart, _NowCalc())
@@ -426,7 +438,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 								For $k = 10 To 2 Step -2
 
 									Local $task = TimeCalc(_NowTime(4), $k, 0)
-									Local $st = FileReader($s_profile_path & "\tasks", $task)
+									Local $st = FileReader($taskPath, $task)
 									If  StringLen($st) > 1 Then
 
 										BotMsg("⚠️➡️" & "Событие через " & $k & " минут(ы)!" & @CRLF & $st, $tele_bot_key, $tele_chat_id)
@@ -464,13 +476,18 @@ EndFunc
 Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 
 	Local $task_window = GUICreate("Таймер Задач", 300, 550, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST, $s_interval_window)
-	
-		Local $file = FileRead($ss_profile_path & "\tasks")
+			;Костыль для распознавания ссылок
+			Local $taskPath = $ss_profile_path & "\tasks"
+			Local $tmp = FileGetShortCut($taskPath)
+				If isArray($tmp) == 1 Then $taskPath = $tmp[0]
+		Local $file = FileRead($taskPath)
 		Local $task_window_edit = GUICtrlCreateEdit($file, 10, 10, 280, 465, $ES_MULTILINE + $ES_WANTRETURN + $WS_VSCROLL)
 			GUICtrlSetFont(-1, 14, 1000)
 		Local $task_window_accept_button = GUICtrlCreateButton("Сохранить", 10, 485, 110, 30)
 			GUICtrlSetFont(-1, 14, 1000)
-		Local $task_window_exit_button = GUICtrlCreateButton("Отмена", 180, 485, 110, 30)
+		Local $task_window_exit_button = GUICtrlCreateButton("Отмена", 210, 485, 80, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+		Local $task_window_log_button = GUICtrlCreateButton("📝", 180, 485, 30, 30)
 			GUICtrlSetFont(-1, 14, 1000)
 		Local $task_window_remain_time = GUICtrlCreateButton("⏱", 120, 485, 30, 30)
 			GUICtrlSetFont(-1, 14, 1000)
@@ -483,7 +500,7 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 		Switch GUIGetMsg()
 
 			Case $task_window_accept_button
-				$file = FileOpen($ss_profile_path & "\tasks", 2)
+				$file = FileOpen($taskPath, 2)
 				FileWrite($file, GUICtrlRead($task_window_edit))
 				FileClose($file)
 				ExitLoop
@@ -518,6 +535,9 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 				$tsk = StringRegExp($ss_profile_path, "[a-zA-Z]{1,}", 3)
 				Settings($task_window, $ss_profile_path, $tsk[UBound($tsk) - 1])
 
+			Case $task_window_log_button
+				ShellExecute("notepad.exe", $ss_profile_path & "\log")
+
 			Case $task_window_exit_button
 				ExitLoop
 
@@ -546,7 +566,11 @@ Func Settings($s_start_window, $s_profile_path, $prof)
 					GUICtrlSetFont(-1, 14, 1000)
 
 			Local $settings_tab_2 = GUICtrlCreateTabItem("Задачи")
-				Local $file_tasks = FileRead($s_profile_path & "\tasks")
+					;Костыль для распознавания ссылок
+					Local $taskPath = $s_profile_path & "\tasks"
+					Local $tmp = FileGetShortCut($taskPath)
+						If isArray($tmp) == 1 Then $taskPath = $tmp[0]
+				Local $file_tasks = FileRead($taskPath)
 				Local $settings_window_edit_tasks = GUICtrlCreateEdit($file_tasks, 10, 30, 330, 220, $ES_MULTILINE + $ES_WANTRETURN + $WS_VSCROLL)
 					GUICtrlSetFont(-1, 14, 1000)
 
@@ -579,7 +603,7 @@ Func Settings($s_start_window, $s_profile_path, $prof)
 				Local $file = FileOpen($s_profile_path & "\time", 2)
 				FileWrite($file, GUICtrlRead($settings_window_edit_time))
 				FileClose($file)
-				$file = FileOpen($s_profile_path & "\tasks", 2)
+				$file = FileOpen($taskPath, 2)
 				FileWrite($file, GUICtrlRead($settings_window_edit_tasks))
 				FileClose($file)
 				$file = FileOpen($s_profile_path & "\intervals", 2)
@@ -600,15 +624,20 @@ Func Settings($s_start_window, $s_profile_path, $prof)
 					For $i = 1 To $Array[0]
 
 						DirCreate($path_to_profiles & "\" & $Array[$i])
-						DirCreate($path_to_profiles & "\" & $Array[$i] & "\background")
+							;Костыль для распознавания ссылок
+							$tmp = FileGetShortCut($path_to_profiles & "\" & $Array[$i] & "\background")
+								If isArray($tmp) == 0 Then DirCreate($path_to_profiles & "\" & $Array[$i] & "\background")
 						DirCreate($path_to_profiles & "\" & $Array[$i] & "\sound")
-						If FileExists($path_to_profiles & "\" & $Array[$i] & "\tasks") == 0 Then
+							$taskPath = $path_to_profiles & "\" & $Array[$i] & "\tasks"
+							$tmp = FileGetShortCut($taskPath)
+								If isArray($tmp) == 1 Then $taskPath = $tmp[0]
+						If FileExists($taskPath) == 0 Then
 
-							FileWrite($path_to_profiles & "\" & $Array[$i] & "\tasks", "Настроить профиль" & @CRLF & "10:00 Начало работы")
+							FileWrite($taskPath, "Настроить профиль" & @CRLF & "10:00 Начало работы")
 
 						Else 
 
-							FileWrite($path_to_profiles & "\" & $Array[$i] & "\tasks", "")
+							FileWrite($taskPath, "")
 
 						EndIf
 						If FileExists($path_to_profiles & "\" & $Array[$i] & "\other") == 0 Then
