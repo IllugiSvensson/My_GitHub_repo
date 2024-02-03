@@ -1,18 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-//1. Написать программу "Текстовый редактор", используя виджет QTextEdit,
-//с возможностью отмены изменений. Информацию об изменениях хранить в
-//контейнере (например, в QStack). Постарайтейсь не использовать встроенные
-//возможности виджета, а именно методы redo(), undo().
-//2. Добаить в Текстовый редактор файл описания. Текстовый файл с описанием
-//разместить в ресурсах программы. Для вызова описания разместить на
-//форме соответствующую кнопку (о программе).
-//3. Добавить в Текстовый редактор возможность открывать текстовые файлы
-//(с расширением .txt).
-//4. Добавить в Текстовый редактор возможность сохранить содержимое текстового поля.
-//Если оно сохраняется в бинарный файл, сохранять имя автора, разместив поле
-//QLineEdit, а если в текстовом виде - запись в этом поле игнорировать.
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -24,11 +11,36 @@ MainWindow::MainWindow(QWidget *parent)
     latch = 0;
     ui->undo_button->setDisabled(1);
     ui->redo_button->setDisabled(1);
+    settings = readSettings();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+QMap<QString, QString> MainWindow::readSettings()
+{
+    QFile file("/home/sad/Projects/Qt_Prj/untitled/config.txt");
+    if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
+    {
+        QTextStream stream(&file);
+        QMap<QString, QString> SL;
+        QStringList text;
+        while(!stream.atEnd())
+        {
+            text = stream.readLine().split(QLatin1Char(':'));
+            SL.insert(text.at(0), text.at(1));
+        }
+        file.close();
+        settings = SL;
+        return SL;
+    }
+    else
+    {
+        QMessageBox::warning(this, tr("settings"), tr("file not found"));
+        exit(1);
+    }
 }
 
 void MainWindow::on_textEdit_textChanged()
@@ -121,8 +133,8 @@ void MainWindow::on_redo_button_clicked()
 
 void MainWindow::on_open_button_clicked()
 {
-    QString s = QFileDialog::getOpenFileName(this,"Открыть файл",
-    QDir::current().path(), tr("Текстовый файл(*.txt)"));
+    QString s = QFileDialog::getOpenFileName(this,tr("Open file"),
+    QDir::current().path(), tr("Text file(*.txt)"));
     QFile file(s);
     if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
     {
@@ -132,14 +144,15 @@ void MainWindow::on_open_button_clicked()
         redo.clear();
         ui->redo_button->setDisabled(1);
         ui->undo_button->setDisabled(1);
+        ui->textEdit->setReadOnly(false);
         file.close();
     }
 }
 
 void MainWindow::on_save_button_clicked()
 {
-    QString s = QFileDialog::getSaveFileName(this, "Сохранить файл",
-    QDir::current().path(), tr("Текстовый файл(*.txt);;Двоичный файл(*.original)"));
+    QString s = QFileDialog::getSaveFileName(this, tr("Save file"),
+    QDir::current().path(), tr("Text file(*.txt);;binary file(*.original)"));
     int index = s.indexOf(".txt");
     QFile file(s);
     if (file.open(QFile::WriteOnly))
@@ -165,11 +178,89 @@ void MainWindow::on_about_button_clicked()
     if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
     {
         QTextStream stream(&file);
-        QMessageBox::information(this, "О программе", stream.readAll());
+        QMessageBox::information(this, tr("about programm"), stream.readAll());
         file.close();
     }
     else
     {
-        QMessageBox::warning(this, "О программе", "Файл описания не найден!");
+        QMessageBox::warning(this, tr("about programm"), tr("file not found"));
     }
 }
+
+void MainWindow::on_read_button_clicked()
+{
+    QString s = QFileDialog::getOpenFileName(this,tr("Open file"),
+    QDir::current().path(), tr("Text file(*.txt)"));
+    QFile file(s);
+    if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
+    {
+        QTextStream stream(&file);
+        ui->textEdit->setPlainText(stream.readAll());
+        undo.clear();
+        redo.clear();
+        ui->redo_button->setDisabled(1);
+        ui->undo_button->setDisabled(1);
+        ui->textEdit->setReadOnly(true);
+        file.close();
+    }
+}
+
+void MainWindow::on_create_button_clicked()
+{
+    ui->textEdit->setReadOnly(false);
+    ui->textEdit->clear();
+    undo.clear();
+    redo.clear();
+}
+
+void MainWindow::switchLanguage(QString language)
+{
+    translator.load(":/.qm/QtLanguage_" + language);
+    qApp->installTranslator(&translator);
+    ui->undo_button->setToolTip(tr("undo"));
+    ui->redo_button->setToolTip(tr("redo"));
+    ui->create_button->setToolTip(tr("crate"));
+    ui->open_button->setToolTip(tr("open"));
+    ui->read_button->setToolTip(tr("read mode"));
+    ui->save_button->setToolTip(tr("save"));
+    ui->locale_button->setToolTip(tr("switch lang"));
+    ui->about_button->setToolTip(tr("about programm"));
+    ui->settings_button->setToolTip(tr("settings"));
+
+}
+
+void MainWindow::on_locale_button_clicked()
+{
+    if (lang)
+    {
+        switchLanguage("ru.qm");
+        ui->locale_button->setText("🇷🇺");
+        lang = false;
+    }
+    else
+    {
+        switchLanguage("en.qm");
+        ui->locale_button->setText("🇬🇧");
+        lang = true;
+    }
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if (event->key() ==  settings.value("Open").toInt()) on_open_button_clicked();
+    else if (event->key() ==  settings.value("Save").toInt()) on_save_button_clicked();
+    else if (event->key() ==  settings.value("Create").toInt()) on_create_button_clicked();
+    else if (event->key() ==  settings.value("Quit").toInt()) exit(0);
+}
+
+void MainWindow::on_settings_button_clicked()
+{
+    Settings* setWindow = new Settings(this->readSettings());
+    connect(setWindow, SIGNAL(approve_clicked()), this, SLOT(readSettings()));
+    setWindow->setAttribute(Qt::WA_DeleteOnClose);
+    setWindow->setWindowModality(Qt::ApplicationModal);
+    setWindow->show();
+
+}
+
+

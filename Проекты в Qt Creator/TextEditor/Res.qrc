@@ -1,6 +1,10 @@
-<!DOCTYPE RCC>
-<RCC version="1.0">
-    <qresource prefix=".txt">
+<RCC>
+    <qresource prefix="/.txt">
         <file>about.txt</file>
+        <file>config.txt</file>
+    </qresource>
+    <qresource prefix="/.qm">
+        <file>QtLanguage_ru.qm</file>
+        <file>QtLanguage_en.qm</file>
     </qresource>
 </RCC>

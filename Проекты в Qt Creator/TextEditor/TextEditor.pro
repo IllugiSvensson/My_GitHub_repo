@@ -10,13 +10,16 @@ CONFIG += c++14
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    settings.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    settings.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    settings.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -25,3 +28,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     Res.qrc
+
+TRANSLATIONS += QtLanguage_ru.ts QtLanguage_en.ts
+CODECFORSRC = UTF-8

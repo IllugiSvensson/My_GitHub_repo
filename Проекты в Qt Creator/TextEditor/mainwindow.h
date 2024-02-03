@@ -8,6 +8,11 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDir>
+#include <QTranslator>
+#include <QKeyEvent>
+#include <QDialog>
+#include "settings.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -35,6 +40,13 @@ private slots:
     void on_open_button_clicked();
     void on_save_button_clicked();
     void on_about_button_clicked();
+    void on_read_button_clicked();
+    void on_create_button_clicked();
+    void on_locale_button_clicked();
+    void on_settings_button_clicked();
+
+protected slots:
+    QMap<QString, QString> readSettings();
 
 private:
     Ui::MainWindow *ui;
@@ -42,8 +54,14 @@ private:
     QStack<undo_redo> undo;
     QStack<undo_redo> redo;
     qint32 previous_len;
-    bool latch;
+    bool latch = true, lang = true;
     QString previous_txt;
+    QTranslator translator;
+    QMap<QString, QString> settings;
 
+    void switchLanguage(QString language);
+
+protected:
+    virtual void keyReleaseEvent(QKeyEvent *event);
 };
 #endif // MAINWINDOW_H
