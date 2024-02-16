@@ -92,19 +92,20 @@ Local $MainWindow = GUICreate("Оценка качества артефакта"
 				$cd_mult = CheckSlider(GUICtrlRead($TAB, 1) + 31, GUICtrlRead($TAB, 1) + 21)
 
 			Case GUICtrlRead($TAB, 1) + 37
+				$input = SaveInput()
 				$insldr = Check(0)
 				If $insldr[0] = 0 Then BlockColor(0)
 				GUICtrlSetState(GUICtrlRead($TAB, 1) + 37, $GUI_DISABLE)
 				GUICtrlSetState(GUICtrlRead($TAB, 1) + 38, $GUI_DISABLE)
 
 			Case GUICtrlRead($TAB, 1) + 38
+				$input = SaveInput()
 				$insldr = Check(1)
 				If $insldr[0] = 0 Then BlockColor(0)
 				GUICtrlSetState(GUICtrlRead($TAB, 1) + 37, $GUI_DISABLE)
 				GUICtrlSetState(GUICtrlRead($TAB, 1) + 38, $GUI_DISABLE)
 
 			Case GUICtrlRead($TAB, 1) + 39
-				$input = SaveInput()
 				$insldr_tmp = $insldr
 				Result(1, $insldr_tmp[11])
 
