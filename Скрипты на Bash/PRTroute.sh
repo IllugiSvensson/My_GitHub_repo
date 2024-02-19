@@ -22,22 +22,3 @@ iptables -t nat -A POSTROUTING -d $LAN_IP -p tcp -m tcp --dport $SRV_PORT -j SNA
 iptables -t nat -A OUTPUT -d $EXT_IP -p tcp -m tcp --dport $SRV_PORT -j DNAT --to-destination $LAN_IP
 
 iptables -I FORWARD 1 -i $EXT_IF -o $INT_IF -d $LAN_IP -p tcp -m tcp --dport $SRV_PORT -j ACCEPT
-
-#Для того, чтобы работало, нужно добавить в автозапуск
-#Для этого необходимо перейти в /soft/etc/{OBJ}/
-#Открыть файл rc.nita (создать если отсутствует) и вписать/дополнить следующее
-
-# Only LOAD functions on boot
-#function StartingWS()
-#{
-#	case "$MYHOST" in
-#		HOSTNAME)								#HOSTNAME - описан в /soft/HOSTNAME
-#			/soft/scripts/GWroute.sh eth? eth?	#Подставить нужный eth
-#			;;
-
-#}
-
-#Если файл отсутсвует, создать новый и вписать целиком функцию, указав eth
-#Если файл уже есть, найти свой хост нейм и вписать строку с указанием eth
-					#Если хостнейма нет, создать блок case со своим хостнеймом
-#Не забываем раскомментировать строки :)
