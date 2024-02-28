@@ -172,7 +172,7 @@ then
 
 						[[ "$2" = "$old_Config" ]] || {
 
-							mv $base ${2}${bs} 2>>$DATA/syseditor.txt && logger 10 $i $base ${2}${bs} #Переименовываем по шаблону
+							cp $base ${2}${bs} 2>>$DATA/syseditor.txt && logger 10 $i $base ${2}${bs} #Переименовываем по шаблону
 
 						}
 
