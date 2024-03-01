@@ -42,9 +42,9 @@ return app.exec();
 }
 
 static const char *vertexShaderSource =
-   "attribute vec2 input;"
+   "attribute vec2 input1;"
    "void main(){"
-   "gl_Position = vec4(input, 0., 1.0);"
+   "gl_Position = vec4(input1, 0., 1.0);"
    "}";
 
 static const char *fragmentShaderSource =

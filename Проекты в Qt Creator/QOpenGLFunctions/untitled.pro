@@ -22,7 +22,7 @@ SOURCES += \
 HEADERS += \
        mainwindow.h
 
-LIBS +=-lOpenGL32   #Подключаем библиотеку (для ВИН10)
+LIBS +=-lGL  #Подключаем библиотеку (для ВИН10)
 
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin

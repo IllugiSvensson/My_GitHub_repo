@@ -18,7 +18,6 @@ public:
    virtual void render();
    virtual void initialize();
 
-
 public slots:
 
    void renderLater();
