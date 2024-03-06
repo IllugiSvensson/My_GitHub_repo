@@ -1,6 +1,8 @@
 #include "settings.h"
 #include "ui_settings.h"
 #include <iostream>
+
+
 Settings::Settings(QMap<QString, QString> settings, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Settings)

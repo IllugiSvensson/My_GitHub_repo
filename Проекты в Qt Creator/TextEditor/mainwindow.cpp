@@ -133,20 +133,11 @@ void MainWindow::on_redo_button_clicked()
 
 void MainWindow::on_open_button_clicked()
 {
-    QString s = QFileDialog::getOpenFileName(this,tr("Open file"),
-    QDir::current().path(), tr("Text file(*.txt)"));
-    QFile file(s);
-    if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
-    {
-        QTextStream stream(&file);
-        ui->textEdit->setPlainText(stream.readAll());
-        undo.clear();
-        redo.clear();
-        ui->redo_button->setDisabled(1);
-        ui->undo_button->setDisabled(1);
-        ui->textEdit->setReadOnly(false);
-        file.close();
-    }
+    filesystem* FSWindow = new filesystem(false);
+    connect(FSWindow, SIGNAL(approve_clicked(QString, bool)), this, SLOT(openFile(QString, bool)));
+    FSWindow->setAttribute(Qt::WA_DeleteOnClose);
+    FSWindow->setWindowModality(Qt::ApplicationModal);
+    FSWindow->show();
 }
 
 void MainWindow::on_save_button_clicked()
@@ -189,20 +180,11 @@ void MainWindow::on_about_button_clicked()
 
 void MainWindow::on_read_button_clicked()
 {
-    QString s = QFileDialog::getOpenFileName(this,tr("Open file"),
-    QDir::current().path(), tr("Text file(*.txt)"));
-    QFile file(s);
-    if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
-    {
-        QTextStream stream(&file);
-        ui->textEdit->setPlainText(stream.readAll());
-        undo.clear();
-        redo.clear();
-        ui->redo_button->setDisabled(1);
-        ui->undo_button->setDisabled(1);
-        ui->textEdit->setReadOnly(true);
-        file.close();
-    }
+    filesystem* FSWindow = new filesystem(true);
+    connect(FSWindow, SIGNAL(approve_clicked(QString, bool)), this, SLOT(openFile(QString, bool)));
+    FSWindow->setAttribute(Qt::WA_DeleteOnClose);
+    FSWindow->setWindowModality(Qt::ApplicationModal);
+    FSWindow->show();
 }
 
 void MainWindow::on_create_button_clicked()
@@ -260,7 +242,47 @@ void MainWindow::on_settings_button_clicked()
     setWindow->setAttribute(Qt::WA_DeleteOnClose);
     setWindow->setWindowModality(Qt::ApplicationModal);
     setWindow->show();
-
 }
 
+void MainWindow::on_style_button_clicked()
+{
+    if (style)
+    {
+        qApp->setStyleSheet("QMainWindow { background-color: #EFEFEF }"
+                            "QWidget { background-color: #EFEFEF }"
+                            "QLineEdit { background-color: #FFFFFF; color: black }"
+                            "QTextEdit { background-color: #FFFFFF; color: black }"
+                            "QTableWidget { background-color: #FFFFFF; color: black }"
+                            "QPushButton { background-color: #FAFAFA }");
+        ui->style_button->setText("🌚");
+        style = false;
+    }
+    else
+    {
+        qApp->setStyleSheet("QMainWindow { background-color: #4E5754 }"
+                            "QWidget { background-color: #4E5754 }"
+                            "QLineEdit { background-color: #18171C; color: white }"
+                            "QTextEdit { background-color: #18171C; color: white }"
+                            "QTableWidget { background-color: #18171C; color: white }"
+                            "QPushButton { background-color: #A5A5A5 }");
+        ui->style_button->setText("🌝");
+        style = true;
+    }
+}
 
+void MainWindow::openFile(QString p, bool a)
+{
+    QString s = p;
+    QFile file(s);
+    if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
+    {
+        QTextStream stream(&file);
+        ui->textEdit->setPlainText(stream.readAll());
+        undo.clear();
+        redo.clear();
+        ui->redo_button->setDisabled(1);
+        ui->undo_button->setDisabled(1);
+        ui->textEdit->setReadOnly(a);
+        file.close();
+    }
+}

@@ -12,6 +12,7 @@
 #include <QKeyEvent>
 #include <QDialog>
 #include "settings.h"
+#include "filesystem.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -44,6 +45,8 @@ private slots:
     void on_create_button_clicked();
     void on_locale_button_clicked();
     void on_settings_button_clicked();
+    void on_style_button_clicked();
+    void openFile(QString p, bool a);
 
 protected slots:
     QMap<QString, QString> readSettings();
@@ -54,11 +57,10 @@ private:
     QStack<undo_redo> undo;
     QStack<undo_redo> redo;
     qint32 previous_len;
-    bool latch = true, lang = true;
+    bool latch = true, lang = true, style = false;
     QString previous_txt;
     QTranslator translator;
     QMap<QString, QString> settings;
-
     void switchLanguage(QString language);
 
 protected:
