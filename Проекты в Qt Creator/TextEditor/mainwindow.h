@@ -13,6 +13,10 @@
 #include <QDialog>
 #include "settings.h"
 #include "filesystem.h"
+#include <QMenu>
+#include <QMenuBar>
+#include <QPrinter>
+#include <QPrintDialog>
 
 
 QT_BEGIN_NAMESPACE
@@ -47,6 +51,7 @@ private slots:
     void on_settings_button_clicked();
     void on_style_button_clicked();
     void openFile(QString p, bool a);
+    void printToFile();
 
 protected slots:
     QMap<QString, QString> readSettings();

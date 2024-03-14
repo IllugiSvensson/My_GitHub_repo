@@ -12,6 +12,17 @@ MainWindow::MainWindow(QWidget *parent)
     ui->undo_button->setDisabled(1);
     ui->redo_button->setDisabled(1);
     settings = readSettings();
+
+    QMenu *filemenu = menuBar()->addMenu("File");
+    QAction *create = filemenu->addAction("Create");
+    QAction *open = filemenu->addAction("Open");
+    QAction *save = filemenu->addAction("Save");
+    QAction *prnt = filemenu->addAction("Print");
+    connect(create, SIGNAL(triggered(bool)), this, SLOT(on_create_button_clicked()));
+    connect(open, SIGNAL(triggered(bool)), this, SLOT(on_open_button_clicked()));
+    connect(save, SIGNAL(triggered(bool)), this, SLOT(on_save_button_clicked()));
+    connect(prnt, SIGNAL(triggered(bool)), this, SLOT(printToFile()));
+
 }
 
 MainWindow::~MainWindow()
@@ -21,7 +32,7 @@ MainWindow::~MainWindow()
 
 QMap<QString, QString> MainWindow::readSettings()
 {
-    QFile file("/home/sad/Projects/Qt_Prj/untitled/config.txt");
+    QFile file(":/.txt/config.txt");
     if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
     {
         QTextStream stream(&file);
@@ -285,4 +296,13 @@ void MainWindow::openFile(QString p, bool a)
         ui->textEdit->setReadOnly(a);
         file.close();
     }
+}
+
+void MainWindow::printToFile()
+{
+    QPrinter printer;
+    QPrintDialog dlg(&printer, this);
+    dlg.setWindowTitle("Print");
+    if(dlg.exec() != QDialog::Accepted) return;
+    ui->textEdit->print(&printer);
 }

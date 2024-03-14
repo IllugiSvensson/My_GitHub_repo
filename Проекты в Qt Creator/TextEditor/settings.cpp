@@ -37,7 +37,7 @@ void Settings::initialTable(QMap<QString, QString> strL)
 
 void Settings::on_approve_clicked()
 {
-    QFile file("/home/sad/Projects/Qt_Prj/untitled/config.txt");
+    QFile file(":/.txt/config.txt");
     if (file.open(QFile::WriteOnly))
     {
         QTextStream stream(&file);
