@@ -17,6 +17,8 @@
 #include <QMenuBar>
 #include <QPrinter>
 #include <QPrintDialog>
+#include <QMdiSubWindow>
+#include <QTextEdit>
 
 
 QT_BEGIN_NAMESPACE
@@ -28,6 +30,16 @@ struct undo_redo
     QString value;
     qint32 index;
     bool direct;
+};
+
+struct curWindow
+{
+    QTextEdit *text;
+    QString previous_txt;
+    qint32 previous_len;
+    bool latch;
+    QStack<undo_redo> undo;
+    QStack<undo_redo> redo;
 };
 
 class MainWindow : public QMainWindow
@@ -52,18 +64,19 @@ private slots:
     void on_style_button_clicked();
     void openFile(QString p, bool a);
     void printToFile();
+    void on_mdiArea_subWindowActivated(QMdiSubWindow *arg1);
+    void setW(QTextEdit *W);
 
 protected slots:
     QMap<QString, QString> readSettings();
 
 private:
     Ui::MainWindow *ui;
-    undo_redo U_R;
-    QStack<undo_redo> undo;
-    QStack<undo_redo> redo;
-    qint32 previous_len;
-    bool latch = true, lang = true, style = false;
-    QString previous_txt;
+    QTextEdit *textEdit;
+    undo_redo UR;
+    curWindow cW;
+    std::vector<curWindow> Windows;
+    bool lang = true, style = false;
     QTranslator translator;
     QMap<QString, QString> settings;
     void switchLanguage(QString language);

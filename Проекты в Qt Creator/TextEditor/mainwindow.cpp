@@ -1,18 +1,14 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include <iostream>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    previous_len = 0;
-    previous_txt = "";
-    latch = 0;
     ui->undo_button->setDisabled(1);
     ui->redo_button->setDisabled(1);
     settings = readSettings();
-
     QMenu *filemenu = menuBar()->addMenu("File");
     QAction *create = filemenu->addAction("Create");
     QAction *open = filemenu->addAction("Open");
@@ -56,90 +52,157 @@ QMap<QString, QString> MainWindow::readSettings()
 
 void MainWindow::on_textEdit_textChanged()
 {
-    QString txt = ui->textEdit->toPlainText();
-    qint32 current_pos = ui->textEdit->textCursor().position();
+    QString txt = textEdit->toPlainText();
+    qint32 current_pos = textEdit->textCursor().position();
     qint32 current_len = txt.length();
-    if (!latch)
+    if (!cW.latch)
     {
-        if (current_pos && (current_len > previous_len))
+        if (current_pos && (current_len > cW.previous_len))
         {
-            U_R.index = current_pos - (current_len - previous_len);
-            U_R.value = txt.mid(U_R.index, current_len - previous_len);
-            U_R.direct = 1;
-            undo.push(U_R);
-            if (!undo.isEmpty()) ui->undo_button->setDisabled(0);
-            if (!redo.isEmpty())
+            UR.index = current_pos - (current_len - cW.previous_len);
+            UR.value = txt.mid(UR.index, current_len - cW.previous_len);
+            UR.direct = 1;
+            cW.undo.push(UR);
+            if (!cW.undo.isEmpty()) ui->undo_button->setDisabled(0);
+            if (!cW.redo.isEmpty())
             {
                 ui->redo_button->setDisabled(1);
-                redo.clear();
+                cW.redo.clear();
             }
+
         }
-        else if (current_pos >= 0 && (current_len < previous_len))
+        else if (current_pos >= 0 && (current_len < cW.previous_len))
         {
-            U_R.index = current_pos;
-            U_R.value = previous_txt.mid(U_R.index, previous_txt.length() - current_len);
-            U_R.direct = 0;
-            undo.push(U_R);
-            if (!redo.isEmpty())
+            UR.index = current_pos;
+            UR.value = cW.previous_txt.mid(UR.index, cW.previous_txt.length() - current_len);
+            UR.direct = 0;
+            cW.undo.push(UR);
+            if (!cW.redo.isEmpty())
             {
                 ui->redo_button->setDisabled(1);
-                redo.clear();
+                cW.redo.clear();
             }
         }
-        else if (!current_pos && !current_len && previous_txt.length())
+        else if (!current_pos && !current_len && cW.previous_txt.length())
         {
-            U_R.index = 0;
-            U_R.value = previous_txt.mid(U_R.index, previous_txt.length());
-            U_R.direct = 0;
-            undo.push(U_R);
-            if (!redo.isEmpty())
+            UR.index = 0;
+            UR.value = cW.previous_txt.mid(UR.index, cW.previous_txt.length());
+            UR.direct = 0;
+            cW.undo.push(UR);
+            if (!cW.redo.isEmpty())
             {
                 ui->redo_button->setDisabled(1);
-                redo.clear();
+                cW.redo.clear();
             }
         }
-        previous_len = current_len;
-        previous_txt = txt;
+        cW.previous_len = current_len;
+        cW.previous_txt = txt;
     }
-    else latch = 0;
+    else cW.latch = false;
+    setW(cW.text);
 }
 
 void MainWindow::on_undo_button_clicked()
 {
-    undo_redo tmp = undo.pop();
-    latch = 1;
+    undo_redo tmp = cW.undo.pop();
+    cW.latch = true;
     if (tmp.direct)
     {
-        previous_txt.remove(tmp.index, tmp.value.length());
-        ui->textEdit->setText(previous_txt);
+        cW.previous_txt.remove(tmp.index, tmp.value.length());
+        textEdit->setText(cW.previous_txt);
     }
     else
     {
-        previous_txt.insert(tmp.index, tmp.value);
-        ui->textEdit->setText(previous_txt);
+        cW.previous_txt.insert(tmp.index, tmp.value);
+        textEdit->setText(cW.previous_txt);
     }
-    redo.push(tmp);
-    if (undo.isEmpty()) ui->undo_button->setDisabled(1);
-    if (!redo.isEmpty()) ui->redo_button->setDisabled(0);
+    cW.redo.push(tmp);
+    if (cW.undo.isEmpty()) ui->undo_button->setDisabled(1);
+    if (!cW.redo.isEmpty()) ui->redo_button->setDisabled(0);
+    setW(cW.text);
 }
 
 void MainWindow::on_redo_button_clicked()
 {
-    undo_redo tmp = redo.pop();
-    latch = 1;
+    undo_redo tmp = cW.redo.pop();
+    cW.latch = true;
     if (tmp.direct)
     {
-        previous_txt.insert(tmp.index, tmp.value);
-        ui->textEdit->setText(previous_txt);
+        cW.previous_txt.insert(tmp.index, tmp.value);
+        textEdit->setText(cW.previous_txt);
     }
     else
     {
-        previous_txt.remove(tmp.index, tmp.value.length());
-        ui->textEdit->setText(previous_txt);
+        cW.previous_txt.remove(tmp.index, tmp.value.length());
+        textEdit->setText(cW.previous_txt);
     }
-    undo.push(tmp);
-    if (redo.isEmpty()) ui->redo_button->setDisabled(1);
-    if (!undo.isEmpty()) ui->undo_button->setDisabled(0);
+    cW.undo.push(tmp);
+    if (cW.redo.isEmpty()) ui->redo_button->setDisabled(1);
+    if (!cW.undo.isEmpty()) ui->undo_button->setDisabled(0);
+    setW(cW.text);
+}
+
+void MainWindow::on_create_button_clicked()
+{
+    textEdit = new QTextEdit();
+    textEdit->setAttribute(Qt::WA_DeleteOnClose);
+    QMdiSubWindow *subW = new QMdiSubWindow(this);
+    subW->setAttribute(Qt::WA_DeleteOnClose);
+    subW->setWidget(textEdit);
+    ui->mdiArea->addSubWindow(subW);
+    cW.text = textEdit;
+    cW.previous_len = 0;
+    cW.previous_txt = "";
+    cW.latch = false;
+    cW.undo.clear();
+    cW.redo.clear();
+    Windows.push_back(cW);
+    ui->undo_button->setDisabled(1);
+    ui->redo_button->setDisabled(1);
+    textEdit->show();
+}
+
+void MainWindow::openFile(QString p, bool a)
+{
+    QString s = p;
+    QFile file(s);
+    if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
+    {
+        QTextStream stream(&file);
+        on_create_button_clicked();
+        textEdit->setPlainText(stream.readAll());
+        textEdit->setReadOnly(a);
+        file.close();
+    }
+}
+
+void MainWindow::on_mdiArea_subWindowActivated(QMdiSubWindow *arg1)
+{
+    QWidget *a = arg1->widget();
+    textEdit = qobject_cast<QTextEdit*>(a);
+    connect(textEdit, SIGNAL(textChanged()), this, SLOT(on_textEdit_textChanged()));
+    for (int index = 0; index < Windows.size(); ++index)
+    {
+        if (Windows[index].text == textEdit)
+        {
+            cW = Windows[index];
+            if (!cW.redo.isEmpty()) ui->redo_button->setDisabled(0);
+            if (!cW.undo.isEmpty()) ui->undo_button->setDisabled(0);
+            break;
+        }
+    }
+}
+
+void MainWindow::setW(QTextEdit *W)
+{
+    for (int index = 0; index < Windows.size(); ++index)
+    {
+        if (Windows[index].text == W)
+        {
+            Windows[index] = cW;
+            break;
+        }
+    }
 }
 
 void MainWindow::on_open_button_clicked()
@@ -162,13 +225,13 @@ void MainWindow::on_save_button_clicked()
         if (index != -1)
         {
             QTextStream stream(&file);
-            stream << ui->textEdit->toPlainText();
+            stream << textEdit->toPlainText();
         }
         else
         {
             QDataStream stream(&file);
             stream << ui->author_lineEdit->text() << " ";
-            stream << ui->textEdit->toPlainText();
+            stream << textEdit->toPlainText();
         }
         file.close();
     }
@@ -196,14 +259,6 @@ void MainWindow::on_read_button_clicked()
     FSWindow->setAttribute(Qt::WA_DeleteOnClose);
     FSWindow->setWindowModality(Qt::ApplicationModal);
     FSWindow->show();
-}
-
-void MainWindow::on_create_button_clicked()
-{
-    ui->textEdit->setReadOnly(false);
-    ui->textEdit->clear();
-    undo.clear();
-    redo.clear();
 }
 
 void MainWindow::switchLanguage(QString language)
@@ -281,28 +336,11 @@ void MainWindow::on_style_button_clicked()
     }
 }
 
-void MainWindow::openFile(QString p, bool a)
-{
-    QString s = p;
-    QFile file(s);
-    if (file.open(QFile::ReadOnly | QFile::ExistingOnly))
-    {
-        QTextStream stream(&file);
-        ui->textEdit->setPlainText(stream.readAll());
-        undo.clear();
-        redo.clear();
-        ui->redo_button->setDisabled(1);
-        ui->undo_button->setDisabled(1);
-        ui->textEdit->setReadOnly(a);
-        file.close();
-    }
-}
-
 void MainWindow::printToFile()
 {
     QPrinter printer;
     QPrintDialog dlg(&printer, this);
     dlg.setWindowTitle("Print");
     if(dlg.exec() != QDialog::Accepted) return;
-    ui->textEdit->print(&printer);
+    textEdit->print(&printer);
 }
