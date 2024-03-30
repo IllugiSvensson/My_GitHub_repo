@@ -278,7 +278,7 @@ EndFunc
 Func _start($datetime, $parent)
 
 	Local $file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
-	FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\log", $datetime & " Отложенный старт" & @CRLF)
+	FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\log", _NowCalc() & " Отложенный старт" & @CRLF)
 	FileWrite($file, $datetime)
 	FileClose($file)
 
