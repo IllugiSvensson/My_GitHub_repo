@@ -237,9 +237,14 @@ Func SetStartTime($parent)
 				Case $msg = $set_button
 					Local $datetime = _NowCalcDate() & " " & GUICtrlRead($hour_combo) & ":" & GUICtrlRead($minute_combo) & ":" & GUICtrlRead($second_combo)
 					If _DateDiff("s", $datetime, _NowCalc()) < 0 Then
-						MsgBox(64, "Установка времени", "Время не может быть в будущем!", 3, $time_window)
-						$msg = 0
-						ContinueLoop
+						If _start($datetime, $time_window) == 1 Then
+							Local $file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
+							FileWrite($file, _NowCalc())
+							FileClose($file)
+							ExitLoop
+						Else
+							ContinueLoop
+						EndIf
 					EndIf
 					Local $file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
 					FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\log", $datetime & " Отсроченный старт" & @CRLF)
@@ -267,6 +272,54 @@ Func SetStartTime($parent)
 		FileClose($file)
 
 	EndIf
+
+EndFunc
+
+Func _start($datetime, $parent)
+
+	Local $file = FileOpen($profile_path & "\" & GUICtrlRead($profile_combo) & "\time", 2)
+	FileWrite($profile_path & "\" & GUICtrlRead($profile_combo) & "\log", _NowCalc() & " Отложенный старт" & @CRLF)
+	FileWrite($file, $datetime)
+	FileClose($file)
+
+	Local $start_window = GUICreate("Отложенный старт", 200, 120, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST, $parent)
+		Local $progress = GUICtrlCreateProgress(10, 10, 180, 40, $PBS_SMOOTH)
+		Local $diff = 100 / _DateDiff("s", _NowCalc(), $datetime)
+		Local $sum = _DateDiff("s", _NowCalc(), $datetime)
+		Local $set_button = GUICtrlCreateButton("Начать", 10, 60, 100, 30)
+			GUICtrlSetFont(-1, 12, 1000)
+		Local $exit_button = GUICtrlCreateButton("Отмена", 110, 60, 80, 30)
+			GUICtrlSetFont(-1, 12, 1000)
+		Local $timeS = 0, $cnt = 0
+
+		GUISetState()
+		While true
+			Select
+				Case $msg = $set_button
+					GUIDelete()
+					Return 1
+
+				Case $msg = $exit_button
+					GUIDelete()
+					Return 0
+
+			EndSelect
+			If $cnt == 20 Then
+				$cnt = 0
+				$timeS = _DateDiff("s", _NowCalc(), $datetime)
+				GUICtrlSetData($set_button, "Старт: " & $timeS)
+				GUICtrlSetData($progress, ($sum - $timeS) * $diff)
+				If $timeS <= 0 Then
+					GUIDelete()
+					Return 1
+				EndIf
+
+			EndIf
+			Sleep(25)
+			$msg = GUIGetMsg()
+			$cnt = $cnt + 1
+
+		WEnd
 
 EndFunc
 
