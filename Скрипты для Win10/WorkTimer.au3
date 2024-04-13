@@ -147,8 +147,8 @@ $tele_chat_id = StringTrimLeft(FileReader($profile_path & "\other", "Чат"), 4
 $control = StringTrimLeft(FileReader($profile_path & "\other", "Контроль"), 9)
 Global $resolution_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "#[0-9]{1,4}", "")
 Global $resolution_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Разрешение"), 11), "[0-9]{1,4}#", "")
-Global $coordinate_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "#[0-9]{1,4}", "")
-Global $coordinate_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "[0-9]{1,4}#", "")
+Global $coordinate_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "#\-{0,1}[0-9]{1,4}", "")
+Global $coordinate_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Координаты"), 11), "\-{0,1}[0-9]{1,4}#", "")
 Global $position_x = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Позиция"), 8), "#[0-9]{1,4}", "")
 Global $position_y = StringRegExpReplace(StringTrimLeft(FileReader($profile_path & "\geometry", "Позиция"), 8), "[0-9]{1,4}#", "")
 
