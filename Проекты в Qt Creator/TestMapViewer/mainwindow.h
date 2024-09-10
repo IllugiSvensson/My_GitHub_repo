@@ -11,6 +11,8 @@
 #include <QTextEdit>
 #include <QRadioButton>
 #include <QGroupBox>
+#include <QStatusBar>
+
 
 class MainWindow : public QMainWindow
 {
@@ -18,13 +20,15 @@ class MainWindow : public QMainWindow
 
 private:
     QMenu *menu;
+    QStatusBar *statusbar;
     QAction *openTest, *createTest, *editTest;
     QWidget *mainWidget;
     QGridLayout *layout, *boxLayout;
+    QVBoxLayout *vBox;
     QTreeWidget *testMapTree;
     QLineEdit *whatToCheckEdit;
-    QLabel *currentTestMap, *scenarioLabel, *expectedResultLabel, *resultLabel;
-    QTextEdit *scenarioText, *expectedResultText, *resultText;
+    QLabel *currentTestMap;
+    QTextEdit *scenarioText, *expectedResultText, *lastCheckText, *resultText;
     QGroupBox *testResultBox;
     QRadioButton *testNormal, *testWarning, *testError, *testDevelop, *testSkip;
 
@@ -34,5 +38,6 @@ public:
 
 public slots:
     void enableEditing();
+    void setTestStatusIcon();
 };
 

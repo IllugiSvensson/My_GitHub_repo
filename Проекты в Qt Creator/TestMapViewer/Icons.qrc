@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>Resources/TestDevelop.png</file>
+        <file>Resources/TestError.png</file>
+        <file>Resources/TestNormal.png</file>
+        <file>Resources/TestSkip.png</file>
+        <file>Resources/TestWarning.png</file>
+    </qresource>
+</RCC>

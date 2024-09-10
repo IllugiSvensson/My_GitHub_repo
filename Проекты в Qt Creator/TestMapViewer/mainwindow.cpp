@@ -13,10 +13,10 @@ MainWindow::MainWindow(QWidget *parent)
     currentTestMap = new QLabel(this);
     testMapTree = new QTreeWidget(this);
     whatToCheckEdit = new QLineEdit(this);
-    scenarioLabel = new QLabel("Scenario", this);
     scenarioText = new QTextEdit(this);
-    expectedResultLabel = new QLabel("Expected Result", this);
     expectedResultText = new QTextEdit(this);
+    vBox = new QVBoxLayout(this);
+    lastCheckText = new QTextEdit(this);
     boxLayout = new QGridLayout(this);
     testResultBox = new QGroupBox(this);
     testNormal = new QRadioButton(this);
@@ -24,23 +24,24 @@ MainWindow::MainWindow(QWidget *parent)
     testError = new QRadioButton(this);
     testDevelop = new QRadioButton(this);
     testSkip = new QRadioButton(this);
-    resultLabel = new QLabel("Comment", this);
     resultText = new QTextEdit(this);
 
-    layout->addWidget(currentTestMap, 0, 0, 1, 1);
     currentTestMap->setText("TestMap.xml");
-    layout->addWidget(testMapTree, 1, 0, 7, 1);
+    layout->addWidget(testMapTree, 0, 0, 5, 1);
     testMapTree->setHeaderLabel("Test List");
     layout->setHorizontalSpacing(25);
     layout->addWidget(whatToCheckEdit, 0, 1, 1, 1);
     whatToCheckEdit->setText("What to check?");
-    whatToCheckEdit->setEnabled(false);
-    layout->addWidget(scenarioLabel, 1, 1, 1, 1);
+    whatToCheckEdit->setReadOnly(true);
+    layout->addWidget(new QLabel("Scenario", this), 1, 1, 1, 1);
     layout->addWidget(scenarioText, 2, 1, 1, 1);
-    scenarioText->setEnabled(false);
-    layout->addWidget(expectedResultLabel, 3, 1, 1, 1);
+    scenarioText->setReadOnly(true);
+    layout->addWidget(new QLabel("Expected Result", this), 3, 1, 1, 1);
     layout->addWidget(expectedResultText, 4, 1, 1, 1);
-    expectedResultText->setEnabled(false);
+    expectedResultText->setReadOnly(true);
+    vBox->addWidget(new QLabel("Last check result", this));
+    vBox->addWidget(lastCheckText);
+    lastCheckText->setReadOnly(true);
     boxLayout->setAlignment(Qt::AlignCenter);
     boxLayout->setHorizontalSpacing(35);
     boxLayout->addWidget(new QLabel("✅", this), 0, 0, 1, 1);
@@ -55,13 +56,17 @@ MainWindow::MainWindow(QWidget *parent)
     boxLayout->addWidget(testSkip, 1, 4, 1, 1);
     testSkip->setChecked(true);
     testResultBox->setLayout(boxLayout);
-    layout->addWidget(testResultBox, 5, 1, 1, 1);
-    layout->addWidget(resultLabel, 6, 1, 1, 1);
-    layout->addWidget(resultText, 7, 1, 1, 1);
+    vBox->addWidget(testResultBox);
+    vBox->addWidget(new QLabel("Comment", this));
+    vBox->addWidget(resultText);
+    layout->addLayout(vBox, 0, 2, 5, 1);
 
     mainWidget = new QWidget(this);
     mainWidget->setLayout(layout);
     setCentralWidget(mainWidget);
+
+    statusbar = this->statusBar();
+    statusbar->addWidget(currentTestMap);
 
     connect(editTest, &QAction::toggled, this, &MainWindow::enableEditing);
 
@@ -71,14 +76,19 @@ void MainWindow::enableEditing()
 {
     if (editTest->isChecked())
     {
-        whatToCheckEdit->setEnabled(true);
-        scenarioText->setEnabled(true);
-        expectedResultText->setEnabled(true);
+        whatToCheckEdit->setReadOnly(false);
+        scenarioText->setReadOnly(false);
+        expectedResultText->setReadOnly(false);
     } else {
-        whatToCheckEdit->setEnabled(false);
-        scenarioText->setEnabled(false);
-        expectedResultText->setEnabled(false);
+        whatToCheckEdit->setReadOnly(true);
+        scenarioText->setReadOnly(true);
+        expectedResultText->setReadOnly(true);
     }
+
+}
+
+void MainWindow::setTestStatusIcon()
+{
 
 }
 
