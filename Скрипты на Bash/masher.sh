@@ -19,3 +19,5 @@ do
     rm -rf $n/Rects
 
 done
+
+touch /mnt/archive/Camshot/$1
