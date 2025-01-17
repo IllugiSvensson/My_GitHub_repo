@@ -445,7 +445,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 						GUISetState(@SW_MINIMIZE)
 
 					Case $msg = $interval_window_task_button
-						Tasks($interval_window, $s_profile_path, Int($gtm / 60) + $s_past)
+						Tasks($interval_window, $s_profile_path, Int($gtm / 60) + $s_past, $sum_intervals)
 
 					Case $msg = $secundomer_button
 						If GUICtrlRead($secundomer_button) == "⏱" Then
@@ -498,7 +498,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 										SoundPlay("")
 										SoundPlay($s_sound)
 										MsgBox(48 + 262144, "Таймер Задач", "Событие через " & $k & " минут(ы)!" & @CRLF & $st, 3)
-										Tasks($interval_window, $s_profile_path, Int($gtm / 60) + $s_past)
+										Tasks($interval_window, $s_profile_path, Int($gtm / 60) + $s_past, $sum_intervals)
 										ExitLoop
 
 									EndIf
@@ -526,7 +526,7 @@ Func IntervalGUI($s_past, $s_name, $s_duration, $s_sound, $s_profile_path, $nb)
 
 EndFunc
 
-Func Tasks($s_interval_window, $ss_profile_path, $s_com)
+Func Tasks($s_interval_window, $ss_profile_path, $s_com, $sum_intervals)
 
 	Local $task_window = GUICreate("Таймер Задач", 300, 550, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST, $s_interval_window)
 			;Костыль для распознавания ссылок
@@ -559,7 +559,54 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 				ExitLoop
 
 			Case $task_window_remain_time
-				Local $name = "", $time = 0, $text = "", $com = $s_com
+				TimeChecker($task_window, $s_com, $sum_intervals)
+
+			Case $task_window_settings
+				Local $tsk
+				$tsk = StringRegExp($ss_profile_path, "[a-zA-Z]{1,}", 3)
+				Settings($task_window, $ss_profile_path, $tsk[UBound($tsk) - 1])
+
+			Case $task_window_log_button
+				ShellExecute("notepad.exe", $ss_profile_path & "\log")
+
+			Case $task_window_exit_button
+				ExitLoop
+
+		EndSwitch
+
+	WEnd
+	GUIDelete($task_window)
+
+EndFunc
+
+Func TimeChecker($task_window, $s_com, $sum_intervals)
+
+	Local $time_checher = GUICreate("Счетчик Времени", 300, 500, -1, -1, $WS_DLGFRAME, $WS_EX_TOPMOST, $task_window)
+		Local $time_checker_edit = GUICtrlCreateEdit(" ", 10, 10, 280, 320, $ES_MULTILINE + $ES_WANTRETURN + $WS_VSCROLL + $ES_READONLY)
+			GUICtrlSetFont(-1, 14, 1000)
+
+		Local $start_label = GUICtrlCreateLabel("Начало", 10, 340, 80, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+		Local $time_checker_start_hour = GUICtrlCreateInput("Час", 90, 340, 60, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+		Local $time_checker_start_minute = GUICtrlCreateInput("Мин", 160, 340, 60, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+
+		Local $start_label = GUICtrlCreateLabel("Конец", 10, 370, 80, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+		Local $time_checker_stop_hour = GUICtrlCreateInput("Час", 90, 370, 60, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+		Local $time_checker_stop_minute = GUICtrlCreateInput("Мин", 160, 370, 60, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+
+		Local $remain_label = GUICtrlCreateLabel("Остаток: ", 10, 405, 280, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+		Local $time_checker_calc = GUICtrlCreateButton("Посчитать", 10, 435, 100, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+		Local $time_checker_exit = GUICtrlCreateButton("Выход", 190, 435, 100, 30)
+			GUICtrlSetFont(-1, 14, 1000)
+			
+			Local $name = "", $time = 0, $text = "", $com = $s_com, $startHM = 0, $stopHM = 0
 				For $i = 1 To $lines[0]
 
 					$name = StringRegExpReplace($lines[$i], "#[0-9]{1,3}", "")
@@ -581,23 +628,25 @@ Func Tasks($s_interval_window, $ss_profile_path, $s_com)
 					EndIf
 
 				Next
-				MsgBox(64, "Остаток времени", $text, 0, $task_window)
+				GUICtrlSetData($time_checker_edit, $text)
 
-			Case $task_window_settings
-				Local $tsk
-				$tsk = StringRegExp($ss_profile_path, "[a-zA-Z]{1,}", 3)
-				Settings($task_window, $ss_profile_path, $tsk[UBound($tsk) - 1])
+	GUISetState()
+	While true
 
-			Case $task_window_log_button
-				ShellExecute("notepad.exe", $ss_profile_path & "\log")
+		Switch GUIGetMsg()
 
-			Case $task_window_exit_button
+			Case $time_checker_calc
+				$startHM = GUICtrlRead($time_checker_start_hour) * 60 + GUICtrlRead($time_checker_start_minute)
+				$stopHM = GUICtrlRead($time_checker_stop_hour) * 60 + GUICtrlRead($time_checker_stop_minute)
+				GUICtrlSetData($remain_label, "Остаток: " & $stopHM - $startHM - $sum_intervals)
+
+			Case $time_checker_exit
 				ExitLoop
 
 		EndSwitch
 
 	WEnd
-	GUIDelete($task_window)
+	GUIDelete($time_checher)
 
 EndFunc
 
