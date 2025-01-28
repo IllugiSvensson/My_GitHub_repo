@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<n ver="1.1" d="" >
+	<n n="TestObjects" >
+		<n n="dBus Synchronization" _d="TestObjects" >
+			<n n="Test 1" _d="TestName" >
+				<n n="UseCase" v="Start the View, Check the View" />
+				<n n="Expection" v="View is OK" />
+				<n n="PrevResult" v="Normal" />
+				<n n="Result" v="Normal" />
+			</n>
+			<n n="Test 2" >
+				<n n="UseCase" v="Start the Controller, Check the Controller" />
+				<n n="Expection" v="Controller is OK" />
+				<n n="PrevResult" v="Some issues" />
+				<n n="Result" v="Bug" />
+			</n>
+			<n n="Test 3" >
+				<n n="UseCase" v="ReStart the Controller, Check the Controller" />
+				<n n="Expection" v="Restart Controller is OK" />
+				<n n="PrevResult" v="someBugs" />
+				<n n="Result" v="Fault" />
+			</n>
+		</n>
+		<n n="Подсветка увеличенной области" >
+			<n n="Test 1" >
+				<n n="UseCase" v="Включить опцию подсветки области" />
+				<n n="Expection" v="Квадратик на панораме отображается" />
+				<n n="PrevResult" v="Пока в разработке" />
+				<n n="Result" v="Develop" />
+			</n>
+			<n n="Test 2" >
+				<n n="UseCase" v="Запустить опцию в ИК спектре" />
+				<n n="Expection" v="В ИК спектре квадратик отображается корректно" />
+				<n n="PrevResult" v="Не проверялось" />
+				<n n="Result" v="Skip" />
+			</n>
+		</n>
+	</n>
+</n>

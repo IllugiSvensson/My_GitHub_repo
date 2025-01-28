@@ -1,9 +1,9 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>Resources/TestDevelop.png</file>
-        <file>Resources/TestError.png</file>
-        <file>Resources/TestNormal.png</file>
-        <file>Resources/TestSkip.png</file>
-        <file>Resources/TestWarning.png</file>
+        <file>resources/IconRadioDevelop.png</file>
+        <file>resources/IconRadioFault.png</file>
+        <file>resources/IconRadioNormal.png</file>
+        <file>resources/IconRadioSkip.png</file>
+        <file>resources/IconRadioBug.png</file>
     </qresource>
 </RCC>

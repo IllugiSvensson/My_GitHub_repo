@@ -1,24 +1,29 @@
-QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui widgets
 
 CONFIG += c++11
+NITA_LIBS += -lreg_12
 
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+linux* {
+LIBS += -ldl \
+    -lboost_filesystem-mt \
+    -lboost_system-mt \
+}
 
 SOURCES += \
-    main.cpp \
-    mainwindow.cpp
+    $$PWD/src/FileSystem.cpp \
+    $$PWD/src/main.cpp \
+    $$PWD/src/TestMapViewer.cpp
+
 
 HEADERS += \
-    mainwindow.h
+    $$PWD/include/FileSystem.h \
+    $$PWD/include/TestMapViewer.h \
+    $$PWD/include/XmlTree.h
 
-# Default rules for deployment.
-#qnx: target.path = /tmp/$${TARGET}/bin
-#else: unix:!android: target.path = /opt/$${TARGET}/bin
-#!isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
     Icons.qrc
+
+DISTFILES += \
+    PV+PDC.xml \
+    description.txt
