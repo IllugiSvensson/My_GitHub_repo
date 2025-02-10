@@ -7,6 +7,7 @@
 
 struct TestParams
 {
+    std::string strTestlevel = "";
     std::string strUsecase = "";
     std::string strExpection = "";
     std::string strPrevresult = "";
@@ -15,6 +16,7 @@ struct TestParams
 
 struct XmlTree
 {
+    std::string strPathToXml;
     registry::CXMLProxy Proxy;
     QTreeWidgetItem* pRootElement = nullptr;
     registry::CNode nodeTestObjects;

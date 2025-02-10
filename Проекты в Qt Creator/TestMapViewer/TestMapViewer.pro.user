@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 11.0.3, 2025-01-28T14:57:42. -->
+<!-- Written by QtCreator 11.0.3, 2025-02-10T09:28:33. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -232,6 +232,7 @@
     <value type="bool" key="PE.EnvironmentAspect.PrintOnRun">false</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/sad/NitaGit/TestMapViewer/TestMapViewer.pro</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/sad/NitaGit/TestMapViewer/TestMapViewer.pro</value>
+    <value type="QString" key="RunConfiguration.Arguments">--touch_mode</value>
     <value type="bool" key="RunConfiguration.Arguments.multi">true</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>

@@ -2,19 +2,22 @@
 <n ver="1.1" d="" >
 	<n n="TestObjects" >
 		<n n="dBus Synchronization" _d="TestObjects" >
-			<n n="Test 1" _d="TestName" >
+			<n n="Check Synchronization" _d="TestName" >
+				<n n="TestLevel" v="Base" />
 				<n n="UseCase" v="Start the View, Check the View" />
 				<n n="Expection" v="View is OK" />
 				<n n="PrevResult" v="Normal" />
 				<n n="Result" v="Normal" />
 			</n>
-			<n n="Test 2" >
+			<n n="Check controller" >
+				<n n="TestLevel" v="Advance" />
 				<n n="UseCase" v="Start the Controller, Check the Controller" />
 				<n n="Expection" v="Controller is OK" />
 				<n n="PrevResult" v="Some issues" />
 				<n n="Result" v="Bug" />
 			</n>
-			<n n="Test 3" >
+			<n n="Check restart" >
+				<n n="TestLevel" v="Normal" />
 				<n n="UseCase" v="ReStart the Controller, Check the Controller" />
 				<n n="Expection" v="Restart Controller is OK" />
 				<n n="PrevResult" v="someBugs" />
@@ -22,16 +25,18 @@
 			</n>
 		</n>
 		<n n="Подсветка увеличенной области" >
-			<n n="Test 1" >
+			<n n="Проверка работы опции" >
+				<n n="TestLevel" v="Base" />
 				<n n="UseCase" v="Включить опцию подсветки области" />
 				<n n="Expection" v="Квадратик на панораме отображается" />
-				<n n="PrevResult" v="Пока в разработке" />
+				<n n="PrevResult" v="2025-Feb-06 12:46:31\x0ADevelop" />
 				<n n="Result" v="Develop" />
 			</n>
-			<n n="Test 2" >
+			<n n="Проверка работы в ИК спектре" >
+				<n n="TestLevel" v="Full" />
 				<n n="UseCase" v="Запустить опцию в ИК спектре" />
 				<n n="Expection" v="В ИК спектре квадратик отображается корректно" />
-				<n n="PrevResult" v="Не проверялось" />
+				<n n="PrevResult" v="2025-Feb-06 14:15:18\x0ASkip" />
 				<n n="Result" v="Skip" />
 			</n>
 		</n>
